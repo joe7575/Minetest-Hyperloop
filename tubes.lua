@@ -19,7 +19,8 @@ local function scan_neighbours(pos)
     --  0, nodes    - no node available
     --  1, nodes    - one tube1 available
     --  3, nodes    - two tube1 available
-    --  4, nodes    - invalid position
+    --  4, nodes    - one tube2 available
+    --  5, nodes    - invalid position
     local nodes = {}
     local node, npos, idx
     local res = 0
@@ -27,25 +28,25 @@ local function scan_neighbours(pos)
         npos = vector.add(pos, dir)
         node = minetest.get_node(npos)
         if string.find(node.name, "hyperloop:tube") then
+            node.pos = npos
+            table.insert(nodes, node)
             idx = string.byte(node.name, -1) - 48
-            if idx == 0 then    -- starter tube node?
+            if idx == 0 then        -- starter tube node?
                 idx = 1
-            elseif
-            idx == 2 then       -- normal tube node
+            elseif idx == 2 then    -- normal tube node?
                 return 4, nodes
             end
             res = res * 2 + idx
             if res > 3 then
-                return 4, nodes
+                return 5, nodes
             end
-            node.pos = npos
-            table.insert(nodes, node)
         end
     end
     return res, nodes
 end
 
 local function degrade_tupe_node(node)
+    print("degrade_tupe_node"..node.name)
     if node.name == "hyperloop:tube0" then
         node.name = "hyperloop:tube1"
     elseif node.name == "hyperloop:tube1" then
@@ -110,8 +111,11 @@ local function link_node(node, node1, node2)
     -- exchange position data
     meta_rmt2:set_string("remote", meta_rmt1:get_string("local"))
     meta_rmt1:set_string("remote", meta_rmt2:get_string("local"))
-    -- degrade all three nodes
-    degrade_tupe_node(node)
+    -- set to tube2
+    node.name = "hyperloop:tube2"
+    node.diggable = true
+    minetest.swap_node(node.pos, node)
+     -- degrade both nodes
     degrade_tupe_node(node1)
     degrade_tupe_node(node2)
 end
@@ -125,7 +129,7 @@ end
 
 -- simple tube without logic or "memory"
 minetest.register_node("hyperloop:tube2", {
-	description = "Hyperloop Tube",
+	description = "Hyperloop Tube 2",
 	tiles = {
 		{
 			name = "hyperloop_tube_red.png",
@@ -147,7 +151,7 @@ minetest.register_node("hyperloop:tube2", {
 -- single-node and head-node with meta info about the counter part node
 for idx = 0,1 do
     minetest.register_node("hyperloop:tube"..idx, {
-        description = "Hyperloop Tube",
+        description = "Hyperloop Tube "..idx,
         tiles = {
             {
                 name = "hyperloop_tube_green.png",
@@ -162,6 +166,7 @@ for idx = 0,1 do
 
         after_place_node = function(pos, placer, itemstack, pointed_thing)
             local res, nodes = scan_neighbours(pos)
+            minetest.chat_send_player(placer:get_player_name(), "res="..res)
             local node = minetest.get_node(pos)
             node.pos = pos
             hyperloop.dbg_nodes(nodes)-------------------------------------
@@ -170,6 +175,7 @@ for idx = 0,1 do
             elseif res == 1 then        -- one neighbor available?
                 head_node(node, nodes[1])
             elseif res == 3 then        -- two neighbours available?
+                minetest.chat_send_player(placer:get_player_name(), "two neighbours")
                 link_node(node, nodes[1], nodes[2])
             else                        -- invalid position
                 minetest.chat_send_player(placer:get_player_name(), "Invalid tube block position")
@@ -180,7 +186,8 @@ for idx = 0,1 do
         on_destruct = function(pos)
             print("on_destruct")------------------------------
             local res, nodes = scan_neighbours(pos)
-            if res == 1 then
+            print("res="..res.." nodes="..dump(nodes))------------------------------
+            if res == 4 then
                 upgrade_node(pos, nodes[1])
             end
         end,
