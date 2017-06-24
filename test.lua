@@ -165,6 +165,7 @@ res = hyperloop.get_stations(table.copy(hyperloop.tAllStations), "Düsseldorf", 
 
 local function final_formspec(name)
 	local stations = hyperloop.get_stations(table.copy(hyperloop.tAllStations), name, {})
+	table.sort(stations)
 	local tRes = {"size[10,9]label[3,0;Wähle dein Ziel / Select your destination]"}
 	for idx,s in ipairs(stations) do
 		if idx < 9 then

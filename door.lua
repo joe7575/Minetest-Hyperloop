@@ -86,7 +86,7 @@ minetest.register_node("hyperloop:doorBottom", {
 })
 
 minetest.register_node("hyperloop:doorframe", {
-	description = "Hyperloop Doorframe",
+	description = "Hyperloop Pod Doorframe",
 	tiles = {
         -- up, down, right, left, back, front
   	    "hyperloop_skin_door.png^[transformR90]",
