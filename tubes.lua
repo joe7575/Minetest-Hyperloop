@@ -137,6 +137,14 @@ local function remove_node(pos, node)
 	minetest.swap_node(pos, node)
 end
 
+local function punch_junction(pos)
+	local res, nodes = hyperloop.scan_for_nodes(pos, "hyperloop:junction")
+	for _,node in ipairs(nodes) do
+		print(dump(node.pos))
+		minetest.punch_node(node.pos)
+	end
+end	
+	
 -- simple tube without logic or "memory"
 minetest.register_node("hyperloop:tube2", {
 		description = "Hyperloop Tube",
@@ -193,6 +201,7 @@ for idx = 0,1 do
 				-- for debugging purposes
 				local meta = minetest.get_meta(pos)
 				meta:set_string("infotext", meta:get_string("local").." => "..meta:get_string("remote"))
+				punch_junction(pos)
 			end,
 
 			on_destruct = function(pos)
@@ -200,19 +209,13 @@ for idx = 0,1 do
 				if res == 4 then
 					upgrade_node(pos, nodes[1])
 				end
+				punch_junction(pos)
 			end,
 
 			-- wake up station node so that it updates its dataset
 			on_punch = function(pos, node, puncher, pointed_thing)
 				print("Tube punched")
-				local res, nodes = hyperloop.scan_for_nodes(pos, "hyperloop:junction")
-				for _,node in ipairs(nodes) do
-					print(dump(node.pos))
-					minetest.punch_node(node.pos)
-				-- for debugging purposes
-				local meta = minetest.get_meta(pos)
-				meta:set_string("infotext", meta:get_string("local").." => "..meta:get_string("remote"))
-				end
+				punch_junction(pos)
 			end,
 
 			paramtype2 = "facedir",

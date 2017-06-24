@@ -132,7 +132,6 @@ function hyperloop.get_station(tStations, rev_route)
 	for station,dataSet in pairs(tStations) do
 		print(station)
 		for _,route in ipairs(dataSet["routes"]) do
-			print("get_station "..rev_route[1].." "..route[1].." "..rev_route[2].." "..route[2])
 			if rev_route[1] == route[1] and rev_route[2] == route[2] then
 				return station
 			end
