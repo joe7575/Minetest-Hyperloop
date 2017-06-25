@@ -13,15 +13,23 @@
 
 ]]--
 
-
-
-local function final_formspec(name)
+-- return a sorted list with station names from the same network as the given station
+local function get_station_list(name)
 	local stations = hyperloop.get_stations(table.copy(hyperloop.tAllStations), name, {})
 	if stations == nil then
 		return nil
 	end
 	table.sort(stations)
-	local tRes = {"size[10,9]label[2,0; Abfahrt ".. name ..": Wähle dein Ziel\nDeparture ".. name .. ": Select your destination]"}
+	return stations
+end
+
+-- Form spec for the station list
+-- param name: local station name
+-- param stations: station name list
+local function formspec(name, stations)
+	local tRes = {"size[10,9]label[2,0; Abfahrt ".. name ..": Wähle dein Ziel\nDeparture ".. 
+		name .. ": Select your destination]"}
+	local pos1, pos2
 	for idx,s in ipairs(stations) do
 		if idx < 9 then
 			pos1 = "0,"..idx
@@ -59,45 +67,52 @@ minetest.register_node("hyperloop:order", {
 
 		on_receive_fields = function(pos, formname, fields, player)
 			local meta = minetest.get_meta(pos)
+			-- station name entered?
 			if fields.name ~= nil then
-				if hyperloop.tAllStations ~= nil and hyperloop.tAllStations[fields.name] ~= nil then
-					local station_pos = minetest.string_to_pos(hyperloop.tAllStations[fields.name].pos)
+				local station_name = string.trim(fields.name)
+				if station_name == "" then
+					return
+				end
+				-- valid name entered?
+				if hyperloop.tAllStations[station_name] ~= nil then
+					if hyperloop.tAllStations[station_name]["automat_pos"] ~= nil then
+						minetest.chat_send_player(player:get_player_name(), 
+							"Error: Station already has an order automat!")
+						return
+					end
+					-- check distance to the named station
+					local station_pos = minetest.string_to_pos(hyperloop.tAllStations[station_name].pos)
 					if hyperloop.distance(pos, station_pos) > 30 then
 						minetest.chat_send_player(player:get_player_name(), "Error: station too far away!")
 						return
 					end
-					hyperloop.tAllStations[fields.name]["automat_pos"] = pos
-					meta:set_string("station_name", fields.name)
-					meta:set_string("infotext", "Station: "..fields.name)
-					meta:set_string("formspec", final_formspec(fields.name))
+					-- store meta and generate station formspec
+					local stations = get_station_list(station_name)
+					hyperloop.tAllStations[station_name]["automat_pos"] = pos
+					meta:set_string("station_name", station_name)
+					meta:set_string("infotext", "Station: "..station_name)
+					meta:set_string("formspec", formspec(station_name, stations))
 				else
 					minetest.chat_send_player(player:get_player_name(), "Error: Invalid station name!")
 				end
+			-- destination selected?
 			elseif fields.button ~= nil then
 				local station_name = meta:get_string("station_name")
-				local stations = hyperloop.get_stations(table.copy(hyperloop.tAllStations), station_name, {})
-				table.sort(stations)
 				-- place order
 				local idx = tonumber(fields.button)
-				print(station_name .. ":" .. stations[idx])
-				hyperloop.order[station_name] = stations[idx]
+				local destination = get_station_list(station_name)[idx]
+				print(station_name .. ":" .. destination)
+				hyperloop.order[station_name] = destination
 			end
 		end,
 
 		on_destruct = function(pos)
 			local meta = minetest.get_meta(pos)
 			local station_name = meta:get_string("station_name")
-			if hyperloop.tAllStations ~= nil and hyperloop.tAllStations[station_name.name] ~= nil
-			and hyperloop.tAllStations[station_name.name]["automat_pos"] ~= nil then
+			if hyperloop.tAllStations[station_name] ~= nil 
+			and hyperloop.tAllStations[station_name]["automat_pos"] ~= nil then
 				hyperloop.tAllStations[station_name]["automat_pos"] = nil
 			end
-		end,
-		
-		on_punch = function(pos)
-			local meta = minetest.get_meta(pos)
-			local station_name = meta:get_string("station_name")
-			meta:set_string("infotext", "Station: "..station_name)
-			meta:set_string("formspec", final_formspec(station_name))
 		end,
 		
 		paramtype2 = "facedir",

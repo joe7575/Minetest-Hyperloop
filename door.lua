@@ -13,6 +13,55 @@
 
 ]]--
 
+-- Open/close/animate the pod door
+-- seat_pos: position of the seat
+-- facedir: direction to the display
+-- cmnd: "close", "open", or "animate"
+function hyperloop.door_command(seat_pos, facedir, cmnd)
+    -- one step forward
+    local lcd_pos = vector.add(seat_pos, hyperloop.facedir2dir(facedir))
+    -- one step left
+    local door_pos1 = vector.add(lcd_pos, hyperloop.facedir2dir(facedir + 1))
+    -- one step up
+    local door_pos2 = vector.add(door_pos1, {x=0, y=1, z=0})
+
+    local node1 = minetest.get_node(door_pos1)
+    local node2 = minetest.get_node(door_pos2)
+
+    -- switch from the radian following facedir to the silly original one
+    local tbl = {[0]=0, [1]=3, [2]=2, [3]=1}
+    facedir = (facedir + 3) % 4   -- first turn left
+    facedir = tbl[facedir]
+    
+    if cmnd == "open" then
+		minetest.sound_play("door", {
+			pos = seat_pos,
+			gain = 0.5,
+			max_hear_distance = 2,
+		})
+        node1.name = "air"
+        minetest.swap_node(door_pos1, node1)
+        node2.name = "air"
+        minetest.swap_node(door_pos2, node2)
+    elseif cmnd == "close" then
+		minetest.sound_play("door", {
+			pos = seat_pos,
+			gain = 0.5,
+			max_hear_distance = 2,
+		})
+        node1.name = "hyperloop:doorBottom"
+        node1.param2 = facedir
+        minetest.swap_node(door_pos1, node1)
+        node2.name = "hyperloop:doorTopPassive"
+        node2.param2 = facedir
+        minetest.swap_node(door_pos2, node2)
+    elseif cmnd == "animate" then
+        node2.name = "hyperloop:doorTopActive"
+        node2.param2 = facedir
+        minetest.swap_node(door_pos2, node2)
+    end
+end
+
 minetest.register_node("hyperloop:doorTopPassive", {
 	description = "Hyperloop Door Top",
 	tiles = {

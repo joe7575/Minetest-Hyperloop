@@ -91,7 +91,7 @@ end
 function hyperloop.distance(pos1, pos2)
 	pos1 = vector.floor(pos1)
 	pos2 = vector.floor(pos2)
-	return math.abs(pos1.x - pos2.x) + math.abs(pos1.y - pos2.y) + math.abs(pos1.z - pos2.z)
+	return math.abs(pos1.x - pos2.x) + math.abs(pos1.y - pos2.y) + math.abs(pos1.z - pos2.z) - 2
 end
 
 function hyperloop.dbg_nodes(nodes)
@@ -130,7 +130,6 @@ end
 -- Return station name, which matches the given retoure route
 function hyperloop.get_station(tStations, rev_route)
 	for station,dataSet in pairs(tStations) do
-		print(station)
 		for _,route in ipairs(dataSet["routes"]) do
 			if rev_route[1] == route[1] and rev_route[2] == route[2] then
 				return station
@@ -161,7 +160,7 @@ function hyperloop.get_stations(tStations, sStation, tRes)
 	return tRes
 end
 
--- Return a text block with all station names and their direct connections
+-- Return a text block with all station names for the map tool
 function hyperloop.get_stations_as_string(pos)
 	local sortedList = {}
 	local distance = 0

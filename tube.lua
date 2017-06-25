@@ -56,10 +56,18 @@ function hyperloop.scan_neighbours(pos)
 end
 
 
+local function update_junction(pos)
+	local res, nodes = hyperloop.scan_for_nodes(pos, "hyperloop:junction")
+	for _,node in ipairs(nodes) do
+		minetest.registered_nodes["hyperloop:junction"].update(node.pos)
+	end
+end	
+
 -- update head tube meta data
 local function update_node(pos, peer_pos)
 	local meta = minetest.get_meta(minetest.string_to_pos(pos))
 	meta:set_string("peer", peer_pos)
+	update_junction(minetest.string_to_pos(pos))
 	if hyperloop.debugging then
 		meta:set_string("infotext", peer_pos)
 	end
@@ -144,13 +152,6 @@ local function remove_node(pos, node)
 	node.diggable = true
 	minetest.swap_node(pos, node)
 end
-
-local function update_junction(pos)
-	local res, nodes = hyperloop.scan_for_nodes(pos, "hyperloop:junction")
-	for _,node in ipairs(nodes) do
-		minetest.registered_nodes["hyperloop:junction"].update(node.pos)
-	end
-end	
 
 -- simple tube without logic or "memory"
 minetest.register_node("hyperloop:tube2", {

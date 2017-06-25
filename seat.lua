@@ -3,111 +3,31 @@
 	Hyperloop Mod
 	=============
 
-	v0.01 by JoSt
-
 	Copyright (C) 2017 Joachim Stolberg
 
 	LGPLv2.1+
 	See LICENSE.txt for more information
 
-	History:
-	2017-06-18  v0.01  First version
-
 ]]--
 
 
-local function enter_display(pos, text)
-    -- Use LCD from digilines. TODO: Own display
-	if pos == nil then
-		return
-	end
-    local node = minetest.get_node(pos)
-    local spec = digilines.getspec(node)
-    if spec then
-        -- Effector actions --> Receive
-        if spec.effector then
-            spec.effector.action(pos, node, "lcd", text)
-        end
-    end
-end
-
 ----------------------------------------------------------------------------------------------------
--- seat_pos: position of the seat
--- facedir: direction to the display
--- cmnd: "close", "open", or "animate"
-local function door_command(seat_pos, facedir, cmnd)
-    -- one step forward
-    local lcd_pos = vector.add(seat_pos, hyperloop.facedir2dir(facedir))
-    -- one step left
-    local door_pos1 = vector.add(lcd_pos, hyperloop.facedir2dir(facedir + 1))
-    -- one step up
-    local door_pos2 = vector.add(door_pos1, {x=0, y=1, z=0})
-
-    local node1 = minetest.get_node(door_pos1)
-    local node2 = minetest.get_node(door_pos2)
-
-    -- switch from the radian following facedir to the silly original one
-    local tbl = {[0]=0, [1]=3, [2]=2, [3]=1}
-    facedir = (facedir + 3) % 4   -- first turn left
-    facedir = tbl[facedir]
-    
-    if cmnd == "open" then
-        node1.name = "air"
-        minetest.swap_node(door_pos1, node1)
-        node2.name = "air"
-        minetest.swap_node(door_pos2, node2)
-    elseif cmnd == "close" then
-        node1.name = "hyperloop:doorBottom"
-        node1.param2 = facedir
-        minetest.swap_node(door_pos1, node1)
-        node2.name = "hyperloop:doorTopPassive"
-        node2.param2 = facedir
-        minetest.swap_node(door_pos2, node2)
-    elseif cmnd == "animate" then
-        node2.name = "hyperloop:doorTopActive"
-        node2.param2 = facedir
-        minetest.swap_node(door_pos2, node2)
-    end
-end
-
 ----------------------------------------------------------------------------------------------------
 local function on_open_door(pos, facedir)
     -- open the door and play sound
     local meta = minetest.get_meta(pos)
     meta:set_int("arrival_time", 0) -- finished
-
-    -- open the door
-    minetest.sound_play("door", {
-        pos = pos,
-        gain = 0.5,
-        max_hear_distance = 10,
-    })
-    door_command(pos, facedir, "open")
-    
+	-- open door
+    hyperloop.door_command(pos, facedir, "open")
     -- prepare dislay for the next trip
-    local lcd_pos = vector.add(pos,  hyperloop.facedir2dir(facedir))
-    lcd_pos.y = lcd_pos.y + 1
-    --local text = "We will start | in a few | seconds"
-	local text = "Thanks for | travelling | with | Hyperloop."
-    enter_display(lcd_pos, text)
-	-- delete order
-	hyperloop.order = {}
+    hyperloop.enter_display(pos, facedir, "Thanks for | travelling | with | Hyperloop.")
 end
 
 ----------------------------------------------------------------------------------------------------
 local function on_arrival(player, src_pos, dst_pos, snd, radiant)
-    -- open the door an the departure station
-    local meta = minetest.get_meta(src_pos)
+    -- get pos from arrival station
+    local meta = minetest.get_meta(dst_pos)
     local facedir = meta:get_int("facedir")
-    door_command(src_pos, facedir, "open")
-
-    -- get coords from arrival station
-    meta = minetest.get_meta(dst_pos)
-    facedir = meta:get_int("facedir")
-    --print("on_arrival "..dump(dst_pos))----------------------------------------------
-
-    -- close the door at arrival station
-    door_command(dst_pos, facedir, "close")
     
     -- move player to the arrival station
     player:setpos(dst_pos)
@@ -125,18 +45,20 @@ local function on_arrival(player, src_pos, dst_pos, snd, radiant)
         max_hear_distance = 10
     })
     -- activate display
-    local lcd_pos = vector.add(dst_pos,  hyperloop.facedir2dir(facedir))
-    lcd_pos.y = lcd_pos.y + 1
-    --print("LCD "..dump(pos)..dump(lcd_pos))
 	local station_name = meta:get_string("station_name")
     local text = "Wellcome in | | "..station_name
-    enter_display(lcd_pos, text)
+    hyperloop.enter_display(dst_pos, facedir, text)
 
+    -- open the door an the departure station
+    local dep_meta = minetest.get_meta(src_pos)
+    local dep_facedir = dep_meta:get_int("facedir")
+    hyperloop.door_command(src_pos, dep_facedir, "open")
+	
     minetest.after(6.0, on_open_door, dst_pos, facedir)
 end
 
 ----------------------------------------------------------------------------------------------------
-local function on_travel(src_pos, facedir, player, dst_pos, radiant)
+local function on_travel(src_pos, facedir, player, dst_pos, radiant, atime)
     -- play sound and switch door state
     -- radiant is the player look direction at departure
     local snd = minetest.sound_play("normal2", {
@@ -145,8 +67,8 @@ local function on_travel(src_pos, facedir, player, dst_pos, radiant)
         max_hear_distance = 1,
         loop = true,
     })
-    door_command(src_pos, facedir, "animate")
-    minetest.after(6.0, on_arrival, player, src_pos, dst_pos, snd, radiant)
+    hyperloop.door_command(src_pos, facedir, "animate")
+    minetest.after(atime, on_arrival, player, src_pos, dst_pos, snd, radiant)
 end
 
 ----------------------------------------------------------------------------------------------------
@@ -154,29 +76,26 @@ local function display_timer(pos, elapsed)
     -- update display with trip data
     local meta = minetest.get_meta(pos)
     local atime = meta:get_int("arrival_time") - 1
+	print("Timer".. atime)
     meta:set_int("arrival_time", atime)
-    local lcd_pos = minetest.string_to_pos(meta:get_string("lcd_pos"))
+    local facedir = meta:get_int("facedir")
     local text = meta:get_string("lcd_text")
     if atime > 0 then
-        enter_display(lcd_pos, text..atime.." sec")
+        hyperloop.enter_display(pos, facedir, text..atime.." sec")
         return true
     else
-        enter_display(lcd_pos, "We will start | in a view | minutes..")
+        hyperloop.enter_display(pos, facedir, "We will start | in a view | minutes..")
         return false
     end
 end
 
 
 ----------------------------------------------------------------------------------------------------
+-- place the player, close the door, activate display
 local function on_start_travel(pos, node, clicker)
-    -- place the player, close the door, activate display
-	print("on_start_travel")
+	-- local data
     local meta = minetest.get_meta(pos)
     local facedir = meta:get_int("facedir")
---    if meta:get_int("arrival_time") ~= 0 then
---		minetest.chat_send_player(clicker:get_player_name(), "Error: arrival_time > 0!")
---        return
---    end
 	local station_name = meta:get_string("station_name")
     if station_name == nil then
 		minetest.chat_send_player(clicker:get_player_name(), "Error: station_name == nil!")
@@ -187,51 +106,51 @@ local function on_start_travel(pos, node, clicker)
 		minetest.chat_send_player(clicker:get_player_name(), "Error: No order entered!")
 		return
 	end
-	local dataSet = hyperloop.tAllStations[order]
+	
+	local dataSet = table.copy(hyperloop.tAllStations[order])
+	-- delete order
+	hyperloop.order[station_name] = nil
 	if dataSet == nil then
 		return
 	end
-    local target_coords = minetest.string_to_pos(dataSet.pos)
+	
+    -- destination data od the station
+    local dest_pos = minetest.string_to_pos(dataSet.pos)
+	local dest_meta = minetest.get_meta(dest_pos)
+	local dest_name = dest_meta:get_string("station_name")
 	-- seat is on top of the station block
-	target_coords = vector.add(target_coords, {x=0,y=1,z=0})
+	dest_pos = vector.add(dest_pos, {x=0,y=1,z=0})
+	dest_meta = minetest.get_meta(dest_pos)
+	local dest_facedir = dest_meta:get_int("facedir")
+	
     minetest.sound_play("up2", {
         pos = pos,
         gain = 0.5,
         max_hear_distance = 10
     })
+    -- close the door at arrival station
+	print("dest_facedir "..dest_facedir)
+    hyperloop.door_command(dest_pos, dest_facedir, "close")
     -- place player on the seat
     clicker:setpos(pos)
     -- rotate player to look in move direction
     clicker:set_look_horizontal(hyperloop.facedir2rad(facedir))
 
     -- activate display
-    local lcd_pos = vector.add(pos, hyperloop.facedir2dir(facedir))
-    lcd_pos.y = lcd_pos.y + 1
-    --print("LCD "..dump(pos)..dump(lcd_pos))
-	meta = minetest.get_meta(target_coords)
-	local dest = meta:get_string("station_name")
-    local text = "Next stop: | "..dest.." | Dist: 2.2km | Arrival in: | "
-    local atime = 15
-    enter_display(lcd_pos, text..atime.." sec")
+	local dist = hyperloop.distance(pos, dest_pos) 
+    local text = "Destination | "..dest_name.." | Dist: "..dist.." | Arrival in: | "
+    local atime = 10 + math.floor(dist/200)
+    hyperloop.enter_display(pos, dest_facedir, text..atime.." sec")
     
     -- store some data
     meta:set_int("arrival_time", atime)
-    meta:set_string("lcd_pos", minetest.pos_to_string(lcd_pos))
-    meta:set_string("lcd_text", text)
     meta:set_string("lcd_text", text)
     minetest.get_node_timer(pos):start(1.0)
     
-    --print("on_rightclick "..dump(pos))----------------------------------------------
+    hyperloop.door_command(pos, facedir, "close")
 
-    -- close the door
-    minetest.sound_play("door", {
-        pos = pos,
-        gain = 0.5,
-        max_hear_distance = 10,
-    })
-    door_command(pos, facedir, "close")
-
-    minetest.after(4.9, on_travel, pos, facedir, clicker, target_coords, hyperloop.facedir2rad(facedir))
+	atime = atime - 9 -- substract start/arrival time
+    minetest.after(4.9, on_travel, pos, facedir, clicker, dest_pos, hyperloop.facedir2rad(facedir), atime)
 end
 
 -- Hyperloop Seat
@@ -249,7 +168,6 @@ minetest.register_node("hyperloop:seat", {
 	paramtype2 = "facedir",
 	is_ground_content = false,
     walkable = false,
-	--description = S("Hyperloop Pad (place and right-click to enchant location)"),
 	groups = {snappy = 3},
 	node_box = {
 		type = "fixed",
@@ -279,7 +197,7 @@ minetest.register_node("hyperloop:seat", {
 		local facedir = hyperloop.rad2facedir(yaw)
         -- do a 180 degree correction
 		meta:set_int("facedir", (facedir + 2) % 4)
-        --print("on_construct "..dump(pos))----------------------------------------------
+        print("facedir "..(facedir + 2) % 4)----------------------------------------------
 		-- store station name locally
 		local pos2 = vector.add(pos, {x=0, y=-1, z=0})
 		local meta2 = minetest.get_meta(pos2)
