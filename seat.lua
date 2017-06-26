@@ -46,7 +46,7 @@ local function on_arrival(player, src_pos, dst_pos, snd, radiant)
     })
     -- activate display
 	local station_name = meta:get_string("station_name")
-    local text = "Wellcome in | | "..station_name
+    local text = " | Wellcome in | | "..station_name
     hyperloop.enter_display(dst_pos, facedir, text)
 
     -- open the door an the departure station
@@ -139,7 +139,7 @@ local function on_start_travel(pos, node, clicker)
 
     -- activate display
 	local dist = hyperloop.distance(pos, dest_pos) 
-    local text = "Destination: | "..dest_name.." | Dist: "..dist.." | Arrival in: | "
+    local text = "Destination: | "..dest_name.." | Distance: | "..dist.." m | Arrival in: | "
     local atime = 10 + math.floor(dist/200)
     hyperloop.enter_display(pos, dest_facedir, text..atime.." sec")
     

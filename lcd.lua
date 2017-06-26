@@ -11,7 +11,7 @@
 ]]--
 
 -- load characters map
-local chars_file = io.open(minetest.get_modpath("digilines").."/characters", "r")
+local chars_file = io.open(minetest.get_modpath("hyperloop").."/characters.data", "r")
 local charmap = {}
 local max_chars = 16
 if not chars_file then
