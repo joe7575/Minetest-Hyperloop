@@ -75,9 +75,9 @@ minetest.register_node("hyperloop:order", {
 				end
 				-- valid name entered?
 				if hyperloop.tAllStations[station_name] ~= nil then
-					if hyperloop.tAllStations[station_name]["automat_pos"] ~= nil then
+					if hyperloop.tAllStations[station_name]["order_pos"] ~= nil then
 						minetest.chat_send_player(player:get_player_name(), 
-							"Error: Station already has an order automat!")
+							"Error: Station already has an order machine!")
 						return
 					end
 					-- check distance to the named station
@@ -88,7 +88,7 @@ minetest.register_node("hyperloop:order", {
 					end
 					-- store meta and generate station formspec
 					local stations = get_station_list(station_name)
-					hyperloop.tAllStations[station_name]["automat_pos"] = pos
+					hyperloop.tAllStations[station_name]["order_pos"] = pos
 					meta:set_string("station_name", station_name)
 					meta:set_string("infotext", "Station: "..station_name)
 					meta:set_string("formspec", formspec(station_name, stations))
@@ -101,7 +101,6 @@ minetest.register_node("hyperloop:order", {
 				-- place order
 				local idx = tonumber(fields.button)
 				local destination = get_station_list(station_name)[idx]
-				print(station_name .. ":" .. destination)
 				hyperloop.order[station_name] = destination
 			end
 		end,
@@ -110,9 +109,19 @@ minetest.register_node("hyperloop:order", {
 			local meta = minetest.get_meta(pos)
 			local station_name = meta:get_string("station_name")
 			if hyperloop.tAllStations[station_name] ~= nil 
-			and hyperloop.tAllStations[station_name]["automat_pos"] ~= nil then
-				hyperloop.tAllStations[station_name]["automat_pos"] = nil
+			and hyperloop.tAllStations[station_name]["order_pos"] ~= nil then
+				hyperloop.tAllStations[station_name]["order_pos"] = nil
 			end
+		end,
+		
+		update = function(pos)
+			if hyperloop.debugging then
+				print("Order machine update")
+			end
+			local meta = minetest.get_meta(pos)
+			local station_name = meta:get_string("station_name")
+			local stations = get_station_list(station_name)
+			meta:set_string("formspec", formspec(station_name, stations))
 		end,
 		
 		paramtype2 = "facedir",

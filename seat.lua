@@ -20,7 +20,7 @@ local function on_open_door(pos, facedir)
 	-- open door
     hyperloop.door_command(pos, facedir, "open")
     -- prepare dislay for the next trip
-    hyperloop.enter_display(pos, facedir, "Thanks for | travelling | with | Hyperloop.")
+    hyperloop.enter_display(pos, facedir, "Thank you | for | travelling | with | Hyperloop.")
 end
 
 ----------------------------------------------------------------------------------------------------
@@ -76,7 +76,9 @@ local function display_timer(pos, elapsed)
     -- update display with trip data
     local meta = minetest.get_meta(pos)
     local atime = meta:get_int("arrival_time") - 1
-	print("Timer".. atime)
+	if hyperloop.debugging then
+		print("Timer".. atime)
+	end
     meta:set_int("arrival_time", atime)
     local facedir = meta:get_int("facedir")
     local text = meta:get_string("lcd_text")
@@ -129,7 +131,6 @@ local function on_start_travel(pos, node, clicker)
         max_hear_distance = 10
     })
     -- close the door at arrival station
-	print("dest_facedir "..dest_facedir)
     hyperloop.door_command(dest_pos, dest_facedir, "close")
     -- place player on the seat
     clicker:setpos(pos)
@@ -138,7 +139,7 @@ local function on_start_travel(pos, node, clicker)
 
     -- activate display
 	local dist = hyperloop.distance(pos, dest_pos) 
-    local text = "Destination | "..dest_name.." | Dist: "..dist.." | Arrival in: | "
+    local text = "Destination: | "..dest_name.." | Dist: "..dist.." | Arrival in: | "
     local atime = 10 + math.floor(dist/200)
     hyperloop.enter_display(pos, dest_facedir, text..atime.." sec")
     
@@ -197,7 +198,6 @@ minetest.register_node("hyperloop:seat", {
 		local facedir = hyperloop.rad2facedir(yaw)
         -- do a 180 degree correction
 		meta:set_int("facedir", (facedir + 2) % 4)
-        print("facedir "..(facedir + 2) % 4)----------------------------------------------
 		-- store station name locally
 		local pos2 = vector.add(pos, {x=0, y=-1, z=0})
 		local meta2 = minetest.get_meta(pos2)

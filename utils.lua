@@ -173,7 +173,9 @@ function hyperloop.get_stations_as_string(pos)
 	table.sort(sortedList, function(x,y) 
 			return x.distance < y.distance
 	end)
-	print(dump(sortedList))
+	if hyperloop.debugging then
+		print(dump(sortedList))
+	end
 	local tRes = {"(player distance: station name (position) => directly connected with)\n\n"}
 	for _,dataSet in ipairs(sortedList) do
 		

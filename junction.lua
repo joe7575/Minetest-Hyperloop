@@ -16,23 +16,28 @@
 local function store_routes(pos)
 	local meta = minetest.get_meta(pos)
 	local station_name = meta:get_string("station_name")
-	print("station_name="..station_name)
 	if station_name ~= nil and station_name ~= "" then
 		local res, nodes = hyperloop.scan_neighbours(pos)
 		-- generate a list with all tube heads
 		local tRoutes = {}
 		for _,node in ipairs(nodes) do
-			print(node.name)
 			if node.name == "hyperloop:tube1" then
 				local peer = minetest.get_meta(node.pos):get_string("peer")
 				local route = {minetest.pos_to_string(node.pos), peer}
-				--print(dump(route))
 				table.insert(tRoutes, route)
 			end
 		end
 		-- store list
 		local spos = minetest.pos_to_string(pos)
 		hyperloop.tAllStations[station_name] = {pos=spos, routes=tRoutes}
+	end
+end
+
+local function update_all_order_automats()
+	for _, dataset in pairs(hyperloop.tAllStations) do
+		if dataset.order_pos ~= nil then
+			minetest.registered_nodes["hyperloop:order"].update(dataset.order_pos)
+		end
 	end
 end
 
@@ -70,6 +75,7 @@ minetest.register_node("hyperloop:junction", {
 			meta:set_string("station_name", station_name)
 			meta:set_string("infotext", "Station '"..station_name.."'")
 			store_routes(pos)
+			update_all_order_automats()
 		end,
 
 		on_destruct = function(pos)
@@ -78,6 +84,7 @@ minetest.register_node("hyperloop:junction", {
 			local station_name = meta:get_string("station_name")
 			if hyperloop.tAllStations[station_name] ~= nil then
 				hyperloop.tAllStations[station_name] = nil
+				update_all_order_automats()
 			end
 		end,
 

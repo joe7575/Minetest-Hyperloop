@@ -31,5 +31,6 @@ dofile(minetest.get_modpath("hyperloop") .. "/map.lua")
 dofile(minetest.get_modpath("hyperloop") .. "/door.lua")
 dofile(minetest.get_modpath("hyperloop") .. "/seat.lua")
 dofile(minetest.get_modpath("hyperloop") .. "/pod.lua")
+dofile(minetest.get_modpath("hyperloop") .. "/lcd.lua")
 
 print ("[MOD] Hyperloop loaded")
