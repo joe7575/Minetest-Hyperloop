@@ -37,7 +37,7 @@ function hyperloop.door_command(seat_pos, facedir, cmnd)
 		minetest.sound_play("door", {
 			pos = seat_pos,
 			gain = 0.5,
-			max_hear_distance = 2,
+			max_hear_distance = 5,
 		})
         node1.name = "air"
         minetest.swap_node(door_pos1, node1)
@@ -47,7 +47,7 @@ function hyperloop.door_command(seat_pos, facedir, cmnd)
 		minetest.sound_play("door", {
 			pos = seat_pos,
 			gain = 0.5,
-			max_hear_distance = 2,
+			max_hear_distance = 5,
 		})
         node1.name = "hyperloop:doorBottom"
         node1.param2 = facedir

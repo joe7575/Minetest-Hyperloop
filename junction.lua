@@ -13,7 +13,12 @@
 
 ]]--
 
-local function store_routes(pos)
+local function default_name(pos)
+	pos = minetest.pos_to_string(pos)
+	return '"'..string.sub(pos, 2, -2)..'"'
+end
+
+local function store_routes(pos, owner)
 	local meta = minetest.get_meta(pos)
 	local station_name = meta:get_string("station_name")
 	if station_name ~= nil and station_name ~= "" then
@@ -30,13 +35,8 @@ local function store_routes(pos)
 		-- store list
 		local spos = minetest.pos_to_string(pos)
 		hyperloop.tAllStations[station_name] = {pos=spos, routes=tRoutes}
-	end
-end
-
-local function update_all_order_automats()
-	for _, dataset in pairs(hyperloop.tAllStations) do
-		if dataset.order_pos ~= nil then
-			minetest.registered_nodes["hyperloop:order"].update(dataset.order_pos)
+		if owner ~= nil then
+			hyperloop.tAllStations[station_name].owner = owner:get_player_name()
 		end
 	end
 end
@@ -51,7 +51,11 @@ minetest.register_node("hyperloop:junction", {
 			"label[0,0;Please insert station name]" ..
 			"field[1,1.5;3,1;name;Name;MyTown]" ..
 			"button_exit[1,2;2,1;exit;Save]"
+			meta:set_string("station_name", default_name(pos))
+			meta:set_string("infotext", "Station "..default_name(pos))
 			meta:set_string("formspec", formspec)
+			store_routes(pos, placer)
+			hyperloop.update_all_booking_machines()
 		end,
 
 		on_receive_fields = function(pos, formname, fields, player)
@@ -62,6 +66,8 @@ minetest.register_node("hyperloop:junction", {
 			if station_name == "" then
 				return
 			end
+			-- delete temp name
+			hyperloop.tAllStations[default_name(pos)] = nil
 			-- check if station already available
 			local spos = minetest.pos_to_string(pos)
 			if hyperloop.tAllStations[station_name] ~= nil 
@@ -74,8 +80,8 @@ minetest.register_node("hyperloop:junction", {
 			meta:set_string("formspec", nil)
 			meta:set_string("station_name", station_name)
 			meta:set_string("infotext", "Station '"..station_name.."'")
-			store_routes(pos)
-			update_all_order_automats()
+			store_routes(pos, player)
+			hyperloop.update_all_booking_machines()
 		end,
 
 		on_destruct = function(pos)
@@ -84,7 +90,7 @@ minetest.register_node("hyperloop:junction", {
 			local station_name = meta:get_string("station_name")
 			if hyperloop.tAllStations[station_name] ~= nil then
 				hyperloop.tAllStations[station_name] = nil
-				update_all_order_automats()
+				hyperloop.update_all_booking_machines()
 			end
 		end,
 
@@ -93,7 +99,7 @@ minetest.register_node("hyperloop:junction", {
 			if hyperloop.debugging then
 				print("Junction update() called")
 			end
-			store_routes(pos)
+			store_routes(pos, nil)
 		end,
 
 		paramtype2 = "facedir",

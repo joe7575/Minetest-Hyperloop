@@ -8,6 +8,7 @@ function minetest.get_worldpath()
 end
 
 dofile("/home/joachim/temp/minetest/builtin/common/serialize.lua")
+dofile("/home/joachim/temp/minetest/builtin/common/vector.lua")
 
 minetest.serialize = core.serialize  
 minetest.deserialize = core.deserialize  
@@ -61,7 +62,7 @@ tAllStations = {
 	["Heidelberg"] = {
 		pos = "(1,2,3)",
 		routes = {
-			{"4.3", "3.4"},   -- Heidelberg
+			{"4.3", "3.4"},   -- Stuttgart
 		},
 	},
 
@@ -138,52 +139,61 @@ dofile("/home/joachim/temp/minetest/mods/hyperloop/utils.lua")
 
 hyperloop.tAllStations = tAllStations
 
-res = hyperloop.get_stations(table.copy(hyperloop.tAllStations), "Wangen", {})
+res = hyperloop.get_network_stations("Wangen")
 print(dump(res))
 print("")
 
-print(hyperloop.get_stations_as_string())
+res = hyperloop.get_connections("Wangen")
+print(dump(res))
+print("")
 
+res = hyperloop.get_network_stations("München")
+print(dump(res))
+print("")
 
-res = hyperloop.get_stations(table.copy(hyperloop.tAllStations), "München", {})
-----print(dump(res))
---print("")
+res = hyperloop.get_network_stations("Berlin")
+print(dump(res))
+print("")
 
-res = hyperloop.get_stations(table.copy(hyperloop.tAllStations), "Berlin", {})
---print(dump(res))
---print("")
+res = hyperloop.get_connections("Hamburg")
+print(dump(res))
+print("")
 
---print("")
-res = hyperloop.get_stations(table.copy(hyperloop.tAllStations), "Hamburg", {})
---print(dump(res))
---print("")
+res = hyperloop.get_stations("Düsseldorf")
+print(dump(res))
+print("")
 
-res = hyperloop.get_stations(table.copy(hyperloop.tAllStations), "Düsseldorf", {})
---print(dump(res))
---print("")
+res = hyperloop.get_networks()
+for _,item in ipairs(res) do
+	print(dump(item))
+end
+print("")
 
 
 local function final_formspec(name)
-	local stations = hyperloop.get_stations(table.copy(hyperloop.tAllStations), name, {})
+	local stations = hyperloop.get_station_list(name)
 	table.sort(stations)
-	local tRes = {"size[10,9]label[3,0;Wähle dein Ziel / Select your destination]"}
+	local tRes = {"size[10,9]label[2,0; Wähle dein Ziel :: Select your destination]"}
 	for idx,s in ipairs(stations) do
-		if idx < 9 then
-			pos1 = "0,"..idx
-			pos2 = "3,"..idx
-		else
-			pos1 = "6,"..(idx-8)
-			pos2 = "9,"..(idx-8)
-		end
+		ypos = idx*0.8
 		tRes[#tRes + 1] = "label["..pos1..".2;"..s.."]"
 		tRes[#tRes + 1] = "button_exit["..pos2..";1,1;h;X]"
 	end
 	return table.concat(tRes)
 end
 
-print(final_formspec("Wangen"))
+--print(final_formspec("Wangen"))
+
+--print(dump(hyperloop.get_station_list("Wangen")))
 
 hyperloop.store_station_list()
 
 
+--"size[10,9]label[2,0; Wähle dein Ziel :: Select your destination]"..
+--	"label[1,1;Destination]label[3,1;Distance]label[4.5,1;Position]label[6,1;Connections to]"..
+--	"button_exit[0,2;1,1;button;1]label[1,2;Wangen]label[3,2;1000m]label[4.5,2;(700,8,56)]label[6,2;Kisslegg, Leutkirch]"..
+--	"button_exit[0,3;1,1;button;1]label[1,3;Buxehode]label[3,3;1000m]label[4.5,3;(700,8,56)]label[6,3;Kisslegg, Leutkirch]"..
+--	"button_exit[0,4;1,1;button;1]label[1,4;Egg]label[3,4;1000m]label[4.5,4;(700,8,56)]label[6,4;Kisslegg, Leutkirch]"
 
+hyperloop.gen_network_table()
+print(dump(hyperloop.tNetworks))

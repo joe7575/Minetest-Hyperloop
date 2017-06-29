@@ -25,6 +25,7 @@ function table_extend(table1, table2)
 	end
 end
 
+
 hyperloop.NeighborPos = {
 	{ x=1,  y=0,  z=0},
 	{ x=-1, y=0,  z=0},
@@ -89,6 +90,12 @@ end
 
 -- distance between two points in (tube) blocks
 function hyperloop.distance(pos1, pos2)
+	if type(pos1) == "string" then
+		pos1 = minetest.string_to_pos(pos1)
+	end
+	if type(pos2) == "string" then
+		pos2 = minetest.string_to_pos(pos2)
+	end
 	pos1 = vector.floor(pos1)
 	pos2 = vector.floor(pos2)
 	return math.abs(pos1.x - pos2.x) + math.abs(pos1.y - pos2.y) + math.abs(pos1.z - pos2.z) - 2
@@ -127,9 +134,21 @@ function hyperloop.scan_for_nodes(pos, name)
 	return res, nodes
 end
 
+function hyperloop.is_player_around(pos)
+	for _,obj in ipairs(minetest.get_objects_inside_radius(pos, 2)) do
+		if obj:is_player() then
+			return true
+		end
+	end
+	return false
+end
+
+-------------------------------------------------------------------------------
+---- Station maintenance
+-------------------------------------------------------------------------------
 -- Return station name, which matches the given retoure route
-function hyperloop.get_station(tStations, rev_route)
-	for station,dataSet in pairs(tStations) do
+local function get_peer_station(tStations, rev_route)
+	for station, dataSet in pairs(tStations) do
 		for _,route in ipairs(dataSet["routes"]) do
 			if rev_route[1] == route[1] and rev_route[2] == route[2] then
 				return station
@@ -140,7 +159,7 @@ end
 
 -- Return a table with all station names, the given 'sStation' is connected with
 -- tRes is used for the resulting table (recursive call)
-function hyperloop.get_stations(tStations, sStation, tRes)
+local function get_stations(tStations, sStation, tRes)
 	if tStations[sStation] == nil then
 		return nil
 	end
@@ -151,52 +170,57 @@ function hyperloop.get_stations(tStations, sStation, tRes)
 	tStations[sStation] = nil
 	for _,route in ipairs(dataSet["routes"]) do
 		local rev_route = {route[2], route[1]}
-		local s = hyperloop.get_station(tStations, rev_route)
+		local s = get_peer_station(tStations, rev_route)
 		if s ~= nil then
 			tRes[#tRes + 1] = s
-			hyperloop.get_stations(tStations, s, tRes)
+			get_stations(tStations, s, tRes)
 		end
 	end
 	return tRes
 end
 
--- Return a text block with all station names for the map tool
-function hyperloop.get_stations_as_string(pos)
-	local sortedList = {}
-	local distance = 0
-	for name, dataSet in pairs(table.copy(hyperloop.tAllStations)) do
-		distance = hyperloop.distance(pos, minetest.string_to_pos(dataSet["pos"]))
-		dataSet.name = name
-		dataSet.distance = distance
-		sortedList[#sortedList+1] = dataSet
-	end
-	table.sort(sortedList, function(x,y) 
-			return x.distance < y.distance
-	end)
-	if hyperloop.debugging then
-		print(dump(sortedList))
-	end
-	local tRes = {"(player distance: station name (position) => directly connected with)\n\n"}
-	for _,dataSet in ipairs(sortedList) do
-		
-		tRes[#tRes+1] = dataSet.distance
-		tRes[#tRes+1] = ": "
-		tRes[#tRes+1] = dataSet.name
-		tRes[#tRes+1] = " "
-		tRes[#tRes+1] = dataSet.pos
-		tRes[#tRes+1] = "  =>  "
-		for _,route in ipairs(dataSet["routes"]) do
-			local rev_route = {route[2], route[1]}
-			local s = hyperloop.get_station(hyperloop.tAllStations, rev_route)
-			if s ~= nil then
-				tRes[#tRes + 1] = s
-				tRes[#tRes + 1] = ", "
-			end
+-- Return a table with all network station names, the given 'sStation' belongs too
+function hyperloop.get_network_stations(sStation)
+	local tRes = {}
+	local tStations = table.copy(hyperloop.tAllStations)
+	local tOut = {}
+	for _,name in ipairs(get_stations(tStations, sStation, tRes)) do
+		if hyperloop.tAllStations[name].seat == true then
+			tOut[#tOut+1] = name
 		end
-		tRes[#tRes] = "\n"
 	end
-	return table.concat(tRes)
+	return tOut
 end
+	
+-- Return a table with all station names, the given 'sStation' is directly connected with
+function hyperloop.get_connections(sStation)
+	local tRes = {}
+	local dataSet = hyperloop.tAllStations[sStation]
+	if dataSet == nil then
+		return nil
+	end
+	for _,route in ipairs(dataSet["routes"]) do
+		local rev_route = {route[2], route[1]}
+		local s = get_peer_station(hyperloop.tAllStations, rev_route)
+		if s ~= nil then
+			tRes[#tRes + 1] = s
+		end
+	end
+	return tRes
+end
+	
+-- Return the networks table with all station names per network
+function hyperloop.get_networks()
+	local tNetwork = {}
+	local tStations = table.copy(hyperloop.tAllStations)
+	local sStation,_ = next(tStations, nil) 
+	while sStation ~= nil do
+		tNetwork[#tNetwork+1] = get_stations(tStations, sStation, {sStation})
+		sStation,_ = next(tStations, nil) 
+	end
+	return tNetwork
+end
+
 
 -- Store and read the RingList to / from a file
 -- so that upcoming actions are remembered when the game

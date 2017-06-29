@@ -18,14 +18,15 @@
 
 hyperloop = {
     tAllStations = {},
-	order = {},
+	booking = {},
+	tNetworks = {}
 }
 
 hyperloop.debugging = true
 
 dofile(minetest.get_modpath("hyperloop") .. "/utils.lua")
 dofile(minetest.get_modpath("hyperloop") .. "/tube.lua")
-dofile(minetest.get_modpath("hyperloop") .. "/order.lua")
+dofile(minetest.get_modpath("hyperloop") .. "/booking.lua")
 dofile(minetest.get_modpath("hyperloop") .. "/junction.lua")
 dofile(minetest.get_modpath("hyperloop") .. "/map.lua")
 dofile(minetest.get_modpath("hyperloop") .. "/door.lua")

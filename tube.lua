@@ -157,15 +157,13 @@ end
 minetest.register_node("hyperloop:tube2", {
 		description = "Hyperloop Tube",
 		tiles = {
-			{
-				name = "hyperloop_tube_locked.png",
-				animation = {
-					type = "vertical_frames",
-					aspect_w = 32,
-					aspect_h = 32,
-					length = 2.0,
-				},
-			},
+			-- up, down, right, left, back, front
+			"hyperloop_tube_locked.png^[transformR90]",
+			"hyperloop_tube_locked.png^[transformR90]",
+			"hyperloop_tube_locked.png",
+			"hyperloop_tube_locked.png",
+			"hyperloop_tube_locked.png",
+			"hyperloop_tube_locked.png",
 		},
 
 		diggable = false,
@@ -182,8 +180,8 @@ for idx = 0,1 do
 			drawtype = "nodebox",
 			tiles = {
 				-- up, down, right, left, back, front
-				'hyperloop_tube_closed.png',
-				'hyperloop_tube_closed.png',
+				'hyperloop_tube_closed.png^[transformR90]',
+				'hyperloop_tube_closed.png^[transformR90]',
 				'hyperloop_tube_closed.png',
 				'hyperloop_tube_closed.png',
 				'hyperloop_tube_open.png',
@@ -223,4 +221,5 @@ for idx = 0,1 do
 			drop = "hyperloop:tube0",
 		})
 end
+
 

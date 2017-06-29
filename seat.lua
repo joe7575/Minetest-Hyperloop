@@ -13,6 +13,17 @@
 
 ----------------------------------------------------------------------------------------------------
 ----------------------------------------------------------------------------------------------------
+
+local function on_final_close_door(pos, facedir)
+    -- close the door and play sound if no player is around
+	if hyperloop.is_player_around(pos) then
+		-- try again later
+		minetest.after(3.0, on_final_close_door, pos, facedir)
+	else
+		hyperloop.door_command(pos, facedir, "close")
+	end
+end
+
 local function on_open_door(pos, facedir)
     -- open the door and play sound
     local meta = minetest.get_meta(pos)
@@ -21,6 +32,7 @@ local function on_open_door(pos, facedir)
     hyperloop.door_command(pos, facedir, "open")
     -- prepare dislay for the next trip
     hyperloop.enter_display(pos, facedir, "Thank you | for | travelling | with | Hyperloop.")
+	minetest.after(5.0, on_final_close_door, pos, facedir)
 end
 
 ----------------------------------------------------------------------------------------------------
@@ -49,11 +61,6 @@ local function on_arrival(player, src_pos, dst_pos, snd, radiant)
     local text = " | Wellcome in | | "..station_name
     hyperloop.enter_display(dst_pos, facedir, text)
 
-    -- open the door an the departure station
-    local dep_meta = minetest.get_meta(src_pos)
-    local dep_facedir = dep_meta:get_int("facedir")
-    hyperloop.door_command(src_pos, dep_facedir, "open")
-	
     minetest.after(6.0, on_open_door, dst_pos, facedir)
 end
 
@@ -103,15 +110,15 @@ local function on_start_travel(pos, node, clicker)
 		minetest.chat_send_player(clicker:get_player_name(), "Error: station_name == nil!")
         return
     end
-	local order = hyperloop.order[station_name]
-	if order == nil then
-		minetest.chat_send_player(clicker:get_player_name(), "Error: No order entered!")
+	local booking = hyperloop.booking[station_name]
+	if booking == nil then
+		minetest.chat_send_player(clicker:get_player_name(), "Error: No booking entered!")
 		return
 	end
 	
-	local dataSet = table.copy(hyperloop.tAllStations[order])
-	-- delete order
-	hyperloop.order[station_name] = nil
+	local dataSet = table.copy(hyperloop.tAllStations[booking])
+	-- delete booking
+	hyperloop.booking[station_name] = nil
 	if dataSet == nil then
 		return
 	end
@@ -154,16 +161,34 @@ local function on_start_travel(pos, node, clicker)
     minetest.after(4.9, on_travel, pos, facedir, clicker, dest_pos, hyperloop.facedir2rad(facedir), atime)
 end
 
+
+function hyperloop.open_pod_door(station_name)
+	local pos = minetest.string_to_pos(hyperloop.tAllStations[station_name].pos)
+	local seat_pos = vector.add(pos, {x=0, y=1, z=0})
+	local meta = minetest.get_meta(seat_pos)
+	local facedir = meta:get_int("facedir")
+	hyperloop.door_command(seat_pos, facedir, "open")
+end
+
+function hyperloop.close_pod_door(station_name)
+	local pos = minetest.string_to_pos(hyperloop.tAllStations[station_name].pos)
+	local seat_pos = vector.add(pos, {x=0, y=1, z=0})
+	local meta = minetest.get_meta(seat_pos)
+	local facedir = meta:get_int("facedir")
+	hyperloop.door_command(seat_pos, facedir, "close")
+end
+
+
 -- Hyperloop Seat
 minetest.register_node("hyperloop:seat", {
 	description = "Hyperloop Pod Seat",
 	tiles = {
-        "seat-top.png",
-        "seat-side.png",
-        "seat-side.png",
-        "seat-side.png",
-        "seat-side.png",
-        "seat-side.png",
+        "hyperloop_seat-top.png",
+        "hyperloop_seat-side.png",
+        "hyperloop_seat-side.png",
+        "hyperloop_seat-side.png",
+        "hyperloop_seat-side.png",
+        "hyperloop_seat-side.png",
     },
 	drawtype = "nodebox",
 	paramtype2 = "facedir",
@@ -202,9 +227,20 @@ minetest.register_node("hyperloop:seat", {
 		local pos2 = vector.add(pos, {x=0, y=-1, z=0})
 		local meta2 = minetest.get_meta(pos2)
 		if meta2 ~= nil then
-			meta:set_string("station_name", meta2:get_string("station_name"))
+			local station_name = meta2:get_string("station_name")
+			meta:set_string("station_name", station_name)
+			hyperloop.tAllStations[station_name]["seat"] = true
 		end
 	end,
 
+	on_destruct = function(pos)
+		local meta = minetest.get_meta(pos)
+		local station_name = meta:get_string("station_name")
+		if hyperloop.tAllStations[station_name] ~= nil 
+		and hyperloop.tAllStations[station_name]["seat"] ~= nil then
+			hyperloop.tAllStations[station_name]["seat"] = nil
+		end
+	end,
+	
     on_rightclick = on_start_travel,
 })
