@@ -222,4 +222,19 @@ for idx = 0,1 do
 		})
 end
 
+minetest.register_node("hyperloop:pillar", {
+	description = "Hyperloop Pillar",
+	tiles = {"hyperloop_tube_locked.png^[transformR90]"},
+	drawtype = "nodebox",
+	node_box = {
+		type = "fixed",
+		fixed = {
+            { -3/8, -4/8, -3/8,   3/8, 4/8, 3/8},
+        },
+	},
+	is_ground_content = false,
+	groups = {cracky = 3, stone = 2},
+	sounds = default.node_sound_stone_defaults(),
+})
+
 
