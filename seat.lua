@@ -36,11 +36,13 @@ local function on_open_door(pos, facedir)
 end
 
 ----------------------------------------------------------------------------------------------------
-local function on_arrival(player, src_pos, dst_pos, snd, radiant)
+local function on_arrival(player, src_pos, src_facedir, dst_pos, snd, radiant)
     -- get pos from arrival station
     local meta = minetest.get_meta(dst_pos)
     local facedir = meta:get_int("facedir")
     
+	-- stop timer
+	minetest.get_node_timer(src_pos):stop()
     -- move player to the arrival station
     player:setpos(dst_pos)
     -- rotate player to look in correct arrival direction
@@ -60,7 +62,8 @@ local function on_arrival(player, src_pos, dst_pos, snd, radiant)
 	local station_name = meta:get_string("station_name")
     local text = " | Wellcome in | | "..station_name
     hyperloop.enter_display(dst_pos, facedir, text)
-
+	
+	
     minetest.after(6.0, on_open_door, dst_pos, facedir)
 end
 
@@ -75,7 +78,8 @@ local function on_travel(src_pos, facedir, player, dst_pos, radiant, atime)
         loop = true,
     })
     hyperloop.door_command(src_pos, facedir, "animate")
-    minetest.after(atime, on_arrival, player, src_pos, dst_pos, snd, radiant)
+    minetest.after(atime, on_arrival, player, src_pos, facedir, dst_pos, snd, radiant)
+	minetest.after(atime, on_final_close_door, src_pos, facedir)
 end
 
 ----------------------------------------------------------------------------------------------------
@@ -93,7 +97,6 @@ local function display_timer(pos, elapsed)
         hyperloop.enter_display(pos, facedir, text..atime.." sec")
         return true
     else
-        hyperloop.enter_display(pos, facedir, "We will start | in a view | minutes..")
         return false
     end
 end
@@ -168,6 +171,7 @@ function hyperloop.open_pod_door(station_name)
 	local meta = minetest.get_meta(seat_pos)
 	local facedir = meta:get_int("facedir")
 	hyperloop.door_command(seat_pos, facedir, "open")
+	hyperloop.enter_display(seat_pos, facedir, " |  | << Hyperloop >> | be anywhere")
 end
 
 function hyperloop.close_pod_door(station_name)
@@ -176,6 +180,7 @@ function hyperloop.close_pod_door(station_name)
 	local meta = minetest.get_meta(seat_pos)
 	local facedir = meta:get_int("facedir")
 	hyperloop.door_command(seat_pos, facedir, "close")
+	hyperloop.enter_display(seat_pos, facedir, " |  | << Hyperloop >> | be anywhere")
 end
 
 
@@ -229,7 +234,9 @@ minetest.register_node("hyperloop:seat", {
 		if meta2 ~= nil then
 			local station_name = meta2:get_string("station_name")
 			meta:set_string("station_name", station_name)
-			hyperloop.tAllStations[station_name]["seat"] = true
+			if hyperloop.tAllStations[station_name] ~= nil then
+				hyperloop.tAllStations[station_name]["seat"] = true
+			end
 		end
 	end,
 

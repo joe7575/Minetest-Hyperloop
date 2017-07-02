@@ -14,21 +14,20 @@
 ]]--
 
 -- Tube chain arrangement:
---   [0] = tube0
---   [1] = tube1
---   [2] = tube2
+--   [0] = tube0 (single node)
+--   [1] = tube1 (head node)
+--   [2] = tube2 (link node)
 --   [J] = junction
 --
 --   [0]  [1]-[1]  [1]-[2]-[1]  [J]-[1]-[2]-...-[2]-[1]-[J]
 
 
-
 -- Scan all 8 neighbor positions for tube nodes.
 -- Return:
 --  0, nodes    - no node available
---  1, nodes    - one tube1 available
---  3, nodes    - two tube1 available
---  4, nodes    - one tube2 available
+--  1, nodes    - one head/single node available
+--  3, nodes    - two head nodes available
+--  4, nodes    - one link node available
 --  5, nodes    - invalid position
 function hyperloop.scan_neighbours(pos)
 	local nodes = {}
@@ -41,9 +40,9 @@ function hyperloop.scan_neighbours(pos)
 			node.pos = npos
 			table.insert(nodes, node)
 			idx = string.byte(node.name, -1) - 48
-			if idx == 0 then        -- starter tube node?
+			if idx == 0 then        -- single node?
 				idx = 1
-			elseif idx == 2 then    -- normal tube node?
+			elseif idx == 2 then    -- link node?
 				return 4, nodes
 			end
 			res = res * 2 + idx
@@ -56,27 +55,25 @@ function hyperloop.scan_neighbours(pos)
 end
 
 
-local function update_junction(pos)
-	local res, nodes = hyperloop.scan_for_nodes(pos, "hyperloop:junction")
-	for _,node in ipairs(nodes) do
-		minetest.registered_nodes["hyperloop:junction"].update(node.pos)
-	end
-end	
-
 -- update head tube meta data
-local function update_node(pos, peer_pos)
-	local meta = minetest.get_meta(minetest.string_to_pos(pos))
-	meta:set_string("peer", peer_pos)
-	update_junction(minetest.string_to_pos(pos))
+-- param pos: position as string
+-- param peer_pos: position as string
+function hyperloop.update_head_node(pos, peer_pos)
 	if hyperloop.debugging then
-		meta:set_string("infotext", peer_pos)
+		print("update head node(pos="..pos.." peer_pos="..peer_pos..")")
+	end
+	pos = minetest.string_to_pos(pos)
+	if pos ~= nil then
+		local meta = minetest.get_meta(pos)
+		meta:set_string("peer", peer_pos)
+		hyperloop.update_junction(pos)
 	end
 end
 
 
 -- Degrade one node.
 -- Needed when a new node is placed nearby.
-local function degrade_tupe_node(node)
+function hyperloop.degrade_tupe_node(node)
 	if node.name == "hyperloop:tube0" then
 		node.name = "hyperloop:tube1"
 	elseif node.name == "hyperloop:tube1" then
@@ -88,29 +85,42 @@ local function degrade_tupe_node(node)
 	minetest.swap_node(node.pos, node)
 end
 
+-- Remove the given node
+function hyperloop.remove_node(pos, node)
+	-- can't call "remove_node(pos)" because subsequently "on_destruct" will be called
+	node.name = "air"
+	node.diggable = true
+	minetest.swap_node(pos, node)
+end
+
+
 -- Upgrade one node.
 -- Needed when a tube node is digged.
-local function upgrade_node(digged_node_pos, new_head_node)
-	-- copy peer info first
-	local peer_pos = minetest.get_meta(digged_node_pos):get_string("peer")
-	local pos = minetest.pos_to_string(new_head_node.pos)
-	update_node(pos, peer_pos)
-	update_node(peer_pos, pos)
-	-- upgrade
-	new_head_node.diggable = true
-	if new_head_node.name == "hyperloop:tube2" then          -- 2 connections?
-		new_head_node.name = "hyperloop:tube1"
-	elseif new_head_node.name == "hyperloop:tube1" then      -- 1 connection?
-		new_head_node.name = "hyperloop:tube0"
+function hyperloop.upgrade_node(digged_node_pos)
+	local res, nodes = hyperloop.scan_neighbours(digged_node_pos)
+	if res == 1 or res == 4 then
+		local new_head_node = nodes[1]
+		-- copy peer pos first
+		local peer_pos = minetest.get_meta(digged_node_pos):get_string("peer")
+		local pos = minetest.pos_to_string(new_head_node.pos)
+		hyperloop.update_head_node(pos, peer_pos)
+		hyperloop.update_head_node(peer_pos, pos)
+		-- upgrade
+		new_head_node.diggable = true
+		if new_head_node.name == "hyperloop:tube2" then          -- 2 connections?
+			new_head_node.name = "hyperloop:tube1"
+		elseif new_head_node.name == "hyperloop:tube1" then      -- 1 connection?
+			new_head_node.name = "hyperloop:tube0"
+		end
+		minetest.swap_node(new_head_node.pos, new_head_node)
 	end
-	minetest.swap_node(new_head_node.pos, new_head_node)
 end
 
 -- Place a node without neighbours
-local function starter_node(node)
+local function single_node(node)
 	local meta = minetest.get_meta(node.pos)
 	meta:set_string("peer", minetest.pos_to_string(node.pos))
-	-- upgrade self to starter node
+	-- upgrade self to single node
 	node.name = "hyperloop:tube0"
 	minetest.swap_node(node.pos, node)
 end
@@ -120,14 +130,14 @@ local function head_node(node, old_head)
 	-- determine peer pos
 	local peer_pos = minetest.get_meta(old_head.pos):get_string("peer")
 	-- update self
-	update_node(minetest.pos_to_string(node.pos), peer_pos)
+	hyperloop.update_head_node(minetest.pos_to_string(node.pos), peer_pos)
 	-- update peer
-	update_node(peer_pos, minetest.pos_to_string(node.pos))
+	hyperloop.update_head_node(peer_pos, minetest.pos_to_string(node.pos))
 	-- upgrade self
 	node.name = "hyperloop:tube1"
 	minetest.swap_node(node.pos, node)
 	-- degrade old head
-	degrade_tupe_node(old_head)
+	hyperloop.degrade_tupe_node(old_head)
 end
 
 local function link_node(node, node1, node2)
@@ -135,22 +145,33 @@ local function link_node(node, node1, node2)
 	local pos1 = minetest.get_meta(node1.pos):get_string("peer")
 	local pos2 = minetest.get_meta(node2.pos):get_string("peer")
 	-- exchange position data
-	update_node(pos1, pos2)
-	update_node(pos2, pos1)
+	hyperloop.update_head_node(pos1, pos2)
+	hyperloop.update_head_node(pos2, pos1)
 	-- set to tube2
 	node.name = "hyperloop:tube2"
 	node.diggable = true
 	minetest.swap_node(node.pos, node)
 	-- degrade both nodes
-	degrade_tupe_node(node1)
-	degrade_tupe_node(node2)
+	hyperloop.degrade_tupe_node(node1)
+	hyperloop.degrade_tupe_node(node2)
 end
 
-local function remove_node(pos, node)
-	-- can't call "remove_node(pos)" because subsequently "on_destruct" will be called
-	node.name = "air"
-	node.diggable = true
-	minetest.swap_node(pos, node)
+-- called when a new node is placed
+local function node_placed(pos)
+	local res, nodes = hyperloop.scan_neighbours(pos)
+	local node = minetest.get_node(pos)
+	node.pos = pos
+	if res == 0 then            -- no neighbor available?
+		single_node(node)
+	elseif res == 1 then        -- one neighbor available?
+		head_node(node, nodes[1])
+	elseif res == 3 then        -- two neighbours available?
+		link_node(node, nodes[1], nodes[2])
+	else                        -- invalid position
+		hyperloop.remove_node(pos, node)
+		return itemstack
+	end
+	hyperloop.update_junction(pos)
 end
 
 -- simple tube without logic or "memory"
@@ -176,12 +197,12 @@ minetest.register_node("hyperloop:tube2", {
 for idx = 0,1 do
 	minetest.register_node("hyperloop:tube"..idx, {
 			description = "Hyperloop Tube",
-			inventory_image = "hyperloop_tube_inventury.png",
+			inventory_image = "hyperloop_tube_inventory.png",
 			drawtype = "nodebox",
 			tiles = {
 				-- up, down, right, left, back, front
-				'hyperloop_tube_closed.png^[transformR90]',
-				'hyperloop_tube_closed.png^[transformR90]',
+				"hyperloop_tube_locked.png^[transformR90]",
+				"hyperloop_tube_locked.png^[transformR90]",
 				'hyperloop_tube_closed.png',
 				'hyperloop_tube_closed.png',
 				'hyperloop_tube_open.png',
@@ -189,30 +210,12 @@ for idx = 0,1 do
 			},
 
 			after_place_node = function(pos, placer, itemstack, pointed_thing)
-				local res, nodes = hyperloop.scan_neighbours(pos)
-				local node = minetest.get_node(pos)
-				node.pos = pos
-				if res == 0 then            -- no neighbor available?
-					starter_node(node)
-				elseif res == 1 then        -- one neighbor available?
-					head_node(node, nodes[1])
-				elseif res == 3 then        -- two neighbours available?
-					link_node(node, nodes[1], nodes[2])
-				else                        -- invalid position
-					minetest.chat_send_player(placer:get_player_name(),
-						"Error: Invalid tube block position!")
-					remove_node(pos, node)
-					return itemstack
-				end
-				update_junction(pos)
+				return node_placed(pos)
 			end,
 
 			on_destruct = function(pos)
-				local res, nodes = hyperloop.scan_neighbours(pos)
-				if res == 1 or res == 4 then
-					upgrade_node(pos, nodes[1])
-				end
-				update_junction(pos)
+				hyperloop.upgrade_node(pos)
+				hyperloop.update_junction(pos)
 			end,
 
 			paramtype2 = "facedir",
@@ -221,20 +224,5 @@ for idx = 0,1 do
 			drop = "hyperloop:tube0",
 		})
 end
-
-minetest.register_node("hyperloop:pillar", {
-	description = "Hyperloop Pillar",
-	tiles = {"hyperloop_tube_locked.png^[transformR90]"},
-	drawtype = "nodebox",
-	node_box = {
-		type = "fixed",
-		fixed = {
-            { -3/8, -4/8, -3/8,   3/8, 4/8, 3/8},
-        },
-	},
-	is_ground_content = false,
-	groups = {cracky = 3, stone = 2},
-	sounds = default.node_sound_stone_defaults(),
-})
 
 

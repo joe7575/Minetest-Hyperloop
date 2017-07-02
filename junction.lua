@@ -13,6 +13,14 @@
 
 ]]--
 
+function hyperloop.update_junction(pos)
+	local res, nodes = hyperloop.scan_for_nodes(pos, "hyperloop:junction")
+	-- we use this for loop, knowing that max. one junction will be found
+	for _,node in ipairs(nodes) do
+		minetest.registered_nodes["hyperloop:junction"].update(node.pos)
+	end
+end	
+
 local function default_name(pos)
 	pos = minetest.pos_to_string(pos)
 	return '"'..string.sub(pos, 2, -2)..'"'
@@ -34,7 +42,11 @@ local function store_routes(pos, owner)
 		end
 		-- store list
 		local spos = minetest.pos_to_string(pos)
-		hyperloop.tAllStations[station_name] = {pos=spos, routes=tRoutes}
+		if hyperloop.tAllStations[station_name] == nil then
+			hyperloop.tAllStations[station_name] = {pos=spos, routes=tRoutes}
+		else
+			hyperloop.tAllStations[station_name].routes = tRoutes
+		end
 		if owner ~= nil then
 			hyperloop.tAllStations[station_name].owner = owner:get_player_name()
 		end

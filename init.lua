@@ -18,8 +18,8 @@
 
 hyperloop = {
     tAllStations = {},
+	tWifi = {},
 	booking = {},
-	tNetworks = {}
 }
 
 hyperloop.debugging = true
@@ -33,6 +33,7 @@ dofile(minetest.get_modpath("hyperloop") .. "/door.lua")
 dofile(minetest.get_modpath("hyperloop") .. "/seat.lua")
 dofile(minetest.get_modpath("hyperloop") .. "/pod.lua")
 dofile(minetest.get_modpath("hyperloop") .. "/lcd.lua")
-dofile(minetest.get_modpath("hyperloop") .. "/robot.lua")
+dofile(minetest.get_modpath("hyperloop") .. "/wifi.lua")
+--dofile(minetest.get_modpath("hyperloop") .. "/robot.lua")
 
 print ("[MOD] Hyperloop loaded")

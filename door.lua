@@ -79,6 +79,7 @@ minetest.register_node("hyperloop:doorTopPassive", {
         fixed = {-8/16, -8/16, -6/16, 8/16, 8/16, 6/16},
     },
 	paramtype2 = "facedir",
+	diggable = false,
 	groups = {cracky=1, not_in_creative_inventory=1},
 	is_ground_content = false,
 })
@@ -108,6 +109,7 @@ minetest.register_node("hyperloop:doorTopActive", {
         fixed = {-8/16, -8/16, -6/16, 8/16, 8/16, 6/16},
     },
 	paramtype2 = "facedir",
+	diggable = false,
 	light_source = 2,
 	groups = {cracky=1, not_in_creative_inventory=1},
 	is_ground_content = false,
@@ -130,6 +132,7 @@ minetest.register_node("hyperloop:doorBottom", {
         fixed = {-8/16, -8/16, -6/16, 8/16, 8/16, 6/16},
     },
 	paramtype2 = "facedir",
+	diggable = false,
 	groups = {cracky=1, not_in_creative_inventory=1},
 	is_ground_content = false,
 })

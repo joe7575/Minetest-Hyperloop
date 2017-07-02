@@ -37,6 +37,26 @@ minetest.register_node("hyperloop:pod_wall", {
 			"hyperloop_skin.png",
 		},
 		paramtype2 = "facedir",
-		groups = {cracky=1},
+		groups = {cracky=1, stone = 2},
 		is_ground_content = false,
+		sounds = default.node_sound_metal_defaults(),
 	})
+
+
+-- for tube viaducts
+minetest.register_node("hyperloop:pillar", {
+		description = "Hyperloop Pillar",
+		tiles = {"hyperloop_tube_locked.png^[transformR90]"},
+		drawtype = "nodebox",
+		node_box = {
+			type = "fixed",
+			fixed = {
+				{ -3/8, -4/8, -3/8,   3/8, 4/8, 3/8},
+			},
+		},
+		is_ground_content = false,
+		groups = {cracky = 2, stone = 2},
+		sounds = default.node_sound_metal_defaults(),
+	})
+
+

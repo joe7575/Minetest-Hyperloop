@@ -189,11 +189,5 @@ end
 hyperloop.store_station_list()
 
 
---"size[10,9]label[2,0; Wähle dein Ziel :: Select your destination]"..
---	"label[1,1;Destination]label[3,1;Distance]label[4.5,1;Position]label[6,1;Connections to]"..
---	"button_exit[0,2;1,1;button;1]label[1,2;Wangen]label[3,2;1000m]label[4.5,2;(700,8,56)]label[6,2;Kisslegg, Leutkirch]"..
---	"button_exit[0,3;1,1;button;1]label[1,3;Buxehode]label[3,3;1000m]label[4.5,3;(700,8,56)]label[6,3;Kisslegg, Leutkirch]"..
---	"button_exit[0,4;1,1;button;1]label[1,4;Egg]label[3,4;1000m]label[4.5,4;(700,8,56)]label[6,4;Kisslegg, Leutkirch]"
 
 hyperloop.gen_network_table()
-print(dump(hyperloop.tNetworks))
