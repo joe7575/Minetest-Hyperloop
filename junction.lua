@@ -43,7 +43,8 @@ local function store_routes(pos, owner)
 		-- store list
 		local spos = minetest.pos_to_string(pos)
 		if hyperloop.tAllStations[station_name] == nil then
-			hyperloop.tAllStations[station_name] = {pos=spos, routes=tRoutes}
+			-- add a new station
+			hyperloop.tAllStations[station_name] = {pos=spos, routes=tRoutes, time_blocked=0}
 		else
 			hyperloop.tAllStations[station_name].routes = tRoutes
 		end
@@ -67,7 +68,7 @@ minetest.register_node("hyperloop:junction", {
 			meta:set_string("infotext", "Station "..default_name(pos))
 			meta:set_string("formspec", formspec)
 			store_routes(pos, placer)
-			hyperloop.update_all_booking_machines()
+			--hyperloop.update_all_booking_machines()
 		end,
 
 		on_receive_fields = function(pos, formname, fields, player)
@@ -93,7 +94,7 @@ minetest.register_node("hyperloop:junction", {
 			meta:set_string("station_name", station_name)
 			meta:set_string("infotext", "Station '"..station_name.."'")
 			store_routes(pos, player)
-			hyperloop.update_all_booking_machines()
+			--hyperloop.update_all_booking_machines()
 		end,
 
 		on_destruct = function(pos)
@@ -102,7 +103,7 @@ minetest.register_node("hyperloop:junction", {
 			local station_name = meta:get_string("station_name")
 			if hyperloop.tAllStations[station_name] ~= nil then
 				hyperloop.tAllStations[station_name] = nil
-				hyperloop.update_all_booking_machines()
+				--hyperloop.update_all_booking_machines()
 			end
 		end,
 

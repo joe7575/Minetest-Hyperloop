@@ -40,7 +40,7 @@
 
 local function search_head(pos)
 	local res, nodes = hyperloop.scan_neighbours(pos)
-	if res == 1 then        -- one neighbor available?
+	if res == 1 or res == 4 then        -- one neighbor available?
 		return nodes[1]
 	end
 end
@@ -49,7 +49,7 @@ local function read_peer_pos(pos)
 	local meta = minetest.get_meta(pos)
 	return meta:get_string("peer")
 end
-	
+
 local function wifi_register(pos, channel)
 	if hyperloop.tWifi[channel] == nil then
 		hyperloop.tWifi[channel] = pos
@@ -61,10 +61,21 @@ local function wifi_register(pos, channel)
 	end
 end
 
+local function wifi_unregister(pos)
+	-- delete channel registration
+	local meta = minetest.get_meta(pos)
+	local channel = meta:get_string("channel")
+	if channel ~= nil and hyperloop.tWifi[channel] ~= nil 
+	and vector.equals(hyperloop.tWifi[channel], pos) then
+		hyperloop.tWifi[channel] = nil
+	end
+end
+
 local function wifi_update(pos, peer_pos)
 	local rmt_head_pos1	 -- own remote tube head 
 	local local_head     -- local tube head node 
 	-- determine remote tube head via local tube head
+	minetest.forceload_block(pos) ---###########################################
 	local_head = search_head(pos)
 	rmt_head_pos1 = read_peer_pos(local_head.pos)
 	if rmt_head_pos1 == nil then
@@ -72,9 +83,6 @@ local function wifi_update(pos, peer_pos)
 	end
 	-- store peer_pos and tube head pos locally
 	minetest.get_meta(pos):set_string("wifi_peer", peer_pos)
-	minetest.get_meta(pos):set_string("peer", rmt_head_pos1)
-	-- degrade head tube to link tube
-	hyperloop.degrade_tupe_node(local_head)
 	return rmt_head_pos1
 end
 
@@ -95,11 +103,28 @@ local function wifi_pairing(pos, peer_pos)
 	hyperloop.update_head_node(rmt_head_pos2, rmt_head_pos1)
 	-- store peer_pos and tube head pos locally
 	minetest.get_meta(pos):set_string("wifi_peer", peer_pos)
-	minetest.get_meta(pos):set_string("peer", rmt_head_pos1)
+	if hyperloop.debugging then
+		print("wifi_pairing meta="..dump(minetest.get_meta(pos):to_table()))
+	end
 	-- degrade head tube to link tube
-	hyperloop.degrade_tupe_node(local_head)
+	--hyperloop.degrade_tupe_node(local_head)
 	return true
 end
+
+-- Place the wifi node as head of a tube chain
+local function place_wifi_node(pos, head_node)
+	local peer_pos = minetest.get_meta(head_node.pos):get_string("peer")
+	-- update self
+	hyperloop.update_head_node(minetest.pos_to_string(pos), peer_pos)
+	-- update peer
+	hyperloop.update_head_node(peer_pos, minetest.pos_to_string(pos))
+	-- degrade head tube to link tube
+	hyperloop.degrade_tupe_node(head_node)
+	if hyperloop.debugging then
+		print("wifi meta="..dump(minetest.get_meta(pos):to_table()))
+	end
+end
+
 
 minetest.register_node("hyperloop:tube_wifi1", {
 		description = "Hyperloop WiFi Tube",
@@ -118,32 +143,36 @@ minetest.register_node("hyperloop:tube_wifi1", {
 		},
 
 		after_place_node = function(pos, placer, itemstack, pointed_thing)
-			local res, nodes = hyperloop.scan_neighbours(pos)
-			if res == 1 and nodes[1].name == "hyperloop:tube1" then
-				local formspec = "size[5,4]"..
-				"field[0.5,0.5;3,1;channel;Insert channel ID;myName:myChannel]" ..
-				"button_exit[1,2;2,1;exit;Save]"
-				local meta = minetest.get_meta(pos)
-				meta:set_string("formspec", formspec)
-			else
-				local node = minetest.get_node(pos)
-				hyperloop.remove_node(pos, node)
-				return itemstack
+			local head_node = search_head(pos)
+			if head_node ~= nil then
+				if head_node.name == "hyperloop:tube1" then
+					local formspec = "size[5,4]"..
+					"field[0.5,0.5;3,1;channel;Insert channel ID;myName:myChannel]" ..
+					"button_exit[1,2;2,1;exit;Save]"
+					local meta = minetest.get_meta(pos)
+					meta:set_string("formspec", formspec)
+					place_wifi_node(pos, head_node)
+				else
+					local node = minetest.get_node(pos)
+					hyperloop.remove_node(pos, node)
+					return itemstack
+				end
 			end
 		end,
-		
+
 		on_receive_fields = function(pos, formname, fields, player)
 			if fields.channel == nil then
 				return
 			end
 			local meta = minetest.get_meta(pos)
+			meta:set_string("channel", fields.channel)
 			meta:set_string("formspec", nil)
 			local peer_pos = wifi_register(pos, fields.channel)
-			if peer_pos then
-				if wifi_pairing(pos, peer_pos, true) ~= nil then
+			if peer_pos ~= nil then
+				if wifi_pairing(pos, peer_pos) then
 					minetest.chat_send_player(player:get_player_name(), 
 						"WiFi pairing completed!")
-					hyperloop.update_all_booking_machines()
+					--hyperloop.update_all_booking_machines()
 				end
 			end
 		end,
@@ -154,10 +183,13 @@ minetest.register_node("hyperloop:tube_wifi1", {
 			peer = minetest.string_to_pos(peer)
 			if peer ~= nil then
 				hyperloop.upgrade_node(peer)
+			else  -- no pairing so far
+				-- delete channel registration
+				wifi_unregister(pos)
 			end
 			-- unpair local wifi node
 			hyperloop.upgrade_node(pos)
-			hyperloop.update_all_booking_machines()
+			--hyperloop.update_all_booking_machines()
 		end,
 
 		paramtype2 = "facedir",

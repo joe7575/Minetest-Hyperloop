@@ -27,7 +27,8 @@ local function station_list_as_string(pos)
 			return x.distance < y.distance
 		end)
 	if hyperloop.debugging then
-		print(dump(sortedList))
+		print("tAllStations="..dump(sortedList))
+		print("tWifi="..dump(hyperloop.tWifi))
 	end
 	local tRes = {"(player distance: station name (position) seat/machine/owner  =>  directly connected with)\n\n"}
 	local seat, machine, owner

@@ -60,7 +60,7 @@ minetest.register_on_player_receive_fields(function(player, formname, fields)
 			meta:set_string("short_info", fields.short_info)
 			meta:set_string("long_info", fields.long_info)
 			meta:set_string("infotext", fields.long_info)
-			hyperloop.update_all_booking_machines()
+			--hyperloop.update_all_booking_machines()
 		else
 			minetest.chat_send_player(player:get_player_name(), "Error: Invalid station name!")
 		end
@@ -88,7 +88,7 @@ minetest.register_node("hyperloop:info", {
 			if hyperloop.tAllStations[station_name] ~= nil 
 			and hyperloop.tAllStations[station_name]["info"] ~= nil then
 				hyperloop.tAllStations[station_name]["info"] = nil
-				hyperloop.update_all_booking_machines()
+				--hyperloop.update_all_booking_machines()
 			end
 		end,
 

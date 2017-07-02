@@ -130,6 +130,7 @@ local function on_start_travel(pos, node, clicker)
     local dest_pos = minetest.string_to_pos(dataSet.pos)
 	local dest_meta = minetest.get_meta(dest_pos)
 	local dest_name = dest_meta:get_string("station_name")
+	
 	-- seat is on top of the station block
 	dest_pos = vector.add(dest_pos, {x=0,y=1,z=0})
 	dest_meta = minetest.get_meta(dest_pos)
@@ -150,9 +151,19 @@ local function on_start_travel(pos, node, clicker)
     -- activate display
 	local dist = hyperloop.distance(pos, dest_pos) 
     local text = "Destination: | "..dest_name.." | Distance: | "..dist.." m | Arrival in: | "
-    local atime = 10 + math.floor(dist/200)
+	local atime
+	if dist < 1000 then
+		atime = 10 + math.floor(dist/100)		-- 10..20 sec
+	elseif dist < 10000 then
+		atime = 20 + math.floor(dist/300)		-- 23..53 sec
+	else
+		atime = 40 + math.floor(dist/600)		-- 56..240 sec (120.000m)
+	end
     hyperloop.enter_display(pos, dest_facedir, text..atime.." sec")
     
+	-- block departure and arrival stations
+	hyperloop.block(station_name, dest_name, atime+10)	
+	
     -- store some data
     meta:set_int("arrival_time", atime)
     meta:set_string("lcd_text", text)

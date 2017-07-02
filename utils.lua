@@ -101,13 +101,6 @@ function hyperloop.distance(pos1, pos2)
 	return math.abs(pos1.x - pos2.x) + math.abs(pos1.y - pos2.y) + math.abs(pos1.z - pos2.z) - 2
 end
 
-function hyperloop.dbg_nodes(nodes)
-	print("Nodes:")
-	for _,node in ipairs(nodes) do
-		print("name:"..node.name)
-	end
-end
-
 -- Return true if both blocks given bei string-positions are nearby
 function hyperloop.nearby(pos1, pos2)
 	pos1 = minetest.string_to_pos(pos1)
@@ -222,7 +215,53 @@ function hyperloop.get_networks()
 end
 
 
--- Store and read the RingList to / from a file
+-------------------------------------------------------------------------------
+---- Station reservation/blocking
+-------------------------------------------------------------------------------
+
+-- reserve departure and arrival stations for some time
+function hyperloop.reserve(departure, arrival)
+	if hyperloop.tAllStations[departure] == nil then
+		return false
+	elseif hyperloop.tAllStations[arrival] == nil then
+		return false
+	else
+		local t1 = hyperloop.tAllStations[departure].time_blocked or 0
+		local t2 = hyperloop.tAllStations[arrival].time_blocked or 0
+		
+		if t1 > minetest.get_gametime() then
+			return false
+		elseif t2 > minetest.get_gametime() then
+			return false
+		else
+			-- place a reservation for 20 seconds to start the trip
+			hyperloop.tAllStations[departure].time_blocked = minetest.get_gametime() + 20
+			hyperloop.tAllStations[arrival].time_blocked = minetest.get_gametime() + 20
+			if hyperloop.debugging then
+				print(departure.." and ".. arrival.." stations are reserved")
+			end
+			return true
+		end
+	end
+end
+
+-- block the already reserved stations
+function hyperloop.block(departure, arrival, seconds)
+	if hyperloop.tAllStations[departure] == nil then
+		return false
+	elseif hyperloop.tAllStations[arrival] == nil then
+		return false
+	else
+		hyperloop.tAllStations[departure].time_blocked = minetest.get_gametime() + seconds
+		hyperloop.tAllStations[arrival].time_blocked = minetest.get_gametime() + seconds
+		if hyperloop.debugging then
+			print(departure.." and ".. arrival.." stations are blocked")
+		end
+		return true
+	end
+end
+
+-- Store and read the station list to / from a file
 -- so that upcoming actions are remembered when the game
 -- is restarted
 hyperloop.tAllStations = hyperloop.file2table("hyperloop_station_list")

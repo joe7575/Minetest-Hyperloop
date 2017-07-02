@@ -80,6 +80,7 @@ minetest.register_node("hyperloop:doorTopPassive", {
     },
 	paramtype2 = "facedir",
 	diggable = false,
+	sounds = default.node_sound_metal_defaults(),
 	groups = {cracky=1, not_in_creative_inventory=1},
 	is_ground_content = false,
 })
@@ -111,6 +112,7 @@ minetest.register_node("hyperloop:doorTopActive", {
 	paramtype2 = "facedir",
 	diggable = false,
 	light_source = 2,
+	sounds = default.node_sound_metal_defaults(),
 	groups = {cracky=1, not_in_creative_inventory=1},
 	is_ground_content = false,
 })
@@ -133,6 +135,7 @@ minetest.register_node("hyperloop:doorBottom", {
     },
 	paramtype2 = "facedir",
 	diggable = false,
+	sounds = default.node_sound_metal_defaults(),
 	groups = {cracky=1, not_in_creative_inventory=1},
 	is_ground_content = false,
 })
@@ -149,6 +152,7 @@ minetest.register_node("hyperloop:doorframe", {
 	    "hyperloop_skin.png",
 	},
 	paramtype2 = "facedir",
+	sounds = default.node_sound_metal_defaults(),
 	groups = {cracky=1},
 	is_ground_content = false,
 })

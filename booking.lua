@@ -15,11 +15,20 @@
 
 
 function hyperloop.update_all_booking_machines()
+	if hyperloop.debugging then
+		print("update_all_booking_machines")
+	end
+	local t = minetest.get_us_time()
 	for _, dataset in pairs(hyperloop.tAllStations) do
 		if dataset.booking_pos ~= nil then
 			local pos = minetest.string_to_pos(dataset.booking_pos)
 			minetest.registered_nodes["hyperloop:booking"].update(pos)
+			break--------------------------TODO
 		end
+	end
+	t = minetest.get_us_time() - t
+	if hyperloop.debugging then
+		print("time="..t)
 	end
 end
 
@@ -104,19 +113,23 @@ minetest.register_node("hyperloop:booking", {
 					meta:set_string("station_name", station_name)
 					meta:set_string("infotext", "Station: "..station_name)
 					meta:set_string("formspec", formspec(station_name))
-					hyperloop.update_all_booking_machines()
+					--hyperloop.update_all_booking_machines()
 				else
 					minetest.chat_send_player(player:get_player_name(), "Error: Invalid station name!")
 				end
 			-- destination selected?
 			elseif fields.button ~= nil then
 				local station_name = meta:get_string("station_name")
-				-- place booking
 				local idx = tonumber(fields.button)
 				local destination = get_station_list(station_name)[idx]
-				hyperloop.booking[station_name] = destination
-				-- open the pod door
-				hyperloop.open_pod_door(station_name)
+				-- place booking of not already blocked
+				if hyperloop.reserve(station_name, destination) then
+					hyperloop.booking[station_name] = destination
+					-- open the pod door
+					hyperloop.open_pod_door(station_name)
+				else
+					minetest.chat_send_player(player:get_player_name(), "Station is still blocked. Please try again in a view seconds!")
+				end
 			end
 		end,
 
@@ -130,9 +143,6 @@ minetest.register_node("hyperloop:booking", {
 		end,
 		
 		update = function(pos)
-			if hyperloop.debugging then
-				print("Booking machine update")
-			end
 			local meta = minetest.get_meta(pos)
 			local station_name = meta:get_string("station_name")
 			local stations = get_station_list(station_name)
@@ -145,5 +155,17 @@ minetest.register_node("hyperloop:booking", {
 		is_ground_content = false,
 	})
 
-
+minetest.register_abm({
+	nodenames = {"hyperloop:booking"},
+	interval = 10.0, -- Run every 10 seconds
+	chance = 1,
+	action = function(pos, node, active_object_count, active_object_count_wider)
+		local meta = minetest.get_meta(pos)
+		local station_name = meta:get_string("station_name") or nil
+		if station_name ~= nil and hyperloop.tAllStations[station_name] ~= nil then
+			local stations = get_station_list(station_name)
+			meta:set_string("formspec", formspec(station_name, stations))
+		end
+	end
+})
 
