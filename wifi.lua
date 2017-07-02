@@ -75,8 +75,14 @@ local function wifi_update(pos, peer_pos)
 	local rmt_head_pos1	 -- own remote tube head 
 	local local_head     -- local tube head node 
 	-- determine remote tube head via local tube head
-	minetest.forceload_block(pos) ---###########################################
-	local_head = search_head(pos)
+	if minetest.forceload_block(pos) then
+		local_head = search_head(pos)
+		if local_head == nil then
+			return nil
+		end
+	else
+		return nil
+	end
 	rmt_head_pos1 = read_peer_pos(local_head.pos)
 	if rmt_head_pos1 == nil then
 		return nil
@@ -98,6 +104,9 @@ local function wifi_pairing(pos, peer_pos)
 	end
 	-- update the peer wifi node also to get the other remote tube head pos
 	rmt_head_pos2 = wifi_update(peer_pos, pos)
+	if rmt_head_pos2 == nil then
+		return false
+	end
 	-- update both remote tube head nodes with the position from each other
 	hyperloop.update_head_node(rmt_head_pos1, rmt_head_pos2)
 	hyperloop.update_head_node(rmt_head_pos2, rmt_head_pos1)
@@ -106,8 +115,6 @@ local function wifi_pairing(pos, peer_pos)
 	if hyperloop.debugging then
 		print("wifi_pairing meta="..dump(minetest.get_meta(pos):to_table()))
 	end
-	-- degrade head tube to link tube
-	--hyperloop.degrade_tupe_node(local_head)
 	return true
 end
 
@@ -138,8 +145,6 @@ minetest.register_node("hyperloop:tube_wifi1", {
 			"hyperloop_tube_wifi.png",
 			"hyperloop_tube_wifi.png",
 			"hyperloop_tube_wifi.png",
-			--"hyperloop_tube_wifi.png",
-			--"hyperloop_tube_wifi.png",
 		},
 
 		after_place_node = function(pos, placer, itemstack, pointed_thing)
@@ -171,8 +176,10 @@ minetest.register_node("hyperloop:tube_wifi1", {
 			if peer_pos ~= nil then
 				if wifi_pairing(pos, peer_pos) then
 					minetest.chat_send_player(player:get_player_name(), 
-						"WiFi pairing completed!")
-					--hyperloop.update_all_booking_machines()
+						"[Hyperloop] WiFi pairing completed!")
+				else
+					minetest.chat_send_player(player:get_player_name(), 
+						"[Hyperloop] Pairing fault. Retry please!")
 				end
 			end
 		end,
@@ -189,7 +196,6 @@ minetest.register_node("hyperloop:tube_wifi1", {
 			end
 			-- unpair local wifi node
 			hyperloop.upgrade_node(pos)
-			--hyperloop.update_all_booking_machines()
 		end,
 
 		paramtype2 = "facedir",

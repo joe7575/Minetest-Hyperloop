@@ -86,7 +86,7 @@ minetest.register_node("hyperloop:junction", {
 			if hyperloop.tAllStations[station_name] ~= nil 
 			and hyperloop.tAllStations[station_name]["pos"] ~= spos then
 				minetest.chat_send_player(player:get_player_name(), 
-					"Error: Station name already assigned!")
+					"[Hyperloop] Error: Station name already assigned!")
 				return
 			end
 			local meta = minetest.get_meta(pos)

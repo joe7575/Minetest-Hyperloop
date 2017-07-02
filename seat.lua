@@ -41,6 +41,10 @@ local function on_arrival(player, src_pos, src_facedir, dst_pos, snd, radiant)
     local meta = minetest.get_meta(dst_pos)
     local facedir = meta:get_int("facedir")
     
+    -- activate display
+	local station_name = meta:get_string("station_name")
+    local text = " | Welcome at | | "..station_name
+    hyperloop.enter_display(dst_pos, facedir, text)
 	-- stop timer
 	minetest.get_node_timer(src_pos):stop()
     -- move player to the arrival station
@@ -50,7 +54,6 @@ local function on_arrival(player, src_pos, src_facedir, dst_pos, snd, radiant)
     local offs = radiant - player:get_look_horizontal()
     local yaw = hyperloop.facedir2rad(facedir) + offs
     player:set_look_yaw(yaw)
-
     -- play arrival sound
     minetest.sound_stop(snd)
     minetest.sound_play("down2", {
@@ -58,12 +61,7 @@ local function on_arrival(player, src_pos, src_facedir, dst_pos, snd, radiant)
         gain = 0.5,
         max_hear_distance = 10
     })
-    -- activate display
-	local station_name = meta:get_string("station_name")
-    local text = " | Wellcome in | | "..station_name
-    hyperloop.enter_display(dst_pos, facedir, text)
-	
-	
+
     minetest.after(6.0, on_open_door, dst_pos, facedir)
 end
 
@@ -101,6 +99,15 @@ local function display_timer(pos, elapsed)
     end
 end
 
+local function meter_to_km(dist)
+	if dist < 1000 then
+		return tostring(dist).." m"
+	elseif dist < 10000 then
+		return tostring(math.floor(dist/1000)).."."..string.sub(tostring(math.floor(dist%1000)),1, -2).." km"
+	else
+		return tostring(math.floor(dist/1000)).."."..string.sub(tostring(math.floor(dist%1000)),1, -3).." km"
+	end
+end
 
 ----------------------------------------------------------------------------------------------------
 -- place the player, close the door, activate display
@@ -110,12 +117,12 @@ local function on_start_travel(pos, node, clicker)
     local facedir = meta:get_int("facedir")
 	local station_name = meta:get_string("station_name")
     if station_name == nil then
-		minetest.chat_send_player(clicker:get_player_name(), "Error: station_name == nil!")
+		print("[Hyperloop] Error: station_name == nil!")
         return
     end
 	local booking = hyperloop.booking[station_name]
 	if booking == nil then
-		minetest.chat_send_player(clicker:get_player_name(), "Error: No booking entered!")
+		minetest.chat_send_player(clicker:get_player_name(), "[Hyperloop] No booking entered!")
 		return
 	end
 	
@@ -150,7 +157,7 @@ local function on_start_travel(pos, node, clicker)
 
     -- activate display
 	local dist = hyperloop.distance(pos, dest_pos) 
-    local text = "Destination: | "..dest_name.." | Distance: | "..dist.." m | Arrival in: | "
+    local text = "Destination: | "..dest_name.." | Distance: | "..meter_to_km(dist).." | Arrival in: | "
 	local atime
 	if dist < 1000 then
 		atime = 10 + math.floor(dist/100)		-- 10..20 sec

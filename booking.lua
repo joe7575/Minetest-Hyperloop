@@ -98,13 +98,13 @@ minetest.register_node("hyperloop:booking", {
 				if hyperloop.tAllStations[station_name] ~= nil then
 					if hyperloop.tAllStations[station_name]["booking_pos"] ~= nil then
 						minetest.chat_send_player(player:get_player_name(), 
-							"Error: Station already has a booking machine!")
+							"[Hyperloop] Error: Station has already a booking machine!")
 						return
 					end
 					-- check distance to the named station
 					local station_pos = minetest.string_to_pos(hyperloop.tAllStations[station_name].pos)
 					if hyperloop.distance(pos, station_pos) > 30 then
-						minetest.chat_send_player(player:get_player_name(), "Error: station too far away!")
+						minetest.chat_send_player(player:get_player_name(), "[Hyperloop] Error: station too far away!")
 						return
 					end
 					-- store meta and generate station formspec
@@ -115,7 +115,7 @@ minetest.register_node("hyperloop:booking", {
 					meta:set_string("formspec", formspec(station_name))
 					--hyperloop.update_all_booking_machines()
 				else
-					minetest.chat_send_player(player:get_player_name(), "Error: Invalid station name!")
+					minetest.chat_send_player(player:get_player_name(), "[Hyperloop] Error: Invalid station name!")
 				end
 			-- destination selected?
 			elseif fields.button ~= nil then
@@ -128,7 +128,7 @@ minetest.register_node("hyperloop:booking", {
 					-- open the pod door
 					hyperloop.open_pod_door(station_name)
 				else
-					minetest.chat_send_player(player:get_player_name(), "Station is still blocked. Please try again in a view seconds!")
+					minetest.chat_send_player(player:get_player_name(), "[Hyperloop] Station is still blocked. Please try again in a view seconds!")
 				end
 			end
 		end,
