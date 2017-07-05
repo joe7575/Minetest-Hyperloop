@@ -1,19 +1,4 @@
-# Hyperloop
-
-**A new evolution in the voxel word:**
-
-## Minetest goes Hyperloop!
-
-* It allows travelling from point point in seconds (900 km/h) :-)
-* Hyperloop tubes can be build in teamwork together with other players
-* It can be used even on small servers (Raspberry PI) without lagging
-* No configuration or programming of the tube network is necessary (only the station names have to be entered)
-
-The mod includes many different blocks for the tubes, the junctions, the stations, the pod, the ticket/booking machine and the map. It also includes a WiFi tube block for very large distances (admin feature).
-
-
-
-## Introduction
+# Introduction
 
 Connect two Junction blocks with a line of Tube blocks. The tube itself is automatically protected. You can dig only the ends of a tube line (head blocks). The junction block / station has to be protected by manually.
 
@@ -40,4 +25,6 @@ Keep a hole for the door which will be placed automatically when you start your 
 ![Image](https://github.com/joe7575/Minetest-Hyperloop/blob/master/img/intro05.png)
 
  
+For traveling you have to use the Booking Machine to select you destination. After booking, the pods (departure and arrival) are reserved for 20 seconds to start the trip. For starting the trip you have to use the Pod Seat. You will be placed on the seat and the door will close automatically.
+
 
