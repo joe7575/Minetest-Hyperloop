@@ -45,9 +45,22 @@ local function search_head(pos)
 	end
 end
 
-local function read_peer_pos(pos)
+local function get_head_node_pos(pos)
 	local meta = minetest.get_meta(pos)
-	return meta:get_string("peer")
+	local head_node_pos = meta:get_string("head_node_pos")
+	if head_node_pos == nil then
+		return nil
+	end
+	return minetest.string_to_pos(head_node_pos)
+end
+
+local function read_peer_pos(pos)
+	if pos ~= nil then
+		local meta = minetest.get_meta(pos)
+		return meta:get_string("peer")
+	else
+		return nil
+	end
 end
 
 local function wifi_register(pos, channel)
@@ -72,18 +85,8 @@ local function wifi_unregister(pos)
 end
 
 local function wifi_update(pos, peer_pos)
-	local rmt_head_pos1	 -- own remote tube head 
-	local local_head     -- local tube head node 
-	-- determine remote tube head via local tube head
-	if minetest.forceload_block(pos) then
-		local_head = search_head(pos)
-		if local_head == nil then
-			return nil
-		end
-	else
-		return nil
-	end
-	rmt_head_pos1 = read_peer_pos(local_head.pos)
+	local local_head_pos = get_head_node_pos(pos)
+	local rmt_head_pos1 = read_peer_pos(local_head_pos)
 	if rmt_head_pos1 == nil then
 		return nil
 	end
@@ -95,10 +98,9 @@ end
 local function wifi_pairing(pos, peer_pos)
 	local rmt_head_pos1	 -- own remote tube head 
 	local rmt_head_pos2  -- remote tube head of the peer wifi node
-	local local_head     -- local tube head node 
-	-- determine remote tube head via local tube head
-	local_head = search_head(pos)
-	rmt_head_pos1 = read_peer_pos(local_head.pos)
+	-- local tube head node 
+	local local_head_pos = get_head_node_pos(pos)
+	rmt_head_pos1 = read_peer_pos(local_head_pos)
 	if rmt_head_pos1 == nil then
 		return false
 	end
@@ -156,6 +158,8 @@ minetest.register_node("hyperloop:tube_wifi1", {
 					"button_exit[1,2;2,1;exit;Save]"
 					local meta = minetest.get_meta(pos)
 					meta:set_string("formspec", formspec)
+					local head_node_pos = minetest.pos_to_string(head_node.pos)
+					meta:set_string("head_node_pos", head_node_pos)
 					place_wifi_node(pos, head_node)
 				else
 					local node = minetest.get_node(pos)

@@ -84,6 +84,7 @@ minetest.register_node("hyperloop:booking", {
 			"field[0.5,2.7;5,1;info;Additional station information;]" ..
 			"button_exit[2,3.6;2,1;exit;Save]"
 			meta:set_string("formspec", formspec)
+			meta:set_int("change_counter", 0)
 		end,
 
 		on_receive_fields = function(pos, formname, fields, player)
@@ -156,15 +157,21 @@ minetest.register_node("hyperloop:booking", {
 	})
 
 minetest.register_abm({
+	label = "[Hyperloop] Booking machine update",
 	nodenames = {"hyperloop:booking"},
 	interval = 10.0, -- Run every 10 seconds
 	chance = 1,
 	action = function(pos, node, active_object_count, active_object_count_wider)
 		local meta = minetest.get_meta(pos)
-		local station_name = meta:get_string("station_name") or nil
-		if station_name ~= nil and hyperloop.tAllStations[station_name] ~= nil then
-			local stations = get_station_list(station_name)
-			meta:set_string("formspec", formspec(station_name, stations))
+		local counter = meta:get_int("change_counter") or 0
+		if hyperloop.change_counter ~= counter then
+			local station_name = meta:get_string("station_name") or nil
+			if station_name ~= nil and hyperloop.tAllStations[station_name] ~= nil then
+				local stations = get_station_list(station_name)
+				meta:set_string("formspec", formspec(station_name, stations))
+			end
+			meta:set_int("change_counter", hyperloop.change_counter)
+			print("booking")
 		end
 	end
 })

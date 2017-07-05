@@ -131,7 +131,7 @@ minetest.register_node("hyperloop:doorBottom", {
     drawtype = "nodebox",
     node_box = {
         type = "fixed",
-        fixed = {-8/16, -8/16, -6/16, 8/16, 8/16, 6/16},
+        fixed = {-8/16, -8/16, -5/16, 8/16, 8/16, 5/16},
     },
 	paramtype2 = "facedir",
 	diggable = false,

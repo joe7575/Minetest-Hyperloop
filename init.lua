@@ -17,9 +17,10 @@
 
 
 hyperloop = {
-    tAllStations = {},
-	tWifi = {},
-	booking = {},
+    tAllStations = {},		-- tube networks
+	tWifi = {},				-- WiFi pairing
+	booking = {},			-- placed bookings
+	change_counter = 0,		-- used for booking machine updates
 }
 
 hyperloop.debugging = true

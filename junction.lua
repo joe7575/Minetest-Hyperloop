@@ -14,11 +14,15 @@
 ]]--
 
 function hyperloop.update_junction(pos)
-	local res, nodes = hyperloop.scan_for_nodes(pos, "hyperloop:junction")
-	-- we use this for loop, knowing that max. one junction will be found
-	for _,node in ipairs(nodes) do
-		minetest.registered_nodes["hyperloop:junction"].update(node.pos)
+	local node = minetest.get_node(pos)
+	if node.name ~= "ignore" then   -- node loaded?
+		local res, nodes = hyperloop.scan_for_nodes(pos, "hyperloop:junction")
+		-- we use this for loop, knowing that max. one junction will be found
+		for _,node in ipairs(nodes) do
+			minetest.registered_nodes["hyperloop:junction"].update(node.pos)
+		end
 	end
+	hyperloop.change_counter = hyperloop.change_counter + 1
 end	
 
 local function default_name(pos)
@@ -120,4 +124,16 @@ minetest.register_node("hyperloop:junction", {
 		is_ground_content = false,
 	})
 
+minetest.register_lbm({
+	label = "[Hyperloop] Junction update",
+	name = "hyperloop:update",
+	nodenames = {"hyperloop:junction"},
+	run_at_every_load = true,
+	action = function(pos, node)
+		if hyperloop.debugging then
+			print("Junction loaded")
+		end
+		store_routes(pos, nil)
+	end
+})
 

@@ -51,9 +51,11 @@ local function on_arrival(player, src_pos, src_facedir, dst_pos, snd, radiant)
     player:setpos(dst_pos)
     -- rotate player to look in correct arrival direction
     -- calculate the look correction
-    local offs = radiant - player:get_look_horizontal()
-    local yaw = hyperloop.facedir2rad(facedir) + offs
-    player:set_look_yaw(yaw)
+	if player ~= nil then  -- player already gone?
+		local offs = radiant - player:get_look_horizontal()
+		local yaw = hyperloop.facedir2rad(facedir) + offs
+		player:set_look_yaw(yaw)
+	end
     -- play arrival sound
     minetest.sound_stop(snd)
     minetest.sound_play("down2", {

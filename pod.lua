@@ -31,8 +31,8 @@ minetest.register_node("hyperloop:pod_wall", {
 		description = "Hyperloop Pod Wall",
 		tiles = {
 			-- up, down, right, left, back, front
-			"hyperloop_skin.png^[transformR90]",
-			"hyperloop_skin.png^[transformR90]",
+			"hyperloop_skin2.png",
+			"hyperloop_skin2.png",
 			"hyperloop_skin.png",
 			"hyperloop_skin.png",
 			"hyperloop_skin.png",
