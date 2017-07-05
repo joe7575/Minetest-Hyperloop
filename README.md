@@ -19,7 +19,7 @@ Download: ![GitHub](https://github.com/joe7575/Minetest-Hyperloop/archive/master
 
 ## Introduction
 
-[Contruction Manual](./introduction.md)
+[Contruction Manual](introduction.md)
 
 
 ## Dependencies
