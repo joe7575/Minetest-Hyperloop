@@ -186,6 +186,7 @@ minetest.register_node("hyperloop:tube_wifi1", {
 						"[Hyperloop] Pairing fault. Retry please!")
 				end
 			end
+			hyperloop.change_counter = hyperloop.change_counter + 1
 		end,
 
 		on_destruct = function(pos)
@@ -200,11 +201,13 @@ minetest.register_node("hyperloop:tube_wifi1", {
 			end
 			-- unpair local wifi node
 			hyperloop.upgrade_node(pos)
+			hyperloop.change_counter = hyperloop.change_counter + 1
 		end,
 
 		paramtype2 = "facedir",
 		groups = {cracky=2},
 		is_ground_content = false,
+		sounds = default.node_sound_metal_defaults(),
 	})
 
 minetest.register_node("hyperloop:pillar", {
@@ -219,7 +222,7 @@ minetest.register_node("hyperloop:pillar", {
 		},
 		is_ground_content = false,
 		groups = {cracky = 3, stone = 2},
-		sounds = default.node_sound_stone_defaults(),
+		sounds = default.node_sound_metal_defaults(),
 	})
 
 

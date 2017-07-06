@@ -258,6 +258,7 @@ minetest.register_node("hyperloop:seat", {
 				hyperloop.tAllStations[station_name]["seat"] = true
 			end
 		end
+		hyperloop.change_counter = hyperloop.change_counter + 1
 	end,
 
 	on_destruct = function(pos)
@@ -267,6 +268,7 @@ minetest.register_node("hyperloop:seat", {
 		and hyperloop.tAllStations[station_name]["seat"] ~= nil then
 			hyperloop.tAllStations[station_name]["seat"] = nil
 		end
+		hyperloop.change_counter = hyperloop.change_counter + 1
 	end,
 	
     on_rightclick = on_start_travel,
