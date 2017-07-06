@@ -23,7 +23,6 @@ function hyperloop.update_all_booking_machines()
 		if dataset.booking_pos ~= nil then
 			local pos = minetest.string_to_pos(dataset.booking_pos)
 			minetest.registered_nodes["hyperloop:booking"].update(pos)
-			break--------------------------TODO
 		end
 	end
 	t = minetest.get_us_time() - t
@@ -50,6 +49,9 @@ local function formspec(station_name)
 	tRes[2] = "label[1,1;Destination]label[3,1;Distance]label[4.5,1;Position]label[6,1;Local Info]"
 	local local_pos = hyperloop.tAllStations[station_name]["pos"]
 	for idx,dest_name in ipairs(get_station_list(station_name)) do
+		if idx >= 12 then
+			break
+		end
 		local ypos = 1 + idx*0.8
 		local ypos2 = ypos - 0.2
 		local dest_info = hyperloop.tAllStations[dest_name]["booking_info"] or ""
@@ -114,11 +116,11 @@ minetest.register_node("hyperloop:booking", {
 					meta:set_string("station_name", station_name)
 					meta:set_string("infotext", "Station: "..station_name)
 					meta:set_string("formspec", formspec(station_name))
-					--hyperloop.update_all_booking_machines()
+					hyperloop.change_counter = hyperloop.change_counter + 1
 				else
 					minetest.chat_send_player(player:get_player_name(), "[Hyperloop] Error: Invalid station name!")
 				end
-			-- destination selected?
+				-- destination selected?
 			elseif fields.button ~= nil then
 				local station_name = meta:get_string("station_name")
 				local idx = tonumber(fields.button)
@@ -141,15 +143,16 @@ minetest.register_node("hyperloop:booking", {
 			and hyperloop.tAllStations[station_name]["booking_pos"] ~= nil then
 				hyperloop.tAllStations[station_name]["booking_pos"] = nil
 			end
+			hyperloop.change_counter = hyperloop.change_counter + 1
 		end,
-		
+
 		update = function(pos)
 			local meta = minetest.get_meta(pos)
 			local station_name = meta:get_string("station_name")
 			local stations = get_station_list(station_name)
 			meta:set_string("formspec", formspec(station_name, stations))
 		end,
-		
+
 		light_source = 2,
 		paramtype2 = "facedir",
 		groups = {cracky=2},
@@ -157,22 +160,22 @@ minetest.register_node("hyperloop:booking", {
 	})
 
 minetest.register_abm({
-	label = "[Hyperloop] Booking machine update",
-	nodenames = {"hyperloop:booking"},
-	interval = 10.0, -- Run every 10 seconds
-	chance = 1,
-	action = function(pos, node, active_object_count, active_object_count_wider)
-		local meta = minetest.get_meta(pos)
-		local counter = meta:get_int("change_counter") or 0
-		if hyperloop.change_counter ~= counter then
-			local station_name = meta:get_string("station_name") or nil
-			if station_name ~= nil and hyperloop.tAllStations[station_name] ~= nil then
-				local stations = get_station_list(station_name)
-				meta:set_string("formspec", formspec(station_name, stations))
+		label = "[Hyperloop] Booking machine update",
+		nodenames = {"hyperloop:booking"},
+		interval = 10.0, -- Run every 10 seconds
+		chance = 1,
+		action = function(pos, node, active_object_count, active_object_count_wider)
+			local meta = minetest.get_meta(pos)
+			local counter = meta:get_int("change_counter") or 0
+			if hyperloop.change_counter ~= counter then
+				local station_name = meta:get_string("station_name") or nil
+				if station_name ~= nil and hyperloop.tAllStations[station_name] ~= nil then
+					local stations = get_station_list(station_name)
+					meta:set_string("formspec", formspec(station_name, stations))
+				end
+				meta:set_int("change_counter", hyperloop.change_counter)
+				print("booking")
 			end
-			meta:set_int("change_counter", hyperloop.change_counter)
-			print("booking")
 		end
-	end
-})
+	})
 

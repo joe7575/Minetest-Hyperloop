@@ -28,7 +28,7 @@ end
 
 -- to build the pod
 minetest.register_node("hyperloop:pod_wall", {
-		description = "Hyperloop Pod Wall",
+		description = "Hyperloop Pod Shell",
 		tiles = {
 			-- up, down, right, left, back, front
 			"hyperloop_skin2.png",

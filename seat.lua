@@ -43,15 +43,15 @@ local function on_arrival(player, src_pos, src_facedir, dst_pos, snd, radiant)
     
     -- activate display
 	local station_name = meta:get_string("station_name")
-    local text = " | Welcome at | | "..station_name
+    local text = " | Welcome at | | "..string.sub(station_name, 1, 13)
     hyperloop.enter_display(dst_pos, facedir, text)
 	-- stop timer
 	minetest.get_node_timer(src_pos):stop()
     -- move player to the arrival station
-    player:setpos(dst_pos)
-    -- rotate player to look in correct arrival direction
-    -- calculate the look correction
-	if player ~= nil then  -- player already gone?
+	if player ~= nil then
+		player:setpos(dst_pos)
+		-- rotate player to look in correct arrival direction
+		-- calculate the look correction
 		local offs = radiant - player:get_look_horizontal()
 		local yaw = hyperloop.facedir2rad(facedir) + offs
 		player:set_look_yaw(yaw)
@@ -105,9 +105,9 @@ local function meter_to_km(dist)
 	if dist < 1000 then
 		return tostring(dist).." m"
 	elseif dist < 10000 then
-		return tostring(math.floor(dist/1000)).."."..string.sub(tostring(math.floor(dist%1000)),1, -2).." km"
+		return string.format("%.3f km", dist/1000)
 	else
-		return tostring(math.floor(dist/1000)).."."..string.sub(tostring(math.floor(dist%1000)),1, -3).." km"
+		return string.format("%.1f km", dist/1000)
 	end
 end
 
@@ -159,7 +159,7 @@ local function on_start_travel(pos, node, clicker)
 
     -- activate display
 	local dist = hyperloop.distance(pos, dest_pos) 
-    local text = "Destination: | "..dest_name.." | Distance: | "..meter_to_km(dist).." | Arrival in: | "
+    local text = "Destination: | "..string.sub(dest_name, 1, 13).." | Distance: | "..meter_to_km(dist).." | Arrival in: | "
 	local atime
 	if dist < 1000 then
 		atime = 10 + math.floor(dist/100)		-- 10..20 sec

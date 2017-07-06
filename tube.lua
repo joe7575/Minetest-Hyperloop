@@ -222,6 +222,7 @@ for idx = 0,1 do
 			groups = {cracky=2, not_in_creative_inventory=idx},
 			is_ground_content = false,
 			drop = "hyperloop:tube0",
+			sounds = default.node_sound_metal_defaults(),
 		})
 end
 

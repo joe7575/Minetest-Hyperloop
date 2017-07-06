@@ -15,7 +15,7 @@ Build the pod around the seat according to the following picture. To get the bes
 
 ![Image](https://github.com/joe7575/Minetest-Hyperloop/blob/master/img/intro04.png)
 
-The pod shell is not important for the function, the minimal equipment for testing is: the Tube line with Junction Blocks, a Pod Seat on each station, the Display in front of the seat, and the Booking Machine. The Booking Machine has to get the same station name as the Junction block and has to be placed nearby the Junction block (max. 20 blocks difference).
+The pod shell is not important for the function, the minimal equipment for testing is: the Tube line with Junction blocks, a Pod Seat on each station, the Display in front of the seat, and the Booking Machine. The Booking Machine has to get the same station name as the Junction block and has to be placed nearby the Junction block (max. 30 blocks difference).
 
 ![Image](https://github.com/joe7575/Minetest-Hyperloop/blob/master/img/intro02.png)
 

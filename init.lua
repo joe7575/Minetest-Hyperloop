@@ -3,7 +3,7 @@
 	Hyperloop Mod
 	=============
 
-	v0.01 by JoSt
+	v0.02 by JoSt
 
 	Copyright (C) 2017 Joachim Stolberg
 
@@ -12,6 +12,7 @@
 
 	History:
 	2017-06-18  v0.01  First version
+	2017-07-06  v0.02  Version on GitHub
 
 ]]--
 
@@ -23,7 +24,7 @@ hyperloop = {
 	change_counter = 0,		-- used for booking machine updates
 }
 
-hyperloop.debugging = true
+hyperloop.debugging = false
 
 dofile(minetest.get_modpath("hyperloop") .. "/utils.lua")
 dofile(minetest.get_modpath("hyperloop") .. "/tube.lua")
@@ -35,6 +36,5 @@ dofile(minetest.get_modpath("hyperloop") .. "/seat.lua")
 dofile(minetest.get_modpath("hyperloop") .. "/pod.lua")
 dofile(minetest.get_modpath("hyperloop") .. "/lcd.lua")
 dofile(minetest.get_modpath("hyperloop") .. "/wifi.lua")
---dofile(minetest.get_modpath("hyperloop") .. "/robot.lua")
 
 print ("[MOD] Hyperloop loaded")

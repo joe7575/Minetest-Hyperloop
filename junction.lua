@@ -72,7 +72,7 @@ minetest.register_node("hyperloop:junction", {
 			meta:set_string("infotext", "Station "..default_name(pos))
 			meta:set_string("formspec", formspec)
 			store_routes(pos, placer)
-			--hyperloop.update_all_booking_machines()
+			hyperloop.change_counter = hyperloop.change_counter + 1
 		end,
 
 		on_receive_fields = function(pos, formname, fields, player)
@@ -98,7 +98,7 @@ minetest.register_node("hyperloop:junction", {
 			meta:set_string("station_name", station_name)
 			meta:set_string("infotext", "Station '"..station_name.."'")
 			store_routes(pos, player)
-			--hyperloop.update_all_booking_machines()
+			hyperloop.change_counter = hyperloop.change_counter + 1
 		end,
 
 		on_destruct = function(pos)
@@ -107,7 +107,7 @@ minetest.register_node("hyperloop:junction", {
 			local station_name = meta:get_string("station_name")
 			if hyperloop.tAllStations[station_name] ~= nil then
 				hyperloop.tAllStations[station_name] = nil
-				--hyperloop.update_all_booking_machines()
+				hyperloop.change_counter = hyperloop.change_counter + 1
 			end
 		end,
 
@@ -125,15 +125,15 @@ minetest.register_node("hyperloop:junction", {
 	})
 
 minetest.register_lbm({
-	label = "[Hyperloop] Junction update",
-	name = "hyperloop:update",
-	nodenames = {"hyperloop:junction"},
-	run_at_every_load = true,
-	action = function(pos, node)
-		if hyperloop.debugging then
-			print("Junction loaded")
+		label = "[Hyperloop] Junction update",
+		name = "hyperloop:update",
+		nodenames = {"hyperloop:junction"},
+		run_at_every_load = true,
+		action = function(pos, node)
+			if hyperloop.debugging then
+				print("Junction loaded")
+			end
+			store_routes(pos, nil)
 		end
-		store_routes(pos, nil)
-	end
-})
+	})
 
