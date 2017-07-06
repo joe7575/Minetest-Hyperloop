@@ -1,2 +1,0 @@
-# Max distance in blocks between two stations
-hyperloop_max_distance (Hyperloop max station distance) int 1000
