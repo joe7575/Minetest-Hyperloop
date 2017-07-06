@@ -24,8 +24,8 @@ Download: ![GitHub](https://github.com/joe7575/Minetest-Hyperloop/archive/master
 
 ## Still To Do
 
+* configuration settings
 * recipes
-* better formspec for the map tool
 * performance improvements
 
 
