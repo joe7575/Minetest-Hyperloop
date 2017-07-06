@@ -174,7 +174,6 @@ minetest.register_abm({
 					meta:set_string("formspec", formspec(station_name, stations))
 				end
 				meta:set_int("change_counter", hyperloop.change_counter)
-				print("booking")
 			end
 		end
 	})
