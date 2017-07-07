@@ -1,0 +1,2 @@
+# Enable WiFi block for players (including recipe) 
+hyperloop_wifi_enabled (WiFi block enabled) bool false

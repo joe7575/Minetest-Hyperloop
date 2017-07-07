@@ -45,14 +45,14 @@ end
 -- Form spec for the station list
 -- param station_name: local station name
 local function formspec(station_name)
-	local tRes = {"size[10,9]label[2,0; Wähle dein Ziel :: Select your destination]"}
-	tRes[2] = "label[1,1;Destination]label[3,1;Distance]label[4.5,1;Position]label[6,1;Local Info]"
+	local tRes = {"size[10,10]label[3,0; Wähle dein Ziel :: Select your destination]"}
+	tRes[2] = "label[1,0.6;Destination]label[3,0.6;Distance]label[4.5,0.6;Position]label[6,0.6;Local Info]"
 	local local_pos = hyperloop.tAllStations[station_name]["pos"]
 	for idx,dest_name in ipairs(get_station_list(station_name)) do
 		if idx >= 12 then
 			break
 		end
-		local ypos = 1 + idx*0.8
+		local ypos = 0.5 + idx*0.8
 		local ypos2 = ypos - 0.2
 		local dest_info = hyperloop.tAllStations[dest_name]["booking_info"] or ""
 		local dest_pos = hyperloop.tAllStations[dest_name]["pos"]

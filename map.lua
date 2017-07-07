@@ -83,7 +83,7 @@ end
 
 -- Tool for tube workers to find the next station
 minetest.register_node("hyperloop:station_map", {
-		description = "Hyperloop Station Map",
+		description = "Hyperloop Station Book",
 		inventory_image = "hyperloop_stations_book.png",
 		wield_image = "hyperloop_stations_book.png",
 		groups = {cracky=1, book=1},
