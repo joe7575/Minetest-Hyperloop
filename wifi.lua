@@ -136,93 +136,93 @@ end
 
 
 minetest.register_node("hyperloop:tube_wifi1", {
-		description = "Hyperloop WiFi Tube",
-		inventory_image = "hyperloop_tube_wifi_inventory.png",
-		drawtype = "nodebox",
-		tiles = {
-			-- up, down, right, left, back, front
-			"hyperloop_tube_locked.png^[transformR90]",
-			"hyperloop_tube_locked.png^[transformR90]",
-			"hyperloop_tube_wifi.png",
-			"hyperloop_tube_wifi.png",
-			"hyperloop_tube_wifi.png",
-			"hyperloop_tube_wifi.png",
-		},
+	description = "Hyperloop WiFi Tube",
+	inventory_image = "hyperloop_tube_wifi_inventory.png",
+	drawtype = "nodebox",
+	tiles = {
+		-- up, down, right, left, back, front
+		"hyperloop_tube_locked.png^[transformR90]",
+		"hyperloop_tube_locked.png^[transformR90]",
+		"hyperloop_tube_wifi.png",
+		"hyperloop_tube_wifi.png",
+		"hyperloop_tube_wifi.png",
+		"hyperloop_tube_wifi.png",
+	},
 
-		after_place_node = function(pos, placer, itemstack, pointed_thing)
-			local head_node = search_head(pos)
-			if head_node ~= nil then
-				if head_node.name == "hyperloop:tube1" then
-					local formspec = "size[5,4]"..
-					"field[0.5,0.5;3,1;channel;Insert channel ID;myName:myChannel]" ..
-					"button_exit[1,2;2,1;exit;Save]"
-					local meta = minetest.get_meta(pos)
-					meta:set_string("formspec", formspec)
-					local head_node_pos = minetest.pos_to_string(head_node.pos)
-					meta:set_string("head_node_pos", head_node_pos)
-					place_wifi_node(pos, head_node)
-				else
-					local node = minetest.get_node(pos)
-					hyperloop.remove_node(pos, node)
-					return itemstack
-				end
+	after_place_node = function(pos, placer, itemstack, pointed_thing)
+		local head_node = search_head(pos)
+		if head_node ~= nil then
+			if head_node.name == "hyperloop:tube1" then
+				local formspec = "size[5,4]"..
+				"field[0.5,0.5;3,1;channel;Insert channel ID;myName:myChannel]" ..
+				"button_exit[1,2;2,1;exit;Save]"
+				local meta = minetest.get_meta(pos)
+				meta:set_string("formspec", formspec)
+				local head_node_pos = minetest.pos_to_string(head_node.pos)
+				meta:set_string("head_node_pos", head_node_pos)
+				place_wifi_node(pos, head_node)
+			else
+				local node = minetest.get_node(pos)
+				hyperloop.remove_node(pos, node)
+				return itemstack
 			end
-		end,
+		end
+	end,
 
-		on_receive_fields = function(pos, formname, fields, player)
-			if fields.channel == nil then
-				return
+	on_receive_fields = function(pos, formname, fields, player)
+		if fields.channel == nil then
+			return
+		end
+		local meta = minetest.get_meta(pos)
+		meta:set_string("channel", fields.channel)
+		meta:set_string("formspec", nil)
+		local peer_pos = wifi_register(pos, fields.channel)
+		if peer_pos ~= nil then
+			if wifi_pairing(pos, peer_pos) then
+				minetest.chat_send_player(player:get_player_name(), 
+					"[Hyperloop] WiFi pairing completed!")
+			else
+				minetest.chat_send_player(player:get_player_name(), 
+					"[Hyperloop] Pairing fault. Retry please!")
 			end
-			local meta = minetest.get_meta(pos)
-			meta:set_string("channel", fields.channel)
-			meta:set_string("formspec", nil)
-			local peer_pos = wifi_register(pos, fields.channel)
-			if peer_pos ~= nil then
-				if wifi_pairing(pos, peer_pos) then
-					minetest.chat_send_player(player:get_player_name(), 
-						"[Hyperloop] WiFi pairing completed!")
-				else
-					minetest.chat_send_player(player:get_player_name(), 
-						"[Hyperloop] Pairing fault. Retry please!")
-				end
-			end
-			hyperloop.change_counter = hyperloop.change_counter + 1
-		end,
+		end
+		hyperloop.change_counter = hyperloop.change_counter + 1
+	end,
 
-		on_destruct = function(pos)
-			-- unpair peer wifi node
-			local peer = minetest.get_meta(pos):get_string("wifi_peer")
-			peer = minetest.string_to_pos(peer)
-			if peer ~= nil then
-				hyperloop.upgrade_node(peer)
-			else  -- no pairing so far
-				-- delete channel registration
-				wifi_unregister(pos)
-			end
-			-- unpair local wifi node
-			hyperloop.upgrade_node(pos)
-			hyperloop.change_counter = hyperloop.change_counter + 1
-		end,
+	on_destruct = function(pos)
+		-- unpair peer wifi node
+		local peer = minetest.get_meta(pos):get_string("wifi_peer")
+		peer = minetest.string_to_pos(peer)
+		if peer ~= nil then
+			hyperloop.upgrade_node(peer)
+		else  -- no pairing so far
+			-- delete channel registration
+			wifi_unregister(pos)
+		end
+		-- unpair local wifi node
+		hyperloop.upgrade_node(pos)
+		hyperloop.change_counter = hyperloop.change_counter + 1
+	end,
 
-		paramtype2 = "facedir",
-		groups = {cracky=2},
-		is_ground_content = false,
-		sounds = default.node_sound_metal_defaults(),
-	})
+	paramtype2 = "facedir",
+	groups = {cracky=2},
+	is_ground_content = false,
+	sounds = default.node_sound_metal_defaults(),
+})
 
 minetest.register_node("hyperloop:pillar", {
-		description = "Hyperloop Pillar",
-		tiles = {"hyperloop_tube_locked.png^[transformR90]"},
-		drawtype = "nodebox",
-		node_box = {
-			type = "fixed",
-			fixed = {
-				{ -3/8, -4/8, -3/8,   3/8, 4/8, 3/8},
-			},
+	description = "Hyperloop Pillar",
+	tiles = {"hyperloop_tube_locked.png^[transformR90]"},
+	drawtype = "nodebox",
+	node_box = {
+		type = "fixed",
+		fixed = {
+			{ -3/8, -4/8, -3/8,   3/8, 4/8, 3/8},
 		},
-		is_ground_content = false,
-		groups = {cracky = 3, stone = 2},
-		sounds = default.node_sound_metal_defaults(),
-	})
+	},
+	is_ground_content = false,
+	groups = {cracky = 3, stone = 2},
+	sounds = default.node_sound_metal_defaults(),
+})
 
 

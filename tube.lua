@@ -176,54 +176,54 @@ end
 
 -- simple tube without logic or "memory"
 minetest.register_node("hyperloop:tube2", {
-		description = "Hyperloop Tube",
-		tiles = {
-			-- up, down, right, left, back, front
-			"hyperloop_tube_locked.png^[transformR90]",
-			"hyperloop_tube_locked.png^[transformR90]",
-			"hyperloop_tube_locked.png",
-			"hyperloop_tube_locked.png",
-			"hyperloop_tube_locked.png",
-			"hyperloop_tube_locked.png",
-		},
+	description = "Hyperloop Tube",
+	tiles = {
+		-- up, down, right, left, back, front
+		"hyperloop_tube_locked.png^[transformR90]",
+		"hyperloop_tube_locked.png^[transformR90]",
+		"hyperloop_tube_locked.png",
+		"hyperloop_tube_locked.png",
+		"hyperloop_tube_locked.png",
+		"hyperloop_tube_locked.png",
+	},
 
-		diggable = false,
-		paramtype2 = "facedir",
-		groups = {cracky=1, not_in_creative_inventory=1},
-		is_ground_content = false,
-	})
+	diggable = false,
+	paramtype2 = "facedir",
+	groups = {cracky=1, not_in_creative_inventory=1},
+	is_ground_content = false,
+})
 
 -- single-node and head-node with meta data about the peer head node position
 for idx = 0,1 do
 	minetest.register_node("hyperloop:tube"..idx, {
-			description = "Hyperloop Tube",
-			inventory_image = "hyperloop_tube_inventory.png",
-			drawtype = "nodebox",
-			tiles = {
-				-- up, down, right, left, back, front
-				"hyperloop_tube_locked.png^[transformR90]",
-				"hyperloop_tube_locked.png^[transformR90]",
-				'hyperloop_tube_closed.png',
-				'hyperloop_tube_closed.png',
-				'hyperloop_tube_open.png',
-				'hyperloop_tube_open.png',
-			},
+		description = "Hyperloop Tube",
+		inventory_image = "hyperloop_tube_inventory.png",
+		drawtype = "nodebox",
+		tiles = {
+			-- up, down, right, left, back, front
+			"hyperloop_tube_locked.png^[transformR90]",
+			"hyperloop_tube_locked.png^[transformR90]",
+			'hyperloop_tube_closed.png',
+			'hyperloop_tube_closed.png',
+			'hyperloop_tube_open.png',
+			'hyperloop_tube_open.png',
+		},
 
-			after_place_node = function(pos, placer, itemstack, pointed_thing)
-				return node_placed(pos)
-			end,
+		after_place_node = function(pos, placer, itemstack, pointed_thing)
+			return node_placed(pos)
+		end,
 
-			on_destruct = function(pos)
-				hyperloop.upgrade_node(pos)
-				hyperloop.update_junction(pos)
-			end,
+		on_destruct = function(pos)
+			hyperloop.upgrade_node(pos)
+			hyperloop.update_junction(pos)
+		end,
 
-			paramtype2 = "facedir",
-			groups = {cracky=2, not_in_creative_inventory=idx},
-			is_ground_content = false,
-			drop = "hyperloop:tube0",
-			sounds = default.node_sound_metal_defaults(),
-		})
+		paramtype2 = "facedir",
+		groups = {cracky=2, not_in_creative_inventory=idx},
+		is_ground_content = false,
+		drop = "hyperloop:tube0",
+		sounds = default.node_sound_metal_defaults(),
+	})
 end
 
 

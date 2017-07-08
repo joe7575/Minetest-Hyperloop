@@ -3,7 +3,7 @@
 	Hyperloop Mod
 	=============
 
-	v0.03 by JoSt
+	v0.04 by JoSt
 
 	Copyright (C) 2017 Joachim Stolberg
 
@@ -14,12 +14,13 @@
 	2017-06-18  v0.01  First version
 	2017-07-06  v0.02  Version on GitHub
 	2017-07-07  v0.03  Recipes added, settingstypes added
+	2017-07-08  v0.04  Door removal issue fixed
 
 ]]--
 
 
 hyperloop = {
-    tAllStations = {},		-- tube networks
+	tAllStations = {},		-- tube networks
 	tWifi = {},				-- WiFi pairing
 	booking = {},			-- placed bookings
 	change_counter = 0,		-- used for booking machine updates

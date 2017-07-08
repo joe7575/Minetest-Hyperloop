@@ -63,80 +63,80 @@ function hyperloop.door_command(seat_pos, facedir, cmnd)
 end
 
 minetest.register_node("hyperloop:doorTopPassive", {
-		description = "Hyperloop Door Top",
-		tiles = {
-			-- up, down, right, left, back, front
-			"hyperloop_skin_door.png",
-			"hyperloop_skin_door.png",
-			"hyperloop_skin_door.png",
-			"hyperloop_skin_door.png",
-			"hyperloop_door1OUT.png",
-			"hyperloop_door1OUT.png",
-		},
-		drawtype = "nodebox",
-		node_box = {
-			type = "fixed",
-			fixed = {-8/16, -8/16, -5/16, 8/16, 8/16, 5/16},
-		},
-		paramtype2 = "facedir",
-		diggable = false,
-		sounds = default.node_sound_metal_defaults(),
-		groups = {cracky=1, not_in_creative_inventory=1},
-		is_ground_content = false,
-	})
+	description = "Hyperloop Door Top",
+	tiles = {
+		-- up, down, right, left, back, front
+		"hyperloop_skin_door.png",
+		"hyperloop_skin_door.png",
+		"hyperloop_skin_door.png",
+		"hyperloop_skin_door.png",
+		"hyperloop_door1OUT.png",
+		"hyperloop_door1OUT.png",
+	},
+	drawtype = "nodebox",
+	node_box = {
+		type = "fixed",
+		fixed = {-8/16, -8/16, -5/16, 8/16, 8/16, 5/16},
+	},
+	paramtype2 = "facedir",
+	diggable = false,
+	sounds = default.node_sound_metal_defaults(),
+	groups = {cracky=1, not_in_creative_inventory=1},
+	is_ground_content = false,
+})
 
 minetest.register_node("hyperloop:doorTopActive", {
-		description = "Hyperloop Door Top",
-		tiles = {
-			-- up, down, right, left, back, front
-			"hyperloop_skin_door.png",
-			"hyperloop_skin_door.png",
-			"hyperloop_skin_door.png",
-			"hyperloop_skin_door.png",
-			{
-				name = "hyperloop_door1IN.png",
-				animation = {
-					type = "vertical_frames",
-					aspect_w = 32,
-					aspect_h = 32,
-					length = 1.0,
-				},
+	description = "Hyperloop Door Top",
+	tiles = {
+		-- up, down, right, left, back, front
+		"hyperloop_skin_door.png",
+		"hyperloop_skin_door.png",
+		"hyperloop_skin_door.png",
+		"hyperloop_skin_door.png",
+		{
+			name = "hyperloop_door1IN.png",
+			animation = {
+				type = "vertical_frames",
+				aspect_w = 32,
+				aspect_h = 32,
+				length = 1.0,
 			},
-			"hyperloop_door1OUT.png",
 		},
-		drawtype = "nodebox",
-		node_box = {
-			type = "fixed",
-			fixed = {-8/16, -8/16, -5/16, 8/16, 8/16, 5/16},
-		},
-		paramtype2 = "facedir",
-		diggable = false,
-		light_source = 2,
-		sounds = default.node_sound_metal_defaults(),
-		groups = {cracky=1, not_in_creative_inventory=1},
-		is_ground_content = false,
-	})
+		"hyperloop_door1OUT.png",
+	},
+	drawtype = "nodebox",
+	node_box = {
+		type = "fixed",
+		fixed = {-8/16, -8/16, -5/16, 8/16, 8/16, 5/16},
+	},
+	paramtype2 = "facedir",
+	diggable = false,
+	light_source = 2,
+	sounds = default.node_sound_metal_defaults(),
+	groups = {cracky=1, not_in_creative_inventory=1},
+	is_ground_content = false,
+})
 
 minetest.register_node("hyperloop:doorBottom", {
-		description = "Hyperloop Door Bottom",
-		tiles = {
-			-- up, down, right, left, back, front
-			"hyperloop_skin_door.png",
-			"hyperloop_skin_door.png",
-			"hyperloop_skin_door.png",
-			"hyperloop_skin_door.png",
-			"hyperloop_door2IN.png",
-			"hyperloop_door2OUT.png",
-		},
-		drawtype = "nodebox",
-		node_box = {
-			type = "fixed",
-			fixed = {-8/16, -8/16, -5/16, 8/16, 8/16, 5/16},
-		},
-		paramtype2 = "facedir",
-		diggable = false,
-		sounds = default.node_sound_metal_defaults(),
-		groups = {cracky=1, not_in_creative_inventory=1},
-		is_ground_content = false,
-	})
+	description = "Hyperloop Door Bottom",
+	tiles = {
+		-- up, down, right, left, back, front
+		"hyperloop_skin_door.png",
+		"hyperloop_skin_door.png",
+		"hyperloop_skin_door.png",
+		"hyperloop_skin_door.png",
+		"hyperloop_door2IN.png",
+		"hyperloop_door2OUT.png",
+	},
+	drawtype = "nodebox",
+	node_box = {
+		type = "fixed",
+		fixed = {-8/16, -8/16, -5/16, 8/16, 8/16, 5/16},
+	},
+	paramtype2 = "facedir",
+	diggable = false,
+	sounds = default.node_sound_metal_defaults(),
+	groups = {cracky=1, not_in_creative_inventory=1},
+	is_ground_content = false,
+})
 

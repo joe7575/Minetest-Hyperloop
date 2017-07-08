@@ -67,114 +67,114 @@ local function formspec(station_name)
 end
 
 minetest.register_node("hyperloop:booking", {
-		description = "Hyperloop Booking Machine",
-		tiles = {
-			-- up, down, right, left, back, front
-			"hyperloop_booking.png",
-			"hyperloop_booking.png",
-			"hyperloop_booking.png",
-			"hyperloop_booking.png",
-			"hyperloop_booking.png",
-			"hyperloop_booking_front.png",
-		},
+	description = "Hyperloop Booking Machine",
+	tiles = {
+		-- up, down, right, left, back, front
+		"hyperloop_booking.png",
+		"hyperloop_booking.png",
+		"hyperloop_booking.png",
+		"hyperloop_booking.png",
+		"hyperloop_booking.png",
+		"hyperloop_booking_front.png",
+	},
 
-		after_place_node = function(pos, placer, itemstack, pointed_thing)
-			local meta = minetest.get_meta(pos)
-			local formspec = "size[6,4]"..
-			"label[0,0;Please insert station name to which this booking machine belongs]" ..
-			"field[0.5,1.5;5,1;name;Station name;MyTown]" ..
-			"field[0.5,2.7;5,1;info;Additional station information;]" ..
-			"button_exit[2,3.6;2,1;exit;Save]"
-			meta:set_string("formspec", formspec)
-			meta:set_int("change_counter", 0)
-		end,
+	after_place_node = function(pos, placer, itemstack, pointed_thing)
+		local meta = minetest.get_meta(pos)
+		local formspec = "size[6,4]"..
+		"label[0,0;Please insert station name to which this booking machine belongs]" ..
+		"field[0.5,1.5;5,1;name;Station name;MyTown]" ..
+		"field[0.5,2.7;5,1;info;Additional station information;]" ..
+		"button_exit[2,3.6;2,1;exit;Save]"
+		meta:set_string("formspec", formspec)
+		meta:set_int("change_counter", 0)
+	end,
 
-		on_receive_fields = function(pos, formname, fields, player)
-			local meta = minetest.get_meta(pos)
-			-- station name entered?
-			if fields.name ~= nil then
-				local station_name = string.trim(fields.name)
-				if station_name == "" then
+	on_receive_fields = function(pos, formname, fields, player)
+		local meta = minetest.get_meta(pos)
+		-- station name entered?
+		if fields.name ~= nil then
+			local station_name = string.trim(fields.name)
+			if station_name == "" then
+				return
+			end
+			-- valid name entered?
+			if hyperloop.tAllStations[station_name] ~= nil then
+				if hyperloop.tAllStations[station_name]["booking_pos"] ~= nil then
+					minetest.chat_send_player(player:get_player_name(), 
+						"[Hyperloop] Error: Station has already a booking machine!")
 					return
 				end
-				-- valid name entered?
-				if hyperloop.tAllStations[station_name] ~= nil then
-					if hyperloop.tAllStations[station_name]["booking_pos"] ~= nil then
-						minetest.chat_send_player(player:get_player_name(), 
-							"[Hyperloop] Error: Station has already a booking machine!")
-						return
-					end
-					-- check distance to the named station
-					local station_pos = minetest.string_to_pos(hyperloop.tAllStations[station_name].pos)
-					if hyperloop.distance(pos, station_pos) > 30 then
-						minetest.chat_send_player(player:get_player_name(), "[Hyperloop] Error: station too far away!")
-						return
-					end
-					-- store meta and generate station formspec
-					hyperloop.tAllStations[station_name]["booking_pos"] = minetest.pos_to_string(pos)
-					hyperloop.tAllStations[station_name]["booking_info"] = string.trim(fields.info)
-					meta:set_string("station_name", station_name)
-					meta:set_string("infotext", "Station: "..station_name)
-					meta:set_string("formspec", formspec(station_name))
-					hyperloop.change_counter = hyperloop.change_counter + 1
-				else
-					minetest.chat_send_player(player:get_player_name(), "[Hyperloop] Error: Invalid station name!")
+				-- check distance to the named station
+				local station_pos = minetest.string_to_pos(hyperloop.tAllStations[station_name].pos)
+				if hyperloop.distance(pos, station_pos) > 30 then
+					minetest.chat_send_player(player:get_player_name(), "[Hyperloop] Error: station too far away!")
+					return
 				end
-				-- destination selected?
-			elseif fields.button ~= nil then
-				local station_name = meta:get_string("station_name")
-				local idx = tonumber(fields.button)
-				local destination = get_station_list(station_name)[idx]
-				-- place booking of not already blocked
-				if hyperloop.reserve(station_name, destination) then
-					hyperloop.booking[station_name] = destination
-					-- open the pod door
-					hyperloop.open_pod_door(station_name)
-				else
-					minetest.chat_send_player(player:get_player_name(), "[Hyperloop] Station is still blocked. Please try again in a view seconds!")
-				end
+				-- store meta and generate station formspec
+				hyperloop.tAllStations[station_name]["booking_pos"] = minetest.pos_to_string(pos)
+				hyperloop.tAllStations[station_name]["booking_info"] = string.trim(fields.info)
+				meta:set_string("station_name", station_name)
+				meta:set_string("infotext", "Station: "..station_name)
+				meta:set_string("formspec", formspec(station_name))
+				hyperloop.change_counter = hyperloop.change_counter + 1
+			else
+				minetest.chat_send_player(player:get_player_name(), "[Hyperloop] Error: Invalid station name!")
 			end
-		end,
-
-		on_destruct = function(pos)
-			local meta = minetest.get_meta(pos)
+			-- destination selected?
+		elseif fields.button ~= nil then
 			local station_name = meta:get_string("station_name")
-			if hyperloop.tAllStations[station_name] ~= nil 
-			and hyperloop.tAllStations[station_name]["booking_pos"] ~= nil then
-				hyperloop.tAllStations[station_name]["booking_pos"] = nil
-			end
-			hyperloop.change_counter = hyperloop.change_counter + 1
-		end,
-
-		update = function(pos)
-			local meta = minetest.get_meta(pos)
-			local station_name = meta:get_string("station_name")
-			local stations = get_station_list(station_name)
-			meta:set_string("formspec", formspec(station_name, stations))
-		end,
-
-		light_source = 2,
-		paramtype2 = "facedir",
-		groups = {cracky=2},
-		is_ground_content = false,
-	})
-
-minetest.register_abm({
-		label = "[Hyperloop] Booking machine update",
-		nodenames = {"hyperloop:booking"},
-		interval = 10.0, -- Run every 10 seconds
-		chance = 1,
-		action = function(pos, node, active_object_count, active_object_count_wider)
-			local meta = minetest.get_meta(pos)
-			local counter = meta:get_int("change_counter") or 0
-			if hyperloop.change_counter ~= counter then
-				local station_name = meta:get_string("station_name") or nil
-				if station_name ~= nil and hyperloop.tAllStations[station_name] ~= nil then
-					local stations = get_station_list(station_name)
-					meta:set_string("formspec", formspec(station_name, stations))
-				end
-				meta:set_int("change_counter", hyperloop.change_counter)
+			local idx = tonumber(fields.button)
+			local destination = get_station_list(station_name)[idx]
+			-- place booking of not already blocked
+			if hyperloop.reserve(station_name, destination) then
+				hyperloop.booking[station_name] = destination
+				-- open the pod door
+				hyperloop.open_pod_door(station_name)
+			else
+				minetest.chat_send_player(player:get_player_name(), "[Hyperloop] Station is still blocked. Please try again in a view seconds!")
 			end
 		end
-	})
+	end,
+
+	on_destruct = function(pos)
+		local meta = minetest.get_meta(pos)
+		local station_name = meta:get_string("station_name")
+		if hyperloop.tAllStations[station_name] ~= nil 
+		and hyperloop.tAllStations[station_name]["booking_pos"] ~= nil then
+			hyperloop.tAllStations[station_name]["booking_pos"] = nil
+		end
+		hyperloop.change_counter = hyperloop.change_counter + 1
+	end,
+
+	update = function(pos)
+		local meta = minetest.get_meta(pos)
+		local station_name = meta:get_string("station_name")
+		local stations = get_station_list(station_name)
+		meta:set_string("formspec", formspec(station_name, stations))
+	end,
+
+	light_source = 2,
+	paramtype2 = "facedir",
+	groups = {cracky=2},
+	is_ground_content = false,
+})
+
+minetest.register_abm({
+	label = "[Hyperloop] Booking machine update",
+	nodenames = {"hyperloop:booking"},
+	interval = 10.0, -- Run every 10 seconds
+	chance = 1,
+	action = function(pos, node, active_object_count, active_object_count_wider)
+		local meta = minetest.get_meta(pos)
+		local counter = meta:get_int("change_counter") or 0
+		if hyperloop.change_counter ~= counter then
+			local station_name = meta:get_string("station_name") or nil
+			if station_name ~= nil and hyperloop.tAllStations[station_name] ~= nil then
+				local stations = get_station_list(station_name)
+				meta:set_string("formspec", formspec(station_name, stations))
+			end
+			meta:set_int("change_counter", hyperloop.change_counter)
+		end
+	end
+})
 
