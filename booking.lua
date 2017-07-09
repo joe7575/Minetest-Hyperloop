@@ -131,7 +131,8 @@ minetest.register_node("hyperloop:booking", {
 				-- open the pod door
 				hyperloop.open_pod_door(station_name)
 			else
-				minetest.chat_send_player(player:get_player_name(), "[Hyperloop] Station is still blocked. Please try again in a few seconds!")
+				minetest.chat_send_player(player:get_player_name(), 
+					"[Hyperloop] Station is still blocked. Please try again in a few seconds!")
 			end
 		end
 	end,
