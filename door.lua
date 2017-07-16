@@ -13,11 +13,20 @@
 
 ]]--
 
+-- Open the door for an emergency
+local function door_on_punch(pos, node, puncher, pointed_thing)
+	local meta = minetest.get_meta(pos)
+	local station_name = meta:get_string("station_name")
+	if not hyperloop.is_blocked(station_name) then
+		hyperloop.open_pod_door(station_name)
+	end
+end
+
 -- Open/close/animate the pod door
 -- seat_pos: position of the seat
 -- facedir: direction to the display
 -- cmnd: "close", "open", or "animate"
-function hyperloop.door_command(seat_pos, facedir, cmnd)
+function hyperloop.door_command(seat_pos, facedir, cmnd, station_name)
 	-- one step forward
 	local lcd_pos = vector.add(seat_pos, hyperloop.facedir2dir(facedir))
 	-- one step left
@@ -52,9 +61,17 @@ function hyperloop.door_command(seat_pos, facedir, cmnd)
 		node1.name = "hyperloop:doorBottom"
 		node1.param2 = facedir
 		minetest.swap_node(door_pos1, node1)
+		if station_name ~= nil then
+			local meta = minetest.get_meta(door_pos1)
+			meta:set_string("station_name", station_name)
+		end
 		node2.name = "hyperloop:doorTopPassive"
 		node2.param2 = facedir
 		minetest.swap_node(door_pos2, node2)
+		if station_name ~= nil then
+			meta = minetest.get_meta(door_pos2)
+			meta:set_string("station_name", station_name)
+		end
 	elseif cmnd == "animate" then
 		node2.name = "hyperloop:doorTopActive"
 		node2.param2 = facedir
@@ -78,6 +95,9 @@ minetest.register_node("hyperloop:doorTopPassive", {
 		type = "fixed",
 		fixed = {-8/16, -8/16, -5/16, 8/16, 8/16, 5/16},
 	},
+	
+	on_punch = door_on_punch,
+	
 	paramtype2 = "facedir",
 	diggable = false,
 	sounds = default.node_sound_metal_defaults(),
@@ -133,6 +153,9 @@ minetest.register_node("hyperloop:doorBottom", {
 		type = "fixed",
 		fixed = {-8/16, -8/16, -5/16, 8/16, 8/16, 5/16},
 	},
+	
+	on_punch = door_on_punch,
+	
 	paramtype2 = "facedir",
 	diggable = false,
 	sounds = default.node_sound_metal_defaults(),

@@ -20,7 +20,7 @@ local function on_final_close_door(pos, facedir)
 		-- try again later
 		minetest.after(3.0, on_final_close_door, pos, facedir)
 	else
-		hyperloop.door_command(pos, facedir, "close")
+		hyperloop.door_command(pos, facedir, "close", nil)
 	end
 end
 
@@ -29,7 +29,7 @@ local function on_open_door(pos, facedir)
 	local meta = minetest.get_meta(pos)
 	meta:set_int("arrival_time", 0) -- finished
 	-- open door
-	hyperloop.door_command(pos, facedir, "open")
+	hyperloop.door_command(pos, facedir, "open", nil)
 	-- prepare dislay for the next trip
 	hyperloop.enter_display(pos, facedir, "Thank you | for | travelling | with | Hyperloop.")
 	minetest.after(5.0, on_final_close_door, pos, facedir)
@@ -53,7 +53,7 @@ local function on_arrival(player, src_pos, src_facedir, dst_pos, snd, radiant)
 		-- rotate player to look in correct arrival direction
 		-- calculate the look correction
 		local offs = radiant - player:get_look_horizontal()
-		local yaw = hyperloop.facedir2rad(facedir) + offs
+		local yaw = hyperloop.facedir2rad(facedir) - offs
 		player:set_look_yaw(yaw)
 	end
 	-- play arrival sound
@@ -77,7 +77,7 @@ local function on_travel(src_pos, facedir, player, dst_pos, radiant, atime)
 			max_hear_distance = 1,
 			loop = true,
 		})
-	hyperloop.door_command(src_pos, facedir, "animate")
+	hyperloop.door_command(src_pos, facedir, "animate", nil)
 	minetest.after(atime, on_arrival, player, src_pos, facedir, dst_pos, snd, radiant)
 	minetest.after(atime, on_final_close_door, src_pos, facedir)
 end
@@ -151,7 +151,7 @@ local function on_start_travel(pos, node, clicker)
 			max_hear_distance = 10
 		})
 	-- close the door at arrival station
-	hyperloop.door_command(dest_pos, dest_facedir, "close")
+	hyperloop.door_command(dest_pos, dest_facedir, "close", dest_name)
 	-- place player on the seat
 	clicker:setpos(pos)
 	-- rotate player to look in move direction
@@ -178,7 +178,7 @@ local function on_start_travel(pos, node, clicker)
 	meta:set_string("lcd_text", text)
 	minetest.get_node_timer(pos):start(1.0)
 
-	hyperloop.door_command(pos, facedir, "close")
+	hyperloop.door_command(pos, facedir, "close", station_name)
 
 	atime = atime - 9 -- substract start/arrival time
 	minetest.after(4.9, on_travel, pos, facedir, clicker, dest_pos, hyperloop.facedir2rad(facedir), atime)
@@ -202,7 +202,7 @@ function hyperloop.close_pod_door(station_name)
 		local seat_pos = vector.add(pos, {x=0, y=1, z=0})
 		local meta = minetest.get_meta(seat_pos)
 		local facedir = meta:get_int("facedir")
-		hyperloop.door_command(seat_pos, facedir, "close")
+		hyperloop.door_command(seat_pos, facedir, "close", station_name)
 		hyperloop.enter_display(seat_pos, facedir, " |  | << Hyperloop >> | be anywhere")
 	end
 end

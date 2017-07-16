@@ -38,6 +38,7 @@ dofile(minetest.get_modpath("hyperloop") .. "/seat.lua")
 dofile(minetest.get_modpath("hyperloop") .. "/pod.lua")
 dofile(minetest.get_modpath("hyperloop") .. "/lcd.lua")
 dofile(minetest.get_modpath("hyperloop") .. "/wifi.lua")
+--dofile(minetest.get_modpath("hyperloop") .. "/elevator.lua")
 dofile(minetest.get_modpath("hyperloop") .. "/recipes.lua")
 
 print ("[MOD] Hyperloop loaded")

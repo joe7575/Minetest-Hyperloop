@@ -261,6 +261,17 @@ function hyperloop.block(departure, arrival, seconds)
 	end
 end
 
+-- check if station is blocked
+function hyperloop.is_blocked(station)
+	if hyperloop.tAllStations[station] == nil then
+		return false
+	else
+		local t = hyperloop.tAllStations[station].time_blocked or 0
+		print(t, minetest.get_gametime())
+		return t > minetest.get_gametime()
+	end
+end
+
 -- Store and read the station list to / from a file
 -- so that upcoming actions are remembered when the game
 -- is restarted

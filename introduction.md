@@ -1,8 +1,8 @@
 # Introduction
 
-Connect two Junction blocks with a line of Tube blocks. The tube itself is automatically protected. You can dig only the ends of a tube line (head blocks). The junction block / station has to be protected by manually.
+Connect two Junction blocks with a line of Tube blocks. The tube itself is automatically protected. You can dig only the ends of a tube line (head blocks). The junction block / station has to be protected manually.
 
-A Junction block, which is the basis for a station, can have up to four tubes. That means you can build complex networks of tube lines. Each junction/station can be reaches from each point with on trip.
+A Junction block, which is the basis for a station, can have up to four tubes. That means you can build complex networks of tube lines. Each junction/station can be reaches from each point with one trip.
 
 ![Image](https://github.com/joe7575/Minetest-Hyperloop/blob/master/img/intro03.png)
 

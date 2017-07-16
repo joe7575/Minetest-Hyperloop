@@ -31,13 +31,13 @@ local function station_list_as_string(pos)
 		print("tWifi="..dump(hyperloop.tWifi))
 	end
 	--local tRes = {"(player distance: station name (position) seat/machine/owner  =>  directly connected with)\n\n"}
-	local tRes = {"size[10,10]label[0,0;Dist.]label[0.8,0;Station]label[2.5,0;Position]label[4.2,0;State]label[5.7,0;Owner]label[7.1,0;Connected with]"}
+	local tRes = {"size[10,10]label[0,0;Dist.]label[0.9,0;Station]label[2.5,0;Position]label[4.2,0;State]label[5.6,0;Owner]label[7.1,0;Connected with]"}
 	local state, owner
 	for idx,dataSet in ipairs(sortedList) do
 		if idx == 18 then
 			break
 		end
-		ypos = 0.2 + idx * 0.4
+		local ypos = 0.2 + idx * 0.4
 		if dataSet.seat == true and dataSet.booking_pos ~= nil then
 			state = "completed"
 		elseif dataSet.seat == true then
@@ -51,10 +51,10 @@ local function station_list_as_string(pos)
 			owner = "unknown"
 		end
 		tRes[#tRes+1] = "label[0,"..ypos..";"..dataSet.distance.." m]"
-		tRes[#tRes+1] = "label[0.8,"..ypos..";"..dataSet.name.."]"
+		tRes[#tRes+1] = "label[0.9,"..ypos..";"..dataSet.name.."]"
 		tRes[#tRes+1] = "label[2.5,"..ypos..";"..dataSet.pos.."]"
 		tRes[#tRes+1] = "label[4.2,"..ypos..";"..state.."]"
-		tRes[#tRes+1] = "label[5.7,"..ypos..";"..owner.."]"
+		tRes[#tRes+1] = "label[5.6,"..ypos..";"..owner.."]"
 		tRes[#tRes+1] = "label[7.1,"..ypos..";"
 		for _,s in ipairs(hyperloop.get_connections(dataSet.name)) do
 			tRes[#tRes + 1] = s
