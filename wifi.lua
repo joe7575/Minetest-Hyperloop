@@ -85,8 +85,7 @@ local function wifi_unregister(pos)
 end
 
 local function wifi_update(pos, peer_pos)
-	local local_head_pos = get_head_node_pos(pos)
-	local rmt_head_pos1 = read_peer_pos(local_head_pos)
+	local rmt_head_pos1 = read_peer_pos(pos)
 	if rmt_head_pos1 == nil then
 		return nil
 	end
@@ -98,9 +97,7 @@ end
 local function wifi_pairing(pos, peer_pos)
 	local rmt_head_pos1	 -- own remote tube head 
 	local rmt_head_pos2  -- remote tube head of the peer wifi node
-	-- local tube head node 
-	local local_head_pos = get_head_node_pos(pos)
-	rmt_head_pos1 = read_peer_pos(local_head_pos)
+	rmt_head_pos1 = read_peer_pos(pos)
 	if rmt_head_pos1 == nil then
 		return false
 	end

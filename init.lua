@@ -30,7 +30,7 @@ hyperloop = {
 	}
 }
 
-hyperloop.min_slope_counter = 10
+hyperloop.min_slope_counter = 50
 
 hyperloop.debugging = false
 

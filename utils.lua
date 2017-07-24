@@ -69,9 +69,11 @@ function hyperloop.placedir_to_facedir(placedir)
 end
 
 function hyperloop.get_facedir(placer)
-	local yaw = placer:get_look_horizontal()
-	local placedir = hyperloop.rad_to_placedir(yaw)
-	return hyperloop.placedir_to_facedir(placedir)
+	local lookdir = placer:get_look_dir()
+	return core.dir_to_facedir(lookdir)
+--	local yaw = placer:get_look_horizontal()
+--	local placedir = hyperloop.rad_to_placedir(yaw)
+--	return hyperloop.placedir_to_facedir(placedir)
 end
 
 -- calculate the new pos based on the given pos, the players placedir

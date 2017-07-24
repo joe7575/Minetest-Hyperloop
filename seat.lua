@@ -210,7 +210,7 @@ end
 function hyperloop.after_seat_placed(pos, facedir)
 	local meta = minetest.get_meta(pos)
 	meta:set_int("arrival_time", 0)
-	meta:set_int("facedir", facedir)
+	meta:set_int("facedir", (facedir + 2) % 4)
 end
 
 
@@ -246,30 +246,8 @@ minetest.register_node("hyperloop:seat", {
 
 	on_timer = display_timer,
 
---	on_construct = function(pos)
---		local meta = minetest.get_meta(pos)
---		meta:set_int("arrival_time", 0)
---	end,
-
---	after_place_node = function(pos, placer)
---		local meta = minetest.get_meta(pos)
---		local yaw = placer:get_look_horizontal()
---		-- facedir according to radiant
---		local facedir = hyperloop.rad_to_placedir(yaw)
---		-- do a 180 degree correction
---		meta:set_int("facedir", (facedir + 2) % 4)
---		-- store station name locally
---		local pos2 = vector.add(pos, {x=0, y=-1, z=0})
---		local meta2 = minetest.get_meta(pos2)
---		if meta2 ~= nil then
---			local station_name = meta2:get_string("station_name")
---			meta:set_string("station_name", station_name)
---			if hyperloop.data.tAllStations[station_name] ~= nil then
---				hyperloop.data.tAllStations[station_name]["seat"] = true
---			end
---		end
---		hyperloop.data.change_counter = hyperloop.data.change_counter + 1
---	end,
+-- after_place_node = function(pos, placer)
+-- Not used any more. "hyperloop.station" calls "hyperloop.after_seat_placed" instead.
 
 	on_destruct = function(pos)
 		local meta = minetest.get_meta(pos)

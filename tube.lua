@@ -76,6 +76,7 @@ function hyperloop.update_head_node(pos, peer_pos)
 	if pos ~= nil then
 		local meta = minetest.get_meta(pos)
 		meta:set_string("peer", peer_pos)
+		meta:set_string("infotext", peer_pos)
 		hyperloop.update_junction(pos)
 	end
 end
@@ -131,7 +132,7 @@ function hyperloop.upgrade_node(digged_node_pos)
 			slope_cnt = math.min(slope_cnt + 1, hyperloop.min_slope_counter)
 		end
 		minetest.get_meta(new_head_node.pos):set_int("slope_cnt", slope_cnt)
-		minetest.get_meta(new_head_node.pos):set_string("infotext", pos.." : "..slope_cnt)
+		minetest.get_meta(new_head_node.pos):set_string("infotext", peer_pos.." : "..slope_cnt)
 		minetest.swap_node(new_head_node.pos, new_head_node)
 	end
 end
@@ -169,7 +170,7 @@ local function head_node(node, old_head)
 		end
 		-- upgrade self
 		minetest.get_meta(node.pos):set_int("slope_cnt", slope_cnt)
-		minetest.get_meta(node.pos):set_string("infotext", str_pos.." : "..slope_cnt)
+		minetest.get_meta(node.pos):set_string("infotext", peer_pos.." : "..slope_cnt)
 		node.name = "hyperloop:tube1"
 		minetest.swap_node(node.pos, node)
 		-- degrade old head
@@ -273,4 +274,6 @@ for idx = 0,1 do
 	})
 end
 
-
+function hyperloop.after_tube_placed(pos, itemstack)
+	return node_placed(pos, itemstack) == nil
+end
