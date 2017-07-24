@@ -114,3 +114,66 @@ minetest.register_craft({
 		{"hyperloop:hypersteel_ingot", "default:glass", ""},
 	},
 })
+
+minetest.register_craft({
+	output = "hyperloop:shaft 8",
+	recipe = {
+		{"hyperloop:hypersteel_ingot", "", "hyperloop:hypersteel_ingot"},
+		{"", "", ""},
+		{"hyperloop:hypersteel_ingot", "", "hyperloop:hypersteel_ingot"},
+	},
+})
+
+minetest.register_craft({
+	output = "hyperloop:elevator_bottom 2",
+	recipe = {
+		{"", "default:glass", "hyperloop:hypersteel_ingot"},
+		{"", "dye:red", 	  "default:mese_crystal"},
+		{"", "default:glass", "hyperloop:hypersteel_ingot"},
+	},
+})
+
+minetest.register_craft({
+	output = "hyperloop:sign",
+	recipe = {
+		{"", "", ""},
+		{"", "dye:cyan", 	 "hyperloop:hypersteel_ingot"},
+		{"", "default:wood", "default:wood"},
+	},
+})
+
+minetest.register_craft({
+	output = "hyperloop:poster1L",
+	recipe = {
+		{"", "", ""},
+		{"", "dye:white", 	 "hyperloop:hypersteel_ingot"},
+		{"", "dye:blue", "default:wood"},
+	},
+})
+
+minetest.register_craft({
+	output = "hyperloop:poster2L",
+	recipe = {
+		{"", "", ""},
+		{"", "dye:white", 	 "hyperloop:hypersteel_ingot"},
+		{"", "dye:cyan", "default:wood"},
+	},
+})
+
+minetest.register_craft({
+	output = "hyperloop:poster3L",
+	recipe = {
+		{"", "", ""},
+		{"", "dye:white", 	 "hyperloop:hypersteel_ingot"},
+		{"", "dye:brown", "default:wood"},
+	},
+})
+
+minetest.register_craft({
+	output = "hyperloop:station",
+	recipe = {
+		{"hyperloop:pod_wall", 	"hyperloop:lcd", 	""},
+		{"hyperloop:pod_wall", 	"", 	 			"hyperloop:seat"},
+		{"hyperloop:tube0", 	"hyperloop:tube0", 	"hyperloop:junction"},
+	},
+})

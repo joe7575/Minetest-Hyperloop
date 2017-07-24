@@ -53,7 +53,7 @@ local function on_arrival(player, src_pos, src_facedir, dst_pos, snd, radiant)
 		-- rotate player to look in correct arrival direction
 		-- calculate the look correction
 		local offs = radiant - player:get_look_horizontal()
-		local yaw = hyperloop.facedir2rad(facedir) - offs
+		local yaw = hyperloop.placedir_to_rad(facedir) - offs
 		player:set_look_yaw(yaw)
 	end
 	-- play arrival sound
@@ -61,7 +61,7 @@ local function on_arrival(player, src_pos, src_facedir, dst_pos, snd, radiant)
 	minetest.sound_play("down2", {
 			pos = dst_pos,
 			gain = 0.5,
-			max_hear_distance = 10
+			max_hear_distance = 2
 		})
 
 	minetest.after(6.0, on_open_door, dst_pos, facedir)
@@ -74,7 +74,7 @@ local function on_travel(src_pos, facedir, player, dst_pos, radiant, atime)
 	local snd = minetest.sound_play("normal2", {
 			pos = src_pos,
 			gain = 0.5,
-			max_hear_distance = 1,
+			max_hear_distance = 2,
 			loop = true,
 		})
 	hyperloop.door_command(src_pos, facedir, "animate", nil)
@@ -122,15 +122,15 @@ local function on_start_travel(pos, node, clicker)
 		print("[Hyperloop] Error: station_name == nil!")
 		return
 	end
-	local booking = hyperloop.booking[station_name]
+	local booking = hyperloop.data.booking[station_name]
 	if booking == nil then
 		minetest.chat_send_player(clicker:get_player_name(), "[Hyperloop] No booking entered!")
 		return
 	end
 
-	local dataSet = table.copy(hyperloop.tAllStations[booking])
+	local dataSet = table.copy(hyperloop.data.tAllStations[booking])
 	-- delete booking
-	hyperloop.booking[station_name] = nil
+	hyperloop.data.booking[station_name] = nil
 	if dataSet == nil then
 		return
 	end
@@ -148,14 +148,14 @@ local function on_start_travel(pos, node, clicker)
 	minetest.sound_play("up2", {
 			pos = pos,
 			gain = 0.5,
-			max_hear_distance = 10
+			max_hear_distance = 2
 		})
 	-- close the door at arrival station
 	hyperloop.door_command(dest_pos, dest_facedir, "close", dest_name)
 	-- place player on the seat
 	clicker:setpos(pos)
 	-- rotate player to look in move direction
-	clicker:set_look_horizontal(hyperloop.facedir2rad(facedir))
+	clicker:set_look_horizontal(hyperloop.placedir_to_rad(facedir))
 
 	-- activate display
 	local dist = hyperloop.distance(pos, dest_pos) 
@@ -181,13 +181,13 @@ local function on_start_travel(pos, node, clicker)
 	hyperloop.door_command(pos, facedir, "close", station_name)
 
 	atime = atime - 9 -- substract start/arrival time
-	minetest.after(4.9, on_travel, pos, facedir, clicker, dest_pos, hyperloop.facedir2rad(facedir), atime)
+	minetest.after(4.9, on_travel, pos, facedir, clicker, dest_pos, hyperloop.placedir_to_rad(facedir), atime)
 end
 
 
 function hyperloop.open_pod_door(station_name)
-	if hyperloop.tAllStations[station_name] ~= nil and hyperloop.tAllStations[station_name].pos ~= nil then
-		local pos = minetest.string_to_pos(hyperloop.tAllStations[station_name].pos)
+	if hyperloop.data.tAllStations[station_name] ~= nil and hyperloop.data.tAllStations[station_name].pos ~= nil then
+		local pos = minetest.string_to_pos(hyperloop.data.tAllStations[station_name].pos)
 		local seat_pos = vector.add(pos, {x=0, y=1, z=0})
 		local meta = minetest.get_meta(seat_pos)
 		local facedir = meta:get_int("facedir")
@@ -197,14 +197,20 @@ function hyperloop.open_pod_door(station_name)
 end
 
 function hyperloop.close_pod_door(station_name)
-	if hyperloop.tAllStations[station_name] ~= nil and hyperloop.tAllStations[station_name].pos ~= nil then
-		local pos = minetest.string_to_pos(hyperloop.tAllStations[station_name].pos)
+	if hyperloop.data.tAllStations[station_name] ~= nil and hyperloop.data.tAllStations[station_name].pos ~= nil then
+		local pos = minetest.string_to_pos(hyperloop.data.tAllStations[station_name].pos)
 		local seat_pos = vector.add(pos, {x=0, y=1, z=0})
 		local meta = minetest.get_meta(seat_pos)
 		local facedir = meta:get_int("facedir")
 		hyperloop.door_command(seat_pos, facedir, "close", station_name)
 		hyperloop.enter_display(seat_pos, facedir, " |  | << Hyperloop >> | be anywhere")
 	end
+end
+
+function hyperloop.after_seat_placed(pos, facedir)
+	local meta = minetest.get_meta(pos)
+	meta:set_int("arrival_time", 0)
+	meta:set_int("facedir", facedir)
 end
 
 
@@ -240,40 +246,40 @@ minetest.register_node("hyperloop:seat", {
 
 	on_timer = display_timer,
 
-	on_construct = function(pos)
-		local meta = minetest.get_meta(pos)
-		meta:set_int("arrival_time", 0)
-	end,
+--	on_construct = function(pos)
+--		local meta = minetest.get_meta(pos)
+--		meta:set_int("arrival_time", 0)
+--	end,
 
-	after_place_node = function(pos, placer)
-		local meta = minetest.get_meta(pos)
-		local yaw = placer:get_look_horizontal()
-		-- facedir according to radiant
-		local facedir = hyperloop.rad2facedir(yaw)
-		-- do a 180 degree correction
-		meta:set_int("facedir", (facedir + 2) % 4)
-		-- store station name locally
-		local pos2 = vector.add(pos, {x=0, y=-1, z=0})
-		local meta2 = minetest.get_meta(pos2)
-		if meta2 ~= nil then
-			local station_name = meta2:get_string("station_name")
-			meta:set_string("station_name", station_name)
-			if hyperloop.tAllStations[station_name] ~= nil then
-				hyperloop.tAllStations[station_name]["seat"] = true
-			end
-		end
-		hyperloop.change_counter = hyperloop.change_counter + 1
-	end,
+--	after_place_node = function(pos, placer)
+--		local meta = minetest.get_meta(pos)
+--		local yaw = placer:get_look_horizontal()
+--		-- facedir according to radiant
+--		local facedir = hyperloop.rad_to_placedir(yaw)
+--		-- do a 180 degree correction
+--		meta:set_int("facedir", (facedir + 2) % 4)
+--		-- store station name locally
+--		local pos2 = vector.add(pos, {x=0, y=-1, z=0})
+--		local meta2 = minetest.get_meta(pos2)
+--		if meta2 ~= nil then
+--			local station_name = meta2:get_string("station_name")
+--			meta:set_string("station_name", station_name)
+--			if hyperloop.data.tAllStations[station_name] ~= nil then
+--				hyperloop.data.tAllStations[station_name]["seat"] = true
+--			end
+--		end
+--		hyperloop.data.change_counter = hyperloop.data.change_counter + 1
+--	end,
 
 	on_destruct = function(pos)
 		local meta = minetest.get_meta(pos)
 		local station_name = meta:get_string("station_name")
-		if hyperloop.tAllStations[station_name] ~= nil 
-		and hyperloop.tAllStations[station_name]["seat"] ~= nil then
-			hyperloop.tAllStations[station_name]["seat"] = nil
+		if hyperloop.data.tAllStations[station_name] ~= nil 
+		and hyperloop.data.tAllStations[station_name]["seat"] ~= nil then
+			hyperloop.data.tAllStations[station_name]["seat"] = nil
 			hyperloop.open_pod_door(station_name)
 		end
-		hyperloop.change_counter = hyperloop.change_counter + 1
+		hyperloop.data.change_counter = hyperloop.data.change_counter + 1
 	end,
 
 	on_rightclick = on_start_travel,

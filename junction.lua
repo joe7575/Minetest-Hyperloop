@@ -22,7 +22,7 @@ function hyperloop.update_junction(pos)
 			minetest.registered_nodes["hyperloop:junction"].update(node.pos)
 		end
 	end
-	hyperloop.change_counter = hyperloop.change_counter + 1
+	hyperloop.data.change_counter = hyperloop.data.change_counter + 1
 end	
 
 local function default_name(pos)
@@ -46,15 +46,20 @@ local function store_routes(pos, owner)
 		end
 		-- store list
 		local spos = minetest.pos_to_string(pos)
-		if hyperloop.tAllStations[station_name] == nil then
+		if hyperloop.data.tAllStations[station_name] == nil then
 			-- add a new station
-			hyperloop.tAllStations[station_name] = {pos=spos, routes=tRoutes, time_blocked=0}
+			hyperloop.data.tAllStations[station_name] = {pos=spos, routes=tRoutes, time_blocked=0}
 		else
-			hyperloop.tAllStations[station_name].routes = tRoutes
+			hyperloop.data.tAllStations[station_name].routes = tRoutes
 		end
 		if owner ~= nil then
-			hyperloop.tAllStations[station_name].owner = owner:get_player_name()
+			hyperloop.data.tAllStations[station_name].owner = owner:get_player_name()
 		end
+		-- update the seat
+		hyperloop.data.tAllStations[station_name]["seat"] = true
+		local pos2 = vector.add(pos, {x=0, y=1, z=0})
+		local meta2 = minetest.get_meta(pos2)
+		meta2:set_string("station_name", station_name)		
 	end
 end
 
@@ -72,7 +77,7 @@ minetest.register_node("hyperloop:junction", {
 		meta:set_string("infotext", "Station "..default_name(pos))
 		meta:set_string("formspec", formspec)
 		store_routes(pos, placer)
-		hyperloop.change_counter = hyperloop.change_counter + 1
+		hyperloop.data.change_counter = hyperloop.data.change_counter + 1
 	end,
 
 	on_receive_fields = function(pos, formname, fields, player)
@@ -84,11 +89,11 @@ minetest.register_node("hyperloop:junction", {
 			return
 		end
 		-- delete temp name
-		hyperloop.tAllStations[default_name(pos)] = nil
+		hyperloop.data.tAllStations[default_name(pos)] = nil
 		-- check if station already available
 		local spos = minetest.pos_to_string(pos)
-		if hyperloop.tAllStations[station_name] ~= nil 
-		and hyperloop.tAllStations[station_name]["pos"] ~= spos then
+		if hyperloop.data.tAllStations[station_name] ~= nil 
+		and hyperloop.data.tAllStations[station_name]["pos"] ~= spos then
 			minetest.chat_send_player(player:get_player_name(), 
 				"[Hyperloop] Error: Station name already assigned!")
 			return
@@ -98,17 +103,17 @@ minetest.register_node("hyperloop:junction", {
 		meta:set_string("station_name", station_name)
 		meta:set_string("infotext", "Station '"..station_name.."'")
 		store_routes(pos, player)
-		hyperloop.change_counter = hyperloop.change_counter + 1
+		hyperloop.data.change_counter = hyperloop.data.change_counter + 1
 	end,
 
 	on_destruct = function(pos)
 		-- delete station data
 		local meta = minetest.get_meta(pos)
 		local station_name = meta:get_string("station_name")
-		if hyperloop.tAllStations[station_name] ~= nil then
-			hyperloop.tAllStations[station_name] = nil
-	hyperloop.open_pod_door(station_name)
-			hyperloop.change_counter = hyperloop.change_counter + 1
+		if hyperloop.data.tAllStations[station_name] ~= nil then
+			hyperloop.data.tAllStations[station_name] = nil
+			hyperloop.open_pod_door(station_name)
+			hyperloop.data.change_counter = hyperloop.data.change_counter + 1
 		end
 	end,
 

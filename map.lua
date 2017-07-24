@@ -17,7 +17,7 @@
 local function station_list_as_string(pos)
 	local sortedList = {}
 	local distance = 0
-	for name, dataSet in pairs(table.copy(hyperloop.tAllStations)) do
+	for name, dataSet in pairs(table.copy(hyperloop.data.tAllStations)) do
 		distance = hyperloop.distance(pos, minetest.string_to_pos(dataSet["pos"]))
 		dataSet.name = name
 		dataSet.distance = distance
@@ -28,7 +28,7 @@ local function station_list_as_string(pos)
 		end)
 	if hyperloop.debugging then
 		print("tAllStations="..dump(sortedList))
-		print("tWifi="..dump(hyperloop.tWifi))
+		print("tWifi="..dump(hyperloop.data.tWifi))
 	end
 	--local tRes = {"(player distance: station name (position) seat/machine/owner  =>  directly connected with)\n\n"}
 	local tRes = {"size[10,10]label[0,0;Dist.]label[0.9,0;Station]label[2.5,0;Position]label[4.2,0;State]label[5.6,0;Owner]label[7.1,0;Connected with]"}

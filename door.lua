@@ -28,9 +28,9 @@ end
 -- cmnd: "close", "open", or "animate"
 function hyperloop.door_command(seat_pos, facedir, cmnd, station_name)
 	-- one step forward
-	local lcd_pos = vector.add(seat_pos, hyperloop.facedir2dir(facedir))
+	local lcd_pos = vector.add(seat_pos, hyperloop.placedir_to_dir(facedir))
 	-- one step left
-	local door_pos1 = vector.add(lcd_pos, hyperloop.facedir2dir(facedir + 1))
+	local door_pos1 = vector.add(lcd_pos, hyperloop.placedir_to_dir(facedir + 1))
 	-- one step up
 	local door_pos2 = vector.add(door_pos1, {x=0, y=1, z=0})
 
@@ -46,7 +46,7 @@ function hyperloop.door_command(seat_pos, facedir, cmnd, station_name)
 		minetest.sound_play("door", {
 				pos = seat_pos,
 				gain = 0.5,
-				max_hear_distance = 5,
+				max_hear_distance = 10,
 			})
 		node1.name = "air"
 		minetest.swap_node(door_pos1, node1)
@@ -56,7 +56,7 @@ function hyperloop.door_command(seat_pos, facedir, cmnd, station_name)
 		minetest.sound_play("door", {
 				pos = seat_pos,
 				gain = 0.5,
-				max_hear_distance = 5,
+				max_hear_distance = 10,
 			})
 		node1.name = "hyperloop:doorBottom"
 		node1.param2 = facedir

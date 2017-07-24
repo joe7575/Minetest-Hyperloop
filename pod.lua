@@ -18,7 +18,7 @@ function hyperloop.enter_display(seat_pos, facedir, text)
 		return
 	end
     -- determine position
-    local pos = vector.add(seat_pos,  hyperloop.facedir2dir(facedir))
+    local pos = vector.add(seat_pos,  hyperloop.placedir_to_dir(facedir))
     pos.y = pos.y + 1
 	-- load map
 	minetest.forceload_block(pos)

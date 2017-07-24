@@ -18,10 +18,10 @@
 	[H1]----[H2][W1]     [W2][H3]----[H4]
 	pairing:
 	- W1 placed:
-		hyperloop.tWifi[channel] = pos_W1
+		hyperloop.data.tWifi[channel] = pos_W1
 
 	- W2 placed:
-		pos_W1 = hyperloop.tWifi[channel]
+		pos_W1 = hyperloop.data.tWifi[channel]
 		wifi_pairing(pos_W2, pos_W1)
 			determine pos_H4 via H3
 			call W1.update(pos_H4)
@@ -64,12 +64,12 @@ local function read_peer_pos(pos)
 end
 
 local function wifi_register(pos, channel)
-	if hyperloop.tWifi[channel] == nil then
-		hyperloop.tWifi[channel] = pos
+	if hyperloop.data.tWifi[channel] == nil then
+		hyperloop.data.tWifi[channel] = pos
 		return nil
 	else
-		local pos = hyperloop.tWifi[channel]
-		hyperloop.tWifi[channel] = nil
+		local pos = hyperloop.data.tWifi[channel]
+		hyperloop.data.tWifi[channel] = nil
 		return pos
 	end
 end
@@ -78,9 +78,9 @@ local function wifi_unregister(pos)
 	-- delete channel registration
 	local meta = minetest.get_meta(pos)
 	local channel = meta:get_string("channel")
-	if channel ~= nil and hyperloop.tWifi[channel] ~= nil 
-	and vector.equals(hyperloop.tWifi[channel], pos) then
-		hyperloop.tWifi[channel] = nil
+	if channel ~= nil and hyperloop.data.tWifi[channel] ~= nil 
+	and vector.equals(hyperloop.data.tWifi[channel], pos) then
+		hyperloop.data.tWifi[channel] = nil
 	end
 end
 
@@ -186,7 +186,7 @@ minetest.register_node("hyperloop:tube_wifi1", {
 					"[Hyperloop] Pairing fault. Retry please!")
 			end
 		end
-		hyperloop.change_counter = hyperloop.change_counter + 1
+		hyperloop.data.change_counter = hyperloop.data.change_counter + 1
 	end,
 
 	on_destruct = function(pos)
@@ -201,7 +201,7 @@ minetest.register_node("hyperloop:tube_wifi1", {
 		end
 		-- unpair local wifi node
 		hyperloop.upgrade_node(pos)
-		hyperloop.change_counter = hyperloop.change_counter + 1
+		hyperloop.data.change_counter = hyperloop.data.change_counter + 1
 	end,
 
 	paramtype2 = "facedir",

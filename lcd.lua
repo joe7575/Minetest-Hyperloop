@@ -151,6 +151,15 @@ local lcd_box = {
 	wall_top = {-8/16, 15/32, -8/16, 8/16, 8/16, 8/16}
 }
 
+
+function hyperloop.after_lcd_placed(pos, facedir)
+	local param2 = minetest.get_node(pos).param2
+	if param2 == 0 or param2 == 1 then
+		minetest.add_node(pos, {name = "hyperloop:lcd", param2 = 3})
+	end	
+	lcd_update(pos, " |  | << Hyperloop >> | be anywhere")
+end
+
 minetest.register_node("hyperloop:lcd", {
 	drawtype = "nodebox",
 	description = "Hyperloop Display",
@@ -165,13 +174,13 @@ minetest.register_node("hyperloop:lcd", {
 	selection_box = lcd_box,
 	groups = {choppy = 3, dig_immediate = 2},
 
-	after_place_node = function (pos)
-		local param2 = minetest.get_node(pos).param2
-		if param2 == 0 or param2 == 1 then
-			minetest.add_node(pos, {name = "hyperloop:lcd", param2 = 3})
-		end
-		lcd_update(pos, " |  | << Hyperloop >> | be anywhere")
-	end,
+--	after_place_node = function (pos)
+--		local param2 = minetest.get_node(pos).param2
+--		if param2 == 0 or param2 == 1 then
+--			minetest.add_node(pos, {name = "hyperloop:lcd", param2 = 3})
+--		end
+--		lcd_update(pos, " |  | << Hyperloop >> | be anywhere")
+--	end,
 
 	on_destruct = function(pos)
 		clearscreen(pos)
