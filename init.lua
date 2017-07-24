@@ -3,7 +3,7 @@
 	Hyperloop Mod
 	=============
 
-	v0.05 by JoSt
+	v0.06 by JoSt
 
 	Copyright (C) 2017 Joachim Stolberg
 
@@ -16,6 +16,7 @@
 	2017-07-07  v0.03  Recipes added, settingstypes added
 	2017-07-08  v0.04  Door removal issue fixed
 	2017-07-16  v0.05  Doors can be opened manually
+  2017-07-24  v0.06  Tubes with limited slope, elevator and deco blocks added
 
 ]]--
 

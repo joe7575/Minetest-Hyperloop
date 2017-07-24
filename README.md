@@ -25,8 +25,7 @@ Download: ![GitHub](https://github.com/joe7575/Minetest-Hyperloop/archive/master
 ## Still To Do
 
 * configuration settings
-* recipes
-* performance improvements
+* Admin tool to interrupt tube routes
 
 
 ## Dependencies
