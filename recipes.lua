@@ -23,7 +23,7 @@ minetest.register_craftitem("hyperloop:hypersteel_ingot", {
 
 
 minetest.register_craft({
-	output = "hyperloop:hypersteel_ingot 3",
+	output = "hyperloop:hypersteel_ingot 4",
 	recipe = {
 		{"default:steel_ingot", "default:tin_ingot"},
 		{"default:copper_ingot", "dye:cyan"},
@@ -49,19 +49,10 @@ minetest.register_craft({
 })
 
 minetest.register_craft({
-	output = "hyperloop:seat",
-	recipe = {
-		{"", "", "wool:blue"},
-		{"wool:blue", "wool:blue", "wool:blue"},
-		{"wool:blue", "hyperloop:hypersteel_ingot", "hyperloop:hypersteel_ingot"},
-	},
-})
-
-minetest.register_craft({
 	output = "hyperloop:pod_wall 8",
 	recipe = {
 		{"hyperloop:hypersteel_ingot", "hyperloop:hypersteel_ingot", "hyperloop:hypersteel_ingot"},
-		{"hyperloop:hypersteel_ingot", "dye:cyan", "hyperloop:hypersteel_ingot"},
+		{"hyperloop:hypersteel_ingot", "dye:white", "hyperloop:hypersteel_ingot"},
 		{"hyperloop:hypersteel_ingot", "hyperloop:hypersteel_ingot", "hyperloop:hypersteel_ingot"},
 	},
 })
@@ -75,8 +66,6 @@ minetest.register_craft({
 	},
 })
 
-
-
 minetest.register_craft({
 	output = "hyperloop:junction",
 	recipe = {
@@ -86,7 +75,25 @@ minetest.register_craft({
 	},
 })
 
- if hyperloop.wifi_enabled then
+minetest.register_craft({
+	output = "hyperloop:station",
+	recipe = {
+		{"hyperloop:hypersteel_ingot", "default:mese_crystal", "hyperloop:hypersteel_ingot"},
+		{"",                           "default:mese_crystal", ""},
+		{"hyperloop:hypersteel_ingot", "default:mese_crystal", "hyperloop:hypersteel_ingot"},
+	},
+})
+
+minetest.register_craft({
+	output = "hyperloop:robot",
+	recipe = {
+		{"hyperloop:hypersteel_ingot", "hyperloop:hypersteel_ingot", "hyperloop:hypersteel_ingot"},
+		{"hyperloop:hypersteel_ingot", "default:mese_crystal", "hyperloop:hypersteel_ingot"},
+		{"hyperloop:hypersteel_ingot", "hyperloop:hypersteel_ingot", "hyperloop:hypersteel_ingot"},
+	},
+})
+
+if hyperloop.wifi_enabled then
 	minetest.register_craft({
 		output = "hyperloop:tube_wifi1 2",
 		recipe = {
@@ -103,15 +110,6 @@ minetest.register_craft({
 		{"default:paper", "dye:red", ""},
 		{"default:paper", "dye:red", ""},
 		{"default:paper", "dye:red", ""},
-	},
-})
-
-minetest.register_craft({
-	output = "hyperloop:lcd",
-	recipe = {
-		{"default:mese_crystal", "default:glass", ""},
-		{"dye:black", "default:glass", ""},
-		{"hyperloop:hypersteel_ingot", "default:glass", ""},
 	},
 })
 
@@ -143,6 +141,24 @@ minetest.register_craft({
 })
 
 minetest.register_craft({
+	output = "hyperloop:signL 4",
+	recipe = {
+		{"", "", ""},
+		{"", "", ""},
+		{"dye:cyan", "hyperloop:hypersteel_ingot", "default:wood"},
+	},
+})
+
+minetest.register_craft({
+	output = "hyperloop:signR 4",
+	recipe = {
+		{"", "", ""},
+		{"", "", ""},
+		{"default:wood", "hyperloop:hypersteel_ingot", "dye:cyan"},
+	},
+})
+
+minetest.register_craft({
 	output = "hyperloop:poster1L",
 	recipe = {
 		{"", "", ""},
@@ -169,11 +185,3 @@ minetest.register_craft({
 	},
 })
 
-minetest.register_craft({
-	output = "hyperloop:station",
-	recipe = {
-		{"hyperloop:pod_wall", 	"hyperloop:lcd", 	""},
-		{"hyperloop:pod_wall", 	"", 	 			"hyperloop:seat"},
-		{"hyperloop:tube0", 	"hyperloop:tube0", 	"hyperloop:junction"},
-	},
-})

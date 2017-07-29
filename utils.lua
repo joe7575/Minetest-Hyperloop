@@ -27,99 +27,84 @@ end
 
 
 hyperloop.NeighborPos = {
-	{ x=1,  y=0,  z=0},
-	{ x=-1, y=0,  z=0},
-	{ x=0,  y=1,  z=0},
-	{ x=0,  y=-1, z=0},
-	{ x=0,  y=0,  z=1},
-	{ x=0,  y=0,  z=-1},
+	{ x= 0, y= 1, z= 0},
+	{ x= 0, y=-1, z= 0},
+	{ x= 1, y= 0, z= 0},
+	{ x=-1, y= 0, z= 0},
+	{ x= 0, y= 0, z= 1},
+	{ x= 0, y= 0, z=-1},
 }
 
-function hyperloop.rad_to_placedir(yaw)
-	-- radiant (0..2*PI) to my placedir (0..3) from N, W, S, E
-	return math.floor((yaw + PI/4) / PI * 2) % 4
+function hyperloop.chat(player, text)
+	if player ~= nil then
+		minetest.chat_send_player(player:get_player_name(), "[Hyperloop] "..text)
+	end
 end
 
-function hyperloop.placedir_to_rad(placedir)
-	-- my placedir (0..3) from N, W, S, E to radiant (0..2*PI)
-	return placedir / 2 * PI
-end
+--function hyperloop.rad_to_placedir(yaw)
+--	-- radiant (0..2*PI) to my placedir (0..3) from N, W, S, E
+--	return math.floor((yaw + PI/4) / PI * 2) % 4
+--end
 
-function hyperloop.placedir_to_dir(placedir)
-	-- my placedir (0..3) from N, W, S to E to dir vector
-	local tbl = {
-		[0] = { x=0,  y=0, z=1},
-		[1] = { x=-1, y=0, z=0},
-		[2] = { x=0,  y=0, z=-1},
-		[3] = { x=1,  y=0, z=0},
-	}
-	return tbl[placedir % 4]
-end
+--function hyperloop.placedir_to_rad(placedir)
+--	-- my placedir (0..3) from N, W, S, E to radiant (0..2*PI)
+--	return placedir / 2 * PI
+--end
 
--- switch from original facedir to radiant oriented placedir
-function hyperloop.facedir_to_placedir(facedir)
-	local tbl = {[0]=0, [1]=3, [2]=2, [3]=1}
-	return tbl[facedir]
-end
+--function hyperloop.placedir_to_dir(placedir)
+--	-- my placedir (0..3) from N, W, S to E to dir vector
+--	local tbl = {
+--		[0] = { x=0,  y=0, z=1},
+--		[1] = { x=-1, y=0, z=0},
+--		[2] = { x=0,  y=0, z=-1},
+--		[3] = { x=1,  y=0, z=0},
+--	}
+--	return tbl[placedir % 4]
+--end
 
--- switch from radiant oriented placedir to original facedir
-function hyperloop.placedir_to_facedir(placedir)
-	local tbl = {[0]=0, [1]=3, [2]=2, [3]=1}
-	return tbl[placedir]
-end
+---- switch from original facedir to radiant oriented placedir
+--function hyperloop.facedir_to_placedir(facedir)
+--	local tbl = {[0]=0, [1]=3, [2]=2, [3]=1}
+--	return tbl[facedir]
+--end
+
+---- switch from radiant oriented placedir to original facedir
+--function hyperloop.placedir_to_facedir(placedir)
+--	local tbl = {[0]=0, [1]=3, [2]=2, [3]=1}
+--	return tbl[placedir]
+--end
 
 function hyperloop.get_facedir(placer)
 	local lookdir = placer:get_look_dir()
 	return core.dir_to_facedir(lookdir)
---	local yaw = placer:get_look_horizontal()
---	local placedir = hyperloop.rad_to_placedir(yaw)
---	return hyperloop.placedir_to_facedir(placedir)
 end
 
--- calculate the new pos based on the given pos, the players placedir
+function hyperloop.facedir_to_rad(facedir)
+	local tbl = {[0]=0, [1]=3, [2]=2, [3]=1}
+	return tbl[facedir] / 2 * PI
+end
+
+-- calculate the new pos based on the given pos, the players facedir
 -- and the given walk path like "3F2L" (F-orward, L-eft, R-ight, B-ack).
-function hyperloop.new_pos(pos, placedir, path)
+function hyperloop.new_pos(pos, facedir, path, y_offs)
 	local _pos = table.copy(pos)
+	_pos.y = _pos.y + y_offs
 	while path:len() > 0 do
 		local num = tonumber(path:sub(1,1))
 		local dir = path:sub(2,2)
 		path = path:sub(3)
 		if dir == "B" then
-			placedir = (placedir + 2) % 4
+			facedir = (facedir + 2) % 4
 		elseif dir == "L" then
-			placedir = (placedir + 1) % 4
+			facedir = (facedir + 3) % 4
 		elseif dir == "R" then
-			placedir = (placedir + 3) % 4
+			facedir = (facedir + 1) % 4
 		end
-		dir = hyperloop.placedir_to_dir(placedir)
+		dir = core.facedir_to_dir(facedir)
 		_pos = vector.add(_pos, vector.multiply(dir, num))
 	end
 	return _pos
 end	
-
-
-function hyperloop.turnright(dir)
-	local facedir = minetest.dir_to_facedir(dir)
-	return minetest.placedir_to_dir((facedir + 1) % 4)
-end
-
-function hyperloop.turnleft(dir)
-	local facedir = minetest.dir_to_facedir(dir)
-	return minetest.placedir_to_dir((facedir + 3) % 4)
-end
-
--- determine facedir and pos on the right hand side from the given pos
-function hyperloop.right_hand_side(pos, placer)
-	local yaw = placer:get_look_horizontal()
-	-- placedir according to radiant
-	local placedir = hyperloop.rad_to_placedir(yaw)
-	local dir = (placedir + 3) % 4   -- first turn right
-	dir = hyperloop.placedir_to_dir(dir)
-	-- switch from the radian following facedir to the silly original one
-	local tbl = {[0]=0, [1]=3, [2]=2, [3]=1}
-	local facedir = tbl[placedir]
-	return facedir, vector.add(pos, dir)
-end
 
 -- distance between two points in (tube) blocks
 function hyperloop.distance(pos1, pos2)
@@ -183,17 +168,17 @@ local function get_peer_station(tStations, rev_route)
 	end
 end
 
--- Return a table with all station names, the given 'sStation' is connected with
+-- Return a table with all station names, the given 'key_str' is connected with
 -- tRes is used for the resulting table (recursive call)
-local function get_stations(tStations, sStation, tRes)
-	if tStations[sStation] == nil then
+local function get_stations(tStations, key_str, tRes)
+	if tStations[key_str] == nil then
 		return nil
 	end
-	local dataSet = table.copy(tStations[sStation])
+	local dataSet = table.copy(tStations[key_str])
 	if dataSet == nil then
 		return nil
 	end
-	tStations[sStation] = nil
+	tStations[key_str] = nil
 	for _,route in ipairs(dataSet["routes"]) do
 		local rev_route = {route[2], route[1]}
 		local s = get_peer_station(tStations, rev_route)
@@ -205,23 +190,23 @@ local function get_stations(tStations, sStation, tRes)
 	return tRes
 end
 
--- Return a table with all network station names, the given 'sStation' belongs too
-function hyperloop.get_network_stations(sStation)
+-- Return a table with all network station names, the given 'key_str' belongs too
+function hyperloop.get_network_stations(key_str)
 	local tRes = {}
 	local tStations = table.copy(hyperloop.data.tAllStations)
 	local tOut = {}
-	for _,name in ipairs(get_stations(tStations, sStation, tRes)) do
-		if hyperloop.data.tAllStations[name].seat == true then
+	for _,name in ipairs(get_stations(tStations, key_str, tRes)) do
+		if hyperloop.data.tAllStations[name].station_name ~= nil then
 			tOut[#tOut+1] = name
 		end
 	end
 	return tOut
 end
 	
--- Return a table with all station names, the given 'sStation' is directly connected with
-function hyperloop.get_connections(sStation)
+-- Return a table with all station names, the given 'key_str' is directly connected with
+function hyperloop.get_connections(key_str)
 	local tRes = {}
-	local dataSet = hyperloop.data.tAllStations[sStation]
+	local dataSet = hyperloop.data.tAllStations[key_str]
 	if dataSet == nil then
 		return nil
 	end
@@ -239,14 +224,23 @@ end
 function hyperloop.get_networks()
 	local tNetwork = {}
 	local tStations = table.copy(hyperloop.data.tAllStations)
-	local sStation,_ = next(tStations, nil) 
-	while sStation ~= nil do
-		tNetwork[#tNetwork+1] = get_stations(tStations, sStation, {sStation})
-		sStation,_ = next(tStations, nil) 
+	local key_str,_ = next(tStations, nil) 
+	while key_str ~= nil do
+		tNetwork[#tNetwork+1] = get_stations(tStations, key_str, {key_str})
+		key_str,_ = next(tStations, nil) 
 	end
 	return tNetwork
 end
 
+function hyperloop.check_network_level(pos, player)
+	for key,item in pairs(hyperloop.data.tAllStations) do
+		if pos.y == item.pos.y then
+			return
+		end
+	end
+	hyperloop.chat(player, "These is no station/junction on this level. "..
+						   "Do you realy want to start a new network?!")
+end
 
 -------------------------------------------------------------------------------
 ---- Station reservation/blocking
@@ -295,11 +289,11 @@ function hyperloop.block(departure, arrival, seconds)
 end
 
 -- check if station is blocked
-function hyperloop.is_blocked(station)
-	if hyperloop.data.tAllStations[station] == nil then
+function hyperloop.is_blocked(key_str)
+	if hyperloop.data.tAllStations[key_str] == nil then
 		return false
 	else
-		local t = hyperloop.data.tAllStations[station].time_blocked or 0
+		local t = hyperloop.data.tAllStations[key_str].time_blocked or 0
 		print(t, minetest.get_gametime())
 		return t > minetest.get_gametime()
 	end
@@ -309,6 +303,35 @@ end
 ---- Station File writing / reading utilities
 -------------------------------------------------------------------------------
 local wpath = minetest.get_worldpath()
+
+-- Convert V1 to V2
+local function convert_station_list(tAllStations)
+	tRes = {}
+	for key,item in pairs(tAllStations) do
+		if item.version == nil then
+			item.version = 2
+			local pos = minetest.string_to_pos(item.pos)
+			item.pos = pos
+			if item.seat == true and item.booking_pos ~= nil then
+				item.station_name = key
+			end
+			key = hyperloop.get_key_str(pos)
+			print(key.." = "..dump(item))
+		end
+		if item.version == 2 then
+			item.version = 3
+			if item.placedir ~= nil then
+				tbl = {[0]=0, [1]=3, [2]=2, [3]=1}
+				item.facedir = tbl[item.placedir]
+				item.placedir = nil
+			elseif item.facedir == nil then
+				item.facedir = 0
+			end
+		end
+		tRes[key] = item
+	end
+	return tRes
+end
 
 function hyperloop.file2table(filename)
 	local f = io.open(wpath..DIR_DELIM..filename, "r")
@@ -334,15 +357,15 @@ end
 local data = hyperloop.file2table("mod_hyperloop.data")
 if next(data) ~= nil then
 	hyperloop.data = data
-	print("jetzt aber")
 else
-	print("nix da")
 	hyperloop.data.tAllStations = hyperloop.file2table("hyperloop_station_list")
 end	
+
+-- convert to current format
+hyperloop.data.tAllStations = convert_station_list(hyperloop.data.tAllStations)
+
 minetest.register_on_shutdown(hyperloop.store_station_list)
 
 -- store ring list once a day
 minetest.after(60*60*24, hyperloop.store_station_list)
-
-
-
+	

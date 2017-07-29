@@ -134,15 +134,10 @@ end
 
 minetest.register_node("hyperloop:tube_wifi1", {
 	description = "Hyperloop WiFi Tube",
-	inventory_image = "hyperloop_tube_wifi_inventory.png",
-	drawtype = "nodebox",
 	tiles = {
 		-- up, down, right, left, back, front
 		"hyperloop_tube_locked.png^[transformR90]",
 		"hyperloop_tube_locked.png^[transformR90]",
-		"hyperloop_tube_wifi.png",
-		"hyperloop_tube_wifi.png",
-		"hyperloop_tube_wifi.png",
 		"hyperloop_tube_wifi.png",
 	},
 
@@ -163,6 +158,11 @@ minetest.register_node("hyperloop:tube_wifi1", {
 				hyperloop.remove_node(pos, node)
 				return itemstack
 			end
+		else
+			hyperloop.chat(player, "You can't start with a WiFi block!")
+			local node = minetest.get_node(pos)
+			hyperloop.remove_node(pos, node)
+			return itemstack
 		end
 	end,
 
@@ -176,11 +176,9 @@ minetest.register_node("hyperloop:tube_wifi1", {
 		local peer_pos = wifi_register(pos, fields.channel)
 		if peer_pos ~= nil then
 			if wifi_pairing(pos, peer_pos) then
-				minetest.chat_send_player(player:get_player_name(), 
-					"[Hyperloop] WiFi pairing completed!")
+				hyperloop.chat(player, "WiFi pairing completed!")
 			else
-				minetest.chat_send_player(player:get_player_name(), 
-					"[Hyperloop] Pairing fault. Retry please!")
+				hyperloop.chat(player, "Pairing fault. Retry please!")
 			end
 		end
 		hyperloop.data.change_counter = hyperloop.data.change_counter + 1
@@ -206,20 +204,3 @@ minetest.register_node("hyperloop:tube_wifi1", {
 	is_ground_content = false,
 	sounds = default.node_sound_metal_defaults(),
 })
-
-minetest.register_node("hyperloop:pillar", {
-	description = "Hyperloop Pillar",
-	tiles = {"hyperloop_tube_locked.png^[transformR90]"},
-	drawtype = "nodebox",
-	node_box = {
-		type = "fixed",
-		fixed = {
-			{ -3/8, -4/8, -3/8,   3/8, 4/8, 3/8},
-		},
-	},
-	is_ground_content = false,
-	groups = {cracky = 3, stone = 2},
-	sounds = default.node_sound_metal_defaults(),
-})
-
-

@@ -16,7 +16,8 @@
 	2017-07-07  v0.03  Recipes added, settingstypes added
 	2017-07-08  v0.04  Door removal issue fixed
 	2017-07-16  v0.05  Doors can be opened manually
-  2017-07-24  v0.06  Tubes with limited slope, elevator and deco blocks added
+	2017-07-24  v0.06  Tubes with limited slope, elevator and deco blocks added
+	2017-07-28  v0.07  Slope removed, Station auto-builder added
 
 ]]--
 
@@ -31,19 +32,17 @@ hyperloop = {
 	}
 }
 
-hyperloop.min_slope_counter = 50
-
-hyperloop.debugging = false
+hyperloop.debugging = true
 
 dofile(minetest.get_modpath("hyperloop") .. "/utils.lua")
 dofile(minetest.get_modpath("hyperloop") .. "/tube.lua")
 dofile(minetest.get_modpath("hyperloop") .. "/booking.lua")
-dofile(minetest.get_modpath("hyperloop") .. "/junction.lua")
+--dofile(minetest.get_modpath("hyperloop") .. "/junction.lua")
 dofile(minetest.get_modpath("hyperloop") .. "/station.lua")
 dofile(minetest.get_modpath("hyperloop") .. "/map.lua")
 dofile(minetest.get_modpath("hyperloop") .. "/door.lua")
 dofile(minetest.get_modpath("hyperloop") .. "/seat.lua")
-dofile(minetest.get_modpath("hyperloop") .. "/pod.lua")
+dofile(minetest.get_modpath("hyperloop") .. "/robot.lua")
 dofile(minetest.get_modpath("hyperloop") .. "/lcd.lua")
 dofile(minetest.get_modpath("hyperloop") .. "/wifi.lua")
 dofile(minetest.get_modpath("hyperloop") .. "/elevator.lua")

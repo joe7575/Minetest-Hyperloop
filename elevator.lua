@@ -246,9 +246,7 @@ local function remove_door(pos)
 end	
 
 local function door_command(floor_pos, facedir, cmnd)
-	local placedir = hyperloop.facedir_to_placedir(facedir)
-	print("placedir="..placedir.." facedir="..facedir)
-	local pos = hyperloop.new_pos(floor_pos, placedir, "1B")
+	local pos = hyperloop.new_pos(floor_pos, facedir, "1B", 0)
 	if cmnd == "close" then
 		place_door(pos, facedir, floor_pos)
 	elseif cmnd == "open" then
@@ -444,6 +442,7 @@ minetest.register_node("hyperloop:elevator_door_top", {
 		},
 	},
 	
+	drop = "",
 	paramtype2 = "facedir",
 	is_ground_content = false,
 	groups = {snappy = 3, not_in_creative_inventory=1},
@@ -475,6 +474,7 @@ minetest.register_node("hyperloop:elevator_door", {
 		door_command(floor.pos, floor.facedir, "open")
 	end,
 	
+	drop = "",
 	paramtype2 = "facedir",
 	is_ground_content = false,
 	groups = {snappy = 3, not_in_creative_inventory=1},

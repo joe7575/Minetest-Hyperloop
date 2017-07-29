@@ -17,10 +17,10 @@
 local function station_list_as_string(pos)
 	local sortedList = {}
 	local distance = 0
-	for name, dataSet in pairs(table.copy(hyperloop.data.tAllStations)) do
-		distance = hyperloop.distance(pos, minetest.string_to_pos(dataSet["pos"]))
-		dataSet.name = name
+	for key_str, dataSet in pairs(table.copy(hyperloop.data.tAllStations)) do
+		distance = hyperloop.distance(pos, dataSet["pos"])
 		dataSet.distance = distance
+		dataSet.key_str = key_str
 		sortedList[#sortedList+1] = dataSet
 	end
 	table.sort(sortedList, function(x,y) 
@@ -31,19 +31,18 @@ local function station_list_as_string(pos)
 		print("tWifi="..dump(hyperloop.data.tWifi))
 	end
 	--local tRes = {"(player distance: station name (position) seat/machine/owner  =>  directly connected with)\n\n"}
-	local tRes = {"size[10,10]label[0,0;Dist.]label[0.9,0;Station]label[2.5,0;Position]label[4.2,0;State]label[5.6,0;Owner]label[7.1,0;Connected with]"}
+	local tRes = {"size[12,10]label[0,0;Dist.]label[0.9,0;Station]label[2.5,0;Position]label[4.2,0;State]label[5.6,0;Owner]label[7.1,0;Connected with]"}
 	local state, owner
 	for idx,dataSet in ipairs(sortedList) do
 		if idx == 18 then
 			break
 		end
 		local ypos = 0.2 + idx * 0.4
-		if dataSet.seat == true and dataSet.booking_pos ~= nil then
+		if dataSet.station_name ~= nil then
 			state = "completed"
-		elseif dataSet.seat == true then
-			state = "no Booking M."
 		else
-			state = "no Pod Seat"
+			dataSet.station_name = ""
+			state = "no Booking M."
 		end
 		if dataSet.owner ~= nil then
 			owner = dataSet.owner
@@ -51,12 +50,12 @@ local function station_list_as_string(pos)
 			owner = "unknown"
 		end
 		tRes[#tRes+1] = "label[0,"..ypos..";"..dataSet.distance.." m]"
-		tRes[#tRes+1] = "label[0.9,"..ypos..";"..dataSet.name.."]"
-		tRes[#tRes+1] = "label[2.5,"..ypos..";"..dataSet.pos.."]"
+		tRes[#tRes+1] = "label[0.9,"..ypos..";"..dataSet.station_name.."]"
+		tRes[#tRes+1] = "label[2.5,"..ypos..";"..minetest.pos_to_string(dataSet.pos).."]"
 		tRes[#tRes+1] = "label[4.2,"..ypos..";"..state.."]"
 		tRes[#tRes+1] = "label[5.6,"..ypos..";"..owner.."]"
 		tRes[#tRes+1] = "label[7.1,"..ypos..";"
-		for _,s in ipairs(hyperloop.get_connections(dataSet.name)) do
+		for _,s in ipairs(hyperloop.get_connections(dataSet.key_str)) do
 			tRes[#tRes + 1] = s
 			tRes[#tRes + 1] = ", "
 		end

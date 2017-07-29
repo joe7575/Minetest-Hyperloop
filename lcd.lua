@@ -155,8 +155,6 @@ local lcd_box = {
 minetest.register_node("hyperloop:lcd", {
 	drawtype = "nodebox",
 	description = "Hyperloop Display",
-	inventory_image = "hyperloop_lcd_inventory.png",
-	wield_image = "hyperloop_lcd_inventory.png",
 	tiles = {"hyperloop_lcd.png"},
 
 	paramtype = "light",
@@ -164,9 +162,10 @@ minetest.register_node("hyperloop:lcd", {
 	paramtype2 = "wallmounted",
 	node_box = lcd_box,
 	selection_box = lcd_box,
-	groups = {choppy = 3, dig_immediate = 2},
+	drop = "",
+	groups = {cracky=1, not_in_creative_inventory=1},
 
-	after_place_node = function (pos)
+	auto_place_node = function(pos, placer, facedir)
 		local param2 = minetest.get_node(pos).param2
 		if param2 == 0 or param2 == 1 then
 			minetest.add_node(pos, {name = "hyperloop:lcd", param2 = 3})

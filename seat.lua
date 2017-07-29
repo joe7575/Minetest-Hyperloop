@@ -14,87 +14,95 @@
 ----------------------------------------------------------------------------------------------------
 ----------------------------------------------------------------------------------------------------
 
-local function on_final_close_door(pos, facedir)
+
+local function enter_display(tStation, text)
+    -- determine position
+    local lcd_pos = hyperloop.new_pos(tStation.pos, tStation.facedir, "1F", 2)
+	-- load map
+	minetest.forceload_block(lcd_pos)
+	-- update display
+	minetest.registered_nodes["hyperloop:lcd"].update(lcd_pos, text) 
+end
+
+local function on_final_close_door(tStation)
 	-- close the door and play sound if no player is around
-	if hyperloop.is_player_around(pos) then
+	if hyperloop.is_player_around(tStation.pos) then
 		-- try again later
-		minetest.after(3.0, on_final_close_door, pos, facedir)
+		minetest.after(3.0, on_final_close_door, tStation)
 	else
-		hyperloop.door_command(pos, facedir, "close", nil)
+		hyperloop.close_pod_door(tStation)
+		enter_display(tStation, " |  | << Hyperloop >> | be anywhere")
 	end
 end
 
-local function on_open_door(pos, facedir)
+local function on_open_door(tArrival)
 	-- open the door and play sound
-	local meta = minetest.get_meta(pos)
+	local meta = minetest.get_meta(tArrival.pos)
 	meta:set_int("arrival_time", 0) -- finished
 	-- open door
-	hyperloop.door_command(pos, facedir, "open", nil)
+	hyperloop.open_pod_door(tArrival)
 	-- prepare dislay for the next trip
-	hyperloop.enter_display(pos, facedir, "Thank you | for | travelling | with | Hyperloop.")
-	minetest.after(5.0, on_final_close_door, pos, facedir)
+	enter_display(tArrival, "Thank you | for | travelling | with | Hyperloop.")
+	minetest.after(5.0, on_final_close_door, tArrival, tArrival.facedir)
 end
 
 ----------------------------------------------------------------------------------------------------
-local function on_arrival(player, src_pos, src_facedir, dst_pos, snd, radiant)
-	-- get pos from arrival station
-	local meta = minetest.get_meta(dst_pos)
-	local facedir = meta:get_int("facedir")
-
+local function on_arrival(tDeparture, tArrival, player, snd)
 	-- activate display
-	local station_name = meta:get_string("station_name")
-	local text = " | Welcome at | | "..string.sub(station_name, 1, 13)
-	hyperloop.enter_display(dst_pos, facedir, text)
+	local text = " | Welcome at | | "..string.sub(tArrival.station_name, 1, 13)
+	enter_display(tArrival, text)
 	-- stop timer
-	minetest.get_node_timer(src_pos):stop()
+	minetest.get_node_timer(tDeparture.pos):stop()
 	-- move player to the arrival station
 	if player ~= nil then
-		player:setpos(dst_pos)
+		local pos = table.copy(tArrival.pos)
+		pos.y = pos.y + 1
+		player:setpos(pos)
 		-- rotate player to look in correct arrival direction
 		-- calculate the look correction
-		local offs = radiant - player:get_look_horizontal()
-		local yaw = hyperloop.placedir_to_rad(facedir) - offs
+		local offs = hyperloop.facedir_to_rad(tDeparture.facedir) - player:get_look_horizontal()
+		local yaw = hyperloop.facedir_to_rad(tArrival.facedir) - offs
 		player:set_look_yaw(yaw)
 	end
 	-- play arrival sound
 	minetest.sound_stop(snd)
 	minetest.sound_play("down2", {
-			pos = dst_pos,
+			pos = tArrival.pos,
 			gain = 0.5,
 			max_hear_distance = 2
 		})
 
-	minetest.after(6.0, on_open_door, dst_pos, facedir)
+	minetest.after(6.0, on_open_door, tArrival)
 end
 
 ----------------------------------------------------------------------------------------------------
-local function on_travel(src_pos, facedir, player, dst_pos, radiant, atime)
+local function on_travel(tDeparture, tArrival, player, atime)
 	-- play sound and switch door state
-	-- radiant is the player look direction at departure
 	local snd = minetest.sound_play("normal2", {
-			pos = src_pos,
+			pos = tDeparture.pos,
 			gain = 0.5,
 			max_hear_distance = 2,
 			loop = true,
 		})
-	hyperloop.door_command(src_pos, facedir, "animate", nil)
-	minetest.after(atime, on_arrival, player, src_pos, facedir, dst_pos, snd, radiant)
-	minetest.after(atime, on_final_close_door, src_pos, facedir)
+	hyperloop.animate_pod_door(tDeparture)
+	minetest.after(atime, on_arrival, tDeparture, tArrival, player, snd)
+	minetest.after(atime, on_final_close_door, tDeparture)
 end
 
 ----------------------------------------------------------------------------------------------------
 local function display_timer(pos, elapsed)
 	-- update display with trip data
 	local meta = minetest.get_meta(pos)
+	local key_str = meta:get_string("key_str")
+	local tStation = hyperloop.get_station_data(key_str)
 	local atime = meta:get_int("arrival_time") - 1
 	if hyperloop.debugging then
 		print("Timer".. atime)
 	end
 	meta:set_int("arrival_time", atime)
-	local facedir = meta:get_int("facedir")
 	local text = meta:get_string("lcd_text")
 	if atime > 0 then
-		hyperloop.enter_display(pos, facedir, text..atime.." sec")
+		enter_display(tStation, text..atime.." sec")
 		return true
 	else
 		return false
@@ -114,36 +122,24 @@ end
 ----------------------------------------------------------------------------------------------------
 -- place the player, close the door, activate display
 local function on_start_travel(pos, node, clicker)
-	-- local data
+	-- departure data
 	local meta = minetest.get_meta(pos)
-	local facedir = meta:get_int("facedir")
-	local station_name = meta:get_string("station_name")
-	if station_name == nil then
-		print("[Hyperloop] Error: station_name == nil!")
-		return
-	end
-	local booking = hyperloop.data.booking[station_name]
-	if booking == nil then
+	local key_str = meta:get_string("key_str")
+	local tDeparture = hyperloop.get_station_data(key_str)
+	print("tDeparture: "..dump(tDeparture))
+	-- arrival data
+	key_str = hyperloop.data.booking[tDeparture.key_str]
+	if key_str == nil then
 		minetest.chat_send_player(clicker:get_player_name(), "[Hyperloop] No booking entered!")
 		return
 	end
-
-	local dataSet = table.copy(hyperloop.data.tAllStations[booking])
+	local tArrival = hyperloop.get_station_data(key_str)
+	print("tArrival: "..dump(tArrival))
 	-- delete booking
-	hyperloop.data.booking[station_name] = nil
-	if dataSet == nil then
+	hyperloop.data.booking[tDeparture.key_str] = nil
+	if tArrival == nil then
 		return
 	end
-
-	-- destination data od the station
-	local dest_pos = minetest.string_to_pos(dataSet.pos)
-	local dest_meta = minetest.get_meta(dest_pos)
-	local dest_name = dest_meta:get_string("station_name")
-
-	-- seat is on top of the station block
-	dest_pos = vector.add(dest_pos, {x=0,y=1,z=0})
-	dest_meta = minetest.get_meta(dest_pos)
-	local dest_facedir = dest_meta:get_int("facedir")
 
 	minetest.sound_play("up2", {
 			pos = pos,
@@ -151,15 +147,16 @@ local function on_start_travel(pos, node, clicker)
 			max_hear_distance = 2
 		})
 	-- close the door at arrival station
-	hyperloop.door_command(dest_pos, dest_facedir, "close", dest_name)
+	hyperloop.close_pod_door(tArrival)
 	-- place player on the seat
 	clicker:setpos(pos)
 	-- rotate player to look in move direction
-	clicker:set_look_horizontal(hyperloop.placedir_to_rad(facedir))
+	clicker:set_look_horizontal(hyperloop.facedir_to_rad(tDeparture.facedir))
 
 	-- activate display
-	local dist = hyperloop.distance(pos, dest_pos) 
-	local text = "Destination: | "..string.sub(dest_name, 1, 13).." | Distance: | "..meter_to_km(dist).." | Arrival in: | "
+	local dist = hyperloop.distance(pos, tArrival.pos) 
+	local text = "Destination: | "..string.sub(tArrival.station_name, 1, 13).." | Distance: | "..
+				 meter_to_km(dist).." | Arrival in: | "
 	local atime
 	if dist < 1000 then
 		atime = 10 + math.floor(dist/100)		-- 10..20 sec
@@ -168,50 +165,22 @@ local function on_start_travel(pos, node, clicker)
 	else
 		atime = 40 + math.floor(dist/600)		-- 56..240 sec (120.000m)
 	end
-	hyperloop.enter_display(pos, dest_facedir, text..atime.." sec")
+	enter_display(tDeparture, text..atime.." sec")
 
 	-- block departure and arrival stations
-	hyperloop.block(station_name, dest_name, atime+10)	
+	hyperloop.block(tDeparture.station_name, tArrival.station_name, atime+10)	
 
-	-- store some data
+	-- store some data for on_timer()
 	meta:set_int("arrival_time", atime)
 	meta:set_string("lcd_text", text)
 	minetest.get_node_timer(pos):start(1.0)
-
-	hyperloop.door_command(pos, facedir, "close", station_name)
+	hyperloop.close_pod_door(tDeparture)
 
 	atime = atime - 9 -- substract start/arrival time
-	minetest.after(4.9, on_travel, pos, facedir, clicker, dest_pos, hyperloop.placedir_to_rad(facedir), atime)
+	minetest.after(4.9, on_travel, tDeparture, tArrival, clicker, atime)
 end
 
-
-function hyperloop.open_pod_door(station_name)
-	if hyperloop.data.tAllStations[station_name] ~= nil and hyperloop.data.tAllStations[station_name].pos ~= nil then
-		local pos = minetest.string_to_pos(hyperloop.data.tAllStations[station_name].pos)
-		local seat_pos = vector.add(pos, {x=0, y=1, z=0})
-		local meta = minetest.get_meta(seat_pos)
-		local facedir = meta:get_int("facedir")
-		hyperloop.door_command(seat_pos, facedir, "open")
-		hyperloop.enter_display(seat_pos, facedir, " |  | << Hyperloop >> | be anywhere")
-	end
-end
-
-function hyperloop.close_pod_door(station_name)
-	if hyperloop.data.tAllStations[station_name] ~= nil and hyperloop.data.tAllStations[station_name].pos ~= nil then
-		local pos = minetest.string_to_pos(hyperloop.data.tAllStations[station_name].pos)
-		local seat_pos = vector.add(pos, {x=0, y=1, z=0})
-		local meta = minetest.get_meta(seat_pos)
-		local facedir = meta:get_int("facedir")
-		hyperloop.door_command(seat_pos, facedir, "close", station_name)
-		hyperloop.enter_display(seat_pos, facedir, " |  | << Hyperloop >> | be anywhere")
-	end
-end
-
-function hyperloop.after_seat_placed(pos, facedir)
-	local meta = minetest.get_meta(pos)
-	meta:set_int("arrival_time", 0)
-	meta:set_int("facedir", (facedir + 2) % 4)
-end
+	
 
 
 -- Hyperloop Seat
@@ -229,7 +198,8 @@ minetest.register_node("hyperloop:seat", {
 	paramtype2 = "facedir",
 	is_ground_content = false,
 	walkable = false,
-	groups = {snappy = 3},
+	drop = "",
+	groups = {not_in_creative_inventory=1, crumbly=3},
 	node_box = {
 		type = "fixed",
 		fixed = {
@@ -245,20 +215,10 @@ minetest.register_node("hyperloop:seat", {
 	},
 
 	on_timer = display_timer,
-
--- after_place_node = function(pos, placer)
--- Not used any more. "hyperloop.station" calls "hyperloop.after_seat_placed" instead.
-
-	on_destruct = function(pos)
-		local meta = minetest.get_meta(pos)
-		local station_name = meta:get_string("station_name")
-		if hyperloop.data.tAllStations[station_name] ~= nil 
-		and hyperloop.data.tAllStations[station_name]["seat"] ~= nil then
-			hyperloop.data.tAllStations[station_name]["seat"] = nil
-			hyperloop.open_pod_door(station_name)
-		end
-		hyperloop.data.change_counter = hyperloop.data.change_counter + 1
-	end,
-
 	on_rightclick = on_start_travel,
+	
+	auto_place_node = function(pos, placer, facedir, key_str)
+		local meta = minetest.get_meta(pos)
+		meta:set_string("key_str", key_str)
+	end,
 })

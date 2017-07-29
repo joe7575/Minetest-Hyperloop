@@ -39,10 +39,13 @@ function hyperloop.scan_neighbours(pos)
 		if string.find(node.name, "hyperloop:tube") then
 			node.pos = npos
 			table.insert(nodes, node)
+			if npos.y ~= pos.y	then	-- invalid level?
+				return 5, nodes
+			end
 			idx = string.byte(node.name, -1) - 48
-			if idx == 0 then        -- single node?
+			if idx == 0 then        	-- single node?
 				idx = 1
-			elseif idx == 2 then    -- link node?
+			elseif idx == 2 then    	-- link node?
 				return 4, nodes
 			end
 			res = res * 2 + idx
@@ -53,17 +56,6 @@ function hyperloop.scan_neighbours(pos)
 	end
 	return res, nodes
 end
-
-local function get_slope_counter(pos)
-	if pos ~= nil then
-		local slope_cnt = minetest.get_meta(pos):get_int("slope_cnt")
-		if slope_cnt ~= nil then
-			return slope_cnt
-		end
-	end
-	return 1
-end
-
 
 -- update head tube meta data
 -- param pos: position as string
@@ -114,7 +106,6 @@ function hyperloop.upgrade_node(digged_node_pos)
 		local new_head_node = nodes[1]
 		-- copy peer pos first
 		local peer_pos = minetest.get_meta(digged_node_pos):get_string("peer")
-		local slope_cnt = get_slope_counter(digged_node_pos)
 		local pos = minetest.pos_to_string(new_head_node.pos)
 		hyperloop.update_head_node(pos, peer_pos)
 		hyperloop.update_head_node(peer_pos, pos)
@@ -125,14 +116,7 @@ function hyperloop.upgrade_node(digged_node_pos)
 		elseif new_head_node.name == "hyperloop:tube1" then      -- 1 connection?
 			new_head_node.name = "hyperloop:tube0"
 		end
-		-- slope counter correction
-		if digged_node_pos.y ~= new_head_node.pos.y then
-			slope_cnt = 0
-		else
-			slope_cnt = math.min(slope_cnt + 1, hyperloop.min_slope_counter)
-		end
-		minetest.get_meta(new_head_node.pos):set_int("slope_cnt", slope_cnt)
-		minetest.get_meta(new_head_node.pos):set_string("infotext", peer_pos.." : "..slope_cnt)
+		minetest.get_meta(new_head_node.pos):set_string("infotext", peer_pos)
 		minetest.swap_node(new_head_node.pos, new_head_node)
 	end
 end
@@ -142,8 +126,7 @@ local function single_node(node)
 	local meta = minetest.get_meta(node.pos)
 	local str_pos = minetest.pos_to_string(node.pos)
 	meta:set_string("peer", str_pos)
-	meta:set_int("slope_cnt", hyperloop.min_slope_counter)
-	minetest.get_meta(node.pos):set_string("infotext", str_pos.." : "..hyperloop.min_slope_counter)
+	minetest.get_meta(node.pos):set_string("infotext", str_pos)
 	-- upgrade self to single node
 	node.name = "hyperloop:tube0"
 	minetest.swap_node(node.pos, node)
@@ -154,30 +137,21 @@ end
 local function head_node(node, old_head)
 	-- determine peer pos
 	local peer_pos = minetest.get_meta(old_head.pos):get_string("peer")
-	local slope_cnt = get_slope_counter(old_head.pos)
-	-- both nodes on the same level OR slope OK?
-	if node.pos.y == old_head.pos.y or slope_cnt == 0 then
-		-- update self
-		local str_pos = minetest.pos_to_string(node.pos)
-		hyperloop.update_head_node(str_pos, peer_pos)
-		-- update peer
-		hyperloop.update_head_node(peer_pos, str_pos)
-		-- slope correction
-		if node.pos.y ~= old_head.pos.y then
-			slope_cnt = hyperloop.min_slope_counter
-		else
-			slope_cnt = math.max(slope_cnt - 1, 0)
-		end
-		-- upgrade self
-		minetest.get_meta(node.pos):set_int("slope_cnt", slope_cnt)
-		minetest.get_meta(node.pos):set_string("infotext", peer_pos.." : "..slope_cnt)
-		node.name = "hyperloop:tube1"
-		minetest.swap_node(node.pos, node)
-		-- degrade old head
-		hyperloop.degrade_tupe_node(old_head)
-		return true
-	end
-	return false
+	-- update self
+	local str_pos = minetest.pos_to_string(node.pos)
+	hyperloop.update_head_node(str_pos, peer_pos)
+	-- update peer
+	hyperloop.update_head_node(peer_pos, str_pos)
+	-- upgrade self
+	minetest.get_meta(node.pos):set_string("infotext", peer_pos)
+	node.name = "hyperloop:tube1"
+	-- determine the correct tube facedir
+	local dir = vector.subtract(node.pos, old_head.pos)
+	node.param2 = minetest.dir_to_facedir(dir)
+	minetest.swap_node(node.pos, node)
+	-- degrade old head
+	hyperloop.degrade_tupe_node(old_head)
+	return true
 end
 
 local function link_node(node, node1, node2)
@@ -186,6 +160,9 @@ local function link_node(node, node1, node2)
 		-- determine the meta data from both head nodes
 		local pos1 = minetest.get_meta(node1.pos):get_string("peer")
 		local pos2 = minetest.get_meta(node2.pos):get_string("peer")
+		if minetest.pos_to_string(node1.pos) == pos2 then	-- closed tube ring?
+			return false
+		end
 		-- exchange position data
 		hyperloop.update_head_node(pos1, pos2)
 		hyperloop.update_head_node(pos2, pos1)
@@ -202,12 +179,13 @@ local function link_node(node, node1, node2)
 end
 
 -- called when a new node is placed
-local function node_placed(pos, itemstack)
+local function node_placed(pos, itemstack, placer)
 	local res, nodes = hyperloop.scan_neighbours(pos)
 	local node = minetest.get_node(pos)
 	local placed = false
 	node.pos = pos
 	if res == 0 then            -- no neighbor available?
+		hyperloop.check_network_level(node.pos, placer)
 		placed = single_node(node)
 	elseif res == 1 then        -- one neighbor available?
 		placed = head_node(node, nodes[1])
@@ -229,9 +207,6 @@ minetest.register_node("hyperloop:tube2", {
 		"hyperloop_tube_locked.png^[transformR90]",
 		"hyperloop_tube_locked.png^[transformR90]",
 		"hyperloop_tube_locked.png",
-		"hyperloop_tube_locked.png",
-		"hyperloop_tube_locked.png",
-		"hyperloop_tube_locked.png",
 	},
 
 	diggable = false,
@@ -245,8 +220,6 @@ minetest.register_node("hyperloop:tube2", {
 for idx = 0,1 do
 	minetest.register_node("hyperloop:tube"..idx, {
 		description = "Hyperloop Tube",
-		inventory_image = "hyperloop_tube_inventory.png",
-		drawtype = "nodebox",
 		tiles = {
 			-- up, down, right, left, back, front
 			"hyperloop_tube_locked.png^[transformR90]",
@@ -258,7 +231,7 @@ for idx = 0,1 do
 		},
 
 		after_place_node = function(pos, placer, itemstack, pointed_thing)
-			return node_placed(pos, itemstack)
+			return node_placed(pos, itemstack, placer)
 		end,
 
 		on_destruct = function(pos)
@@ -273,6 +246,23 @@ for idx = 0,1 do
 		sounds = default.node_sound_metal_defaults(),
 	})
 end
+
+-- for tube viaducts
+minetest.register_node("hyperloop:pillar", {
+	description = "Hyperloop Pillar",
+	tiles = {"hyperloop_tube_locked.png^[transformR90]"},
+	drawtype = "nodebox",
+	node_box = {
+		type = "fixed",
+		fixed = {
+			{ -3/8, -4/8, -3/8,   3/8, 4/8, 3/8},
+		},
+	},
+	is_ground_content = false,
+	groups = {cracky = 2, stone = 2},
+	sounds = default.node_sound_metal_defaults(),
+})
+
 
 function hyperloop.after_tube_placed(pos, itemstack)
 	return node_placed(pos, itemstack) == nil

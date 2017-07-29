@@ -16,35 +16,33 @@
 -- Open the door for an emergency
 local function door_on_punch(pos, node, puncher, pointed_thing)
 	local meta = minetest.get_meta(pos)
-	local station_name = meta:get_string("station_name")
-	if not hyperloop.is_blocked(station_name) then
-		hyperloop.open_pod_door(station_name)
+	local key_str = meta:get_string("key_str")
+	print("punch  "..key_str)
+	if hyperloop.data.tAllStations[key_str] ~= nil then
+		local station_name = hyperloop.data.tAllStations[key_str].station_name
+		if station_name == nil then
+			hyperloop.chat(puncher, "The Booking Machine for this station is missing!")
+		elseif not hyperloop.is_blocked(station_name) then
+			local tStation = hyperloop.get_station_data(key_str)
+			hyperloop.open_pod_door(tStation)
+		end
 	end
 end
 
 -- Open/close/animate the pod door
--- seat_pos: position of the seat
--- facedir: direction to the display
+-- door_pos1: position of the bottom door
 -- cmnd: "close", "open", or "animate"
-function hyperloop.door_command(seat_pos, facedir, cmnd, station_name)
-	-- one step forward
-	local lcd_pos = vector.add(seat_pos, hyperloop.placedir_to_dir(facedir))
-	-- one step left
-	local door_pos1 = vector.add(lcd_pos, hyperloop.placedir_to_dir(facedir + 1))
+local function door_command(door_pos1, cmnd)
 	-- one step up
 	local door_pos2 = vector.add(door_pos1, {x=0, y=1, z=0})
 
 	local node1 = minetest.get_node(door_pos1)
 	local node2 = minetest.get_node(door_pos2)
-
-	-- switch from the radian following facedir to the silly original one
-	local tbl = {[0]=0, [1]=3, [2]=2, [3]=1}
-	facedir = (facedir + 3) % 4   -- first turn left
-	facedir = tbl[facedir]
-
+	local meta = minetest.get_meta(door_pos1)
+	local facedir = meta:get_int("facedir")
 	if cmnd == "open" then
 		minetest.sound_play("door", {
-				pos = seat_pos,
+				pos = door_pos1,
 				gain = 0.5,
 				max_hear_distance = 10,
 			})
@@ -54,28 +52,44 @@ function hyperloop.door_command(seat_pos, facedir, cmnd, station_name)
 		minetest.swap_node(door_pos2, node2)
 	elseif cmnd == "close" then
 		minetest.sound_play("door", {
-				pos = seat_pos,
+				pos = door_pos1,
 				gain = 0.5,
 				max_hear_distance = 10,
 			})
 		node1.name = "hyperloop:doorBottom"
 		node1.param2 = facedir
 		minetest.swap_node(door_pos1, node1)
-		if station_name ~= nil then
-			local meta = minetest.get_meta(door_pos1)
-			meta:set_string("station_name", station_name)
-		end
 		node2.name = "hyperloop:doorTopPassive"
 		node2.param2 = facedir
 		minetest.swap_node(door_pos2, node2)
-		if station_name ~= nil then
-			meta = minetest.get_meta(door_pos2)
-			meta:set_string("station_name", station_name)
-		end
 	elseif cmnd == "animate" then
 		node2.name = "hyperloop:doorTopActive"
 		node2.param2 = facedir
 		minetest.swap_node(door_pos2, node2)
+	end
+end
+
+-- door command based on the station data table
+function hyperloop.open_pod_door(tStation)
+	if tStation ~= nil then
+		local door_pos = hyperloop.new_pos(tStation.pos, tStation.facedir, "1F1L", 1)
+		door_command(door_pos, "open")
+	end
+end
+
+-- door command based on the station data table
+function hyperloop.close_pod_door(tStation)
+	if tStation ~= nil then
+		local door_pos = hyperloop.new_pos(tStation.pos, tStation.facedir, "1F1L", 1)
+		door_command(door_pos, "close")
+	end
+end
+
+-- door command based on the station data table
+function hyperloop.animate_pod_door(tStation)
+	if tStation ~= nil then
+		local door_pos = hyperloop.new_pos(tStation.pos, tStation.facedir, "1F1L", 1)
+		door_command(door_pos, "animate")
 	end
 end
 
@@ -98,8 +112,14 @@ minetest.register_node("hyperloop:doorTopPassive", {
 	
 	on_punch = door_on_punch,
 	
+	auto_place_node = function(pos, placer, facedir, key_str)
+		local meta = minetest.get_meta(pos)
+		meta:set_int("facedir", facedir)
+		meta:set_string("key_str", key_str)
+	end,
+	
 	paramtype2 = "facedir",
-	diggable = false,
+	drop = "",
 	sounds = default.node_sound_metal_defaults(),
 	groups = {cracky=1, not_in_creative_inventory=1},
 	is_ground_content = false,
@@ -130,7 +150,7 @@ minetest.register_node("hyperloop:doorTopActive", {
 		fixed = {-8/16, -8/16, -5/16, 8/16, 8/16, 5/16},
 	},
 	paramtype2 = "facedir",
-	diggable = false,
+	drop = "",
 	light_source = 2,
 	sounds = default.node_sound_metal_defaults(),
 	groups = {cracky=1, not_in_creative_inventory=1},
@@ -156,8 +176,14 @@ minetest.register_node("hyperloop:doorBottom", {
 	
 	on_punch = door_on_punch,
 	
+	auto_place_node = function(pos, placer, facedir, key_str)
+		local meta = minetest.get_meta(pos)
+		meta:set_int("facedir", facedir)
+		meta:set_string("key_str", key_str)
+	end,
+	
 	paramtype2 = "facedir",
-	diggable = false,
+	drop = "",
 	sounds = default.node_sound_metal_defaults(),
 	groups = {cracky=1, not_in_creative_inventory=1},
 	is_ground_content = false,
