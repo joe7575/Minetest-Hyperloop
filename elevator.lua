@@ -67,7 +67,6 @@ end
 local function remove_elevator_list(pos)
 	local spos = tostring(pos.x)..":"..tostring(pos.z)
 	hyperloop.data.tAllElevators[spos] = nil
-	--print(spos, dump(hyperloop.data.tAllElevators))
 end
 
 -- determine the elevator floor item or create one
@@ -84,7 +83,6 @@ end
 
 -- Add the given arguments to the elevator table
 local function add_to_elevator_list(pos, tArgs)
-	--print("add_to_elevator_list", dump(pos))
 	local floor = get_floor_item(pos)
 	for k,v in pairs(tArgs) do
 		floor[k] = v
@@ -110,7 +108,6 @@ local function floor_list(pos)
 		end)
 	-- check if elevator is complete
 	for idx,floor in ipairs(floors) do
-		--print(idx, #floors, floor.name, floor.up, floor.down)
 		if idx == 1 then
 			if floor.down == false then
 				return {}
@@ -182,7 +179,6 @@ local function remove_from_elevator_list(pos)
 	else
 		-- update all other elevator cars 
 		for _,floor in ipairs(get_elevator_list(pos)) do
-			print(_, floor.name)
 			if floor.name ~= "<unknown>" then
 				update_formspec(floor.pos)
 			end
@@ -193,7 +189,6 @@ end
 function hyperloop.update_elevator(pos)
 	local up = false
 	local down = false
-	--print("update y=", pos.y)
 	
 	pos.y = pos.y - 1
 	if string.find(minetest.get_node_or_nil(pos).name, "hyperloop:shaft") then
@@ -207,11 +202,9 @@ function hyperloop.update_elevator(pos)
 	
 	pos.y = pos.y - 2
 	add_to_elevator_list(pos, {up=up, down=down})
-	--dbg_out("update", pos)
 
 	-- update all elevator cars which are already named
 	for _,floor in ipairs(get_elevator_list(pos)) do
-		print(_, floor.name)
 		if floor.name ~= "<unknown>" then
 			update_formspec(floor.pos)
 		end
@@ -345,7 +338,6 @@ minetest.register_node("hyperloop:elevator_bottom", {
 		-- store floor_pos (lower car block) as meta data
 		set_floor_pos(pos, floor_pos)
 		pos.y = pos.y - 1
-		--dbg_out("after_place_node", pos)
 	end,
 
 	on_receive_fields = function(pos, formname, fields, player)
@@ -359,7 +351,6 @@ minetest.register_node("hyperloop:elevator_bottom", {
 			local floor_pos = get_floor_pos(pos)
 			add_to_elevator_list(floor_pos, {name=floor})
 			hyperloop.update_elevator(floor_pos)
-			--dbg_out("on_receive_fields", floor_pos)
 		-- destination selected?
 		elseif fields.button ~= nil then
 			local floor_pos = get_floor_pos(pos)
@@ -389,12 +380,9 @@ minetest.register_node("hyperloop:elevator_bottom", {
 			minetest.swap_node(pos, node)
 		end
 		pos.y = pos.y + 2
-		--print("pos.y="..pos.y)
 		minetest.remove_node(pos)
 		pos.y = pos.y - 1
 		remove_from_elevator_list(pos)
-		--local facedir = minetest.get_meta(pos):get_int("facedir")
-		--door_command(pos, facedir, "open")
 	end,
 
 })
@@ -470,7 +458,6 @@ minetest.register_node("hyperloop:elevator_door", {
 	on_rightclick = function(pos, node, clicker, itemstack, pointed_thing)
 		local floor_pos = get_floor_pos(pos)
 		local floor = get_floor_item(floor_pos)
-		print(dump(floor.pos), floor.facedir)
 		door_command(floor.pos, floor.facedir, "open")
 	end,
 	
@@ -480,31 +467,3 @@ minetest.register_node("hyperloop:elevator_door", {
 	groups = {snappy = 3, not_in_creative_inventory=1},
 })
 
--------------------------------------------------------
---[[
-local pos = {x=1, y=2, z=3}
-local spos = tostring(pos.x)..":"..tostring(pos.z)
-hyperloop.data.tAllElevators[spos].floors = nil
-
-local floor = get_floor_item(pos)
-dbg_out("1", pos)
-add_to_elevator_list(pos, {name="test1", up=false, down=false, facedir=1, pos=pos})
-dbg_out("2", pos)
-remove_from_elevator_list(pos)
-dbg_out("3", pos)
-add_to_elevator_list(pos, {name="test1", up=false, down=false, facedir=1, pos=pos})
-dbg_out("4", pos)
-add_to_elevator_list(pos, {up=true})
-dbg_out("5", pos)
-print("6: ", dump(floor_list(pos)))
-
-local pos2 = {x=1, y=5, z=3}
-add_to_elevator_list(pos2, {name="test2", up=true, down=true, facedir=1, pos=pos2})
-dbg_out("7", pos2)
-print("8: ", dump(floor_list(pos2)))
-
-local pos3 = {x=1, y=9, z=3}
-add_to_elevator_list(pos3, {name="test3", up=false, down=true, facedir=1, pos=pos3})
-dbg_out("9", pos3)
-print("10: ", dump(floor_list(pos3)))
-]]--

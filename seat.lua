@@ -11,10 +11,6 @@
 ]]--
 
 
-----------------------------------------------------------------------------------------------------
-----------------------------------------------------------------------------------------------------
-
-
 local function enter_display(tStation, text)
     -- determine position
     local lcd_pos = hyperloop.new_pos(tStation.pos, tStation.facedir, "1F", 2)
@@ -46,7 +42,6 @@ local function on_open_door(tArrival)
 	minetest.after(5.0, on_final_close_door, tArrival, tArrival.facedir)
 end
 
-----------------------------------------------------------------------------------------------------
 local function on_arrival(tDeparture, tArrival, player, snd)
 	-- activate display
 	local text = " | Welcome at | | "..string.sub(tArrival.station_name, 1, 13)
@@ -75,7 +70,6 @@ local function on_arrival(tDeparture, tArrival, player, snd)
 	minetest.after(6.0, on_open_door, tArrival)
 end
 
-----------------------------------------------------------------------------------------------------
 local function on_travel(tDeparture, tArrival, player, atime)
 	-- play sound and switch door state
 	local snd = minetest.sound_play("normal2", {
@@ -89,7 +83,6 @@ local function on_travel(tDeparture, tArrival, player, atime)
 	minetest.after(atime, on_final_close_door, tDeparture)
 end
 
-----------------------------------------------------------------------------------------------------
 local function display_timer(pos, elapsed)
 	-- update display with trip data
 	local meta = minetest.get_meta(pos)
@@ -119,14 +112,12 @@ local function meter_to_km(dist)
 	end
 end
 
-----------------------------------------------------------------------------------------------------
 -- place the player, close the door, activate display
 local function on_start_travel(pos, node, clicker)
 	-- departure data
 	local meta = minetest.get_meta(pos)
 	local key_str = meta:get_string("key_str")
 	local tDeparture = hyperloop.get_station_data(key_str)
-	print("tDeparture: "..dump(tDeparture))
 	-- arrival data
 	key_str = hyperloop.data.booking[tDeparture.key_str]
 	if key_str == nil then
@@ -134,7 +125,6 @@ local function on_start_travel(pos, node, clicker)
 		return
 	end
 	local tArrival = hyperloop.get_station_data(key_str)
-	print("tArrival: "..dump(tArrival))
 	-- delete booking
 	hyperloop.data.booking[tDeparture.key_str] = nil
 	if tArrival == nil then
@@ -179,9 +169,6 @@ local function on_start_travel(pos, node, clicker)
 	atime = atime - 9 -- substract start/arrival time
 	minetest.after(4.9, on_travel, tDeparture, tArrival, clicker, atime)
 end
-
-	
-
 
 -- Hyperloop Seat
 minetest.register_node("hyperloop:seat", {

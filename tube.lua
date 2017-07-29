@@ -76,7 +76,7 @@ end
 
 -- Degrade one node.
 -- Needed when a new node is placed nearby.
-function hyperloop.degrade_tupe_node(node)
+function hyperloop.degrade_tupe_node(node, new_node_pos)
 	if node.name == "hyperloop:tube0" then
 		node.name = "hyperloop:tube1"
 	elseif node.name == "hyperloop:tube1" then
@@ -86,6 +86,9 @@ function hyperloop.degrade_tupe_node(node)
 	else
 		return
 	end
+	-- determine the correct tube facedir
+	local dir = vector.subtract(node.pos, new_node_pos)
+	node.param2 = minetest.dir_to_facedir(dir)
 	minetest.swap_node(node.pos, node)
 end
 
@@ -150,7 +153,7 @@ local function head_node(node, old_head)
 	node.param2 = minetest.dir_to_facedir(dir)
 	minetest.swap_node(node.pos, node)
 	-- degrade old head
-	hyperloop.degrade_tupe_node(old_head)
+	hyperloop.degrade_tupe_node(old_head, node.pos)
 	return true
 end
 
@@ -171,8 +174,8 @@ local function link_node(node, node1, node2)
 		node.diggable = true
 		minetest.swap_node(node.pos, node)
 		-- degrade both nodes
-		hyperloop.degrade_tupe_node(node1)
-		hyperloop.degrade_tupe_node(node2)
+		hyperloop.degrade_tupe_node(node1, node.pos)
+		hyperloop.degrade_tupe_node(node2, node.pos)
 		return true
 	end
 	return false

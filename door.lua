@@ -17,7 +17,6 @@
 local function door_on_punch(pos, node, puncher, pointed_thing)
 	local meta = minetest.get_meta(pos)
 	local key_str = meta:get_string("key_str")
-	print("punch  "..key_str)
 	if hyperloop.data.tAllStations[key_str] ~= nil then
 		local station_name = hyperloop.data.tAllStations[key_str].station_name
 		if station_name == nil then

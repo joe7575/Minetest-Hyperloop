@@ -56,12 +56,6 @@
 		- booking_pos = nil
 		- booking_info = nil
 		
-	Once a day:
-		for key,item in tAllStations
-			if node(item(pos)) ~= station
-				del item
-				
-			
 ]]--
 
 -- Station Pod Assembly Plan
@@ -143,7 +137,6 @@ function hyperloop.get_station_data(key_str)
 	return nil
 end
 
--- used for station and junction blocks
 local function store_station(pos, placer)
 	local key_str = hyperloop.get_key_str(pos)
 	local facedir = hyperloop.get_facedir(placer)
@@ -156,6 +149,17 @@ local function store_station(pos, placer)
 		time_blocked=0, 					-- for reservations
 		owner=placer:get_player_name(), 
 		facedir=facedir						-- face to LCD
+	}
+end
+
+local function store_junction(pos, placer)
+	local key_str = hyperloop.get_key_str(pos)
+	hyperloop.data.tAllStations[key_str] = {
+		version=2,							-- for version checks
+		pos=pos, 							-- station/junction block
+		routes={}, 							-- will be calculated later
+		owner=placer:get_player_name(), 
+		junction=true,
 	}
 end
 
@@ -361,14 +365,6 @@ minetest.register_node("hyperloop:station", {
 		hyperloop.data.change_counter = hyperloop.data.change_counter + 1
 	end,
 
---	on_punch = function(pos, node, puncher, pointed_thing)
---		local meta = minetest.get_meta(pos)
---		local inv = meta:get_inventory()
---		if inv:is_empty("src") and meta:get_int("built") ~= 1 then
---			minetest.node_punch(pos, node, puncher, pointed_thing)
---		end
---	end,
-
 	on_dig = function(pos, node, puncher, pointed_thing)
 		local meta = minetest.get_meta(pos)
 		local inv = meta:get_inventory()
@@ -416,7 +412,7 @@ minetest.register_node("hyperloop:junction", {
 		hyperloop.check_network_level(pos, placer)
 		local meta = minetest.get_meta(pos)
 		meta:set_string("infotext", "Position "..hyperloop.get_key_str(pos))
-		store_station(pos, placer)
+		store_junction(pos, placer)
 		store_routes(pos)
 		hyperloop.data.change_counter = hyperloop.data.change_counter + 1
 	end,

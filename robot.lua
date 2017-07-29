@@ -44,7 +44,9 @@ local function place_tube(pos, name, facedir, placer)
 	if minetest.is_protected(pos, placer:get_player_name()) then
 		hyperloop.chat(placer, "Area is protected!")
 		return false
-	elseif minetest.get_node_or_nil(pos).name ~= "air" and minetest.get_node_or_nil(pos).name ~= "default:water_source" then
+	elseif minetest.get_node_or_nil(pos).name ~= "air" and 
+		   minetest.get_node_or_nil(pos).name ~= "default:water_source" and
+		   minetest.get_node_or_nil(pos).name ~= "default:water_flowing" then
 		return false
 	end
 	if hyperloop.scan_neighbours(pos) ~= 1 then
@@ -56,25 +58,24 @@ local function place_tube(pos, name, facedir, placer)
 end
 
 local function move_robot(pos, inv, facedir, placer)
-	print("move_robot")
-	if get_inventory_item(inv) then
-		print("get_inventory_item")
-		-- remve robot and replace through tube
-		local stack = get_inventory(pos)
-		minetest.dig_node(pos)
-		place_tube(pos, "hyperloop:tube1", facedir, placer)
-		-- place robot on the new position
-		pos = hyperloop.new_pos(pos, facedir, "1F", 0)
-		if place_tube(pos, "hyperloop:robot", facedir, placer) then
-			inv = set_inventory(pos, stack)
-			print("set_inventory")
-			minetest.after(1, move_robot, pos, inv, facedir, placer)
-		else
-			pos = hyperloop.new_pos(pos, facedir, "1B", 0)
-			minetest.dig_node(pos)
-			place_tube(pos, "hyperloop:robot", facedir, placer)
-			stack:add_item("src", ItemStack("hyperloop:tube0"))
-			set_inventory(pos, stack)
+	if minetest.get_meta(pos):get_int("stopped") ~= 1 then
+		if get_inventory_item(inv) then
+			-- remve robot and replace through tube
+			local stack = get_inventory(pos)
+			minetest.remove_node(pos)
+			place_tube(pos, "hyperloop:tube1", facedir, placer)
+			-- place robot on the new position
+			pos = hyperloop.new_pos(pos, facedir, "1F", 0)
+			if place_tube(pos, "hyperloop:robot", facedir, placer) then
+				inv = set_inventory(pos, stack)
+				minetest.after(1, move_robot, pos, inv, facedir, placer)
+			else
+				pos = hyperloop.new_pos(pos, facedir, "1B", 0)
+				minetest.remove_node(pos)
+				place_tube(pos, "hyperloop:robot", facedir, placer)
+				stack:add_item("src", ItemStack("hyperloop:tube0"))
+				set_inventory(pos, stack)
+			end
 		end
 	end
 end
@@ -93,12 +94,12 @@ minetest.register_node("hyperloop:robot", {
 	description = "Hyperloop Tube Robot",
 	tiles = {
 		-- up, down, right, left, back, front
-		"hyperloop_robot.png^[transformR90]",
-		"hyperloop_robot.png^[transformR90]",
 		"hyperloop_robot.png",
 		"hyperloop_robot.png",
-		"hyperloop_robot.png",
-		"hyperloop_robot.png",
+		"hyperloop_robot2.png",
+		"hyperloop_robot2.png",
+		"hyperloop_robot2.png",
+		"hyperloop_robot2.png",
 	},
 		
 	after_place_node = function(pos, placer, itemstack, pointed_thing)
@@ -126,12 +127,25 @@ minetest.register_node("hyperloop:robot", {
 		local meta = minetest.get_meta(pos)
 		local inv = meta:get_inventory()
 		local facedir = meta:get_int("facedir")
+		meta:set_int("stopped", 0)
 		minetest.after(1, move_robot, pos, inv, facedir, player)
 	end,
 	
+	on_punch = function(pos, node, puncher, pointed_thing)
+		if minetest.is_protected(pos, puncher:get_player_name()) then
+			return
+		end
+		local meta = minetest.get_meta(pos)
+		meta:set_int("stopped", 1)
+	end,
+		
 	on_dig = function(pos, node, puncher, pointed_thing)
+		if minetest.is_protected(pos, puncher:get_player_name()) then
+			return
+		end
 		local meta = minetest.get_meta(pos)
 		local inv = meta:get_inventory()
+		meta:set_int("stopped", 1)
 		if inv:is_empty("src") then
 			minetest.node_dig(pos, node, puncher, pointed_thing)
 		end

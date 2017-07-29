@@ -30,8 +30,8 @@ local function station_list_as_string(pos)
 		print("tAllStations="..dump(sortedList))
 		print("tWifi="..dump(hyperloop.data.tWifi))
 	end
-	--local tRes = {"(player distance: station name (position) seat/machine/owner  =>  directly connected with)\n\n"}
-	local tRes = {"size[12,10]label[0,0;Dist.]label[0.9,0;Station]label[2.5,0;Position]label[4.2,0;State]label[5.6,0;Owner]label[7.1,0;Connected with]"}
+	local tRes = {"label[0,0;Dist.]label[0.9,0;Station/Junction]label[2.7,0;Position]"..
+		          "label[4.7,0;State]label[6.2,0;Owner]label[7.8,0;Directly connected with]"}
 	local state, owner
 	for idx,dataSet in ipairs(sortedList) do
 		if idx == 18 then
@@ -39,10 +39,13 @@ local function station_list_as_string(pos)
 		end
 		local ypos = 0.2 + idx * 0.4
 		if dataSet.station_name ~= nil then
-			state = "completed"
+			state = "Station"
+		elseif dataSet.junction == true then
+			dataSet.station_name = "<no name>"
+			state = "Junction"
 		else
-			dataSet.station_name = ""
-			state = "no Booking M."
+			dataSet.station_name = "<no name>"
+			state = "No Booking M."
 		end
 		if dataSet.owner ~= nil then
 			owner = dataSet.owner
@@ -51,12 +54,16 @@ local function station_list_as_string(pos)
 		end
 		tRes[#tRes+1] = "label[0,"..ypos..";"..dataSet.distance.." m]"
 		tRes[#tRes+1] = "label[0.9,"..ypos..";"..dataSet.station_name.."]"
-		tRes[#tRes+1] = "label[2.5,"..ypos..";"..minetest.pos_to_string(dataSet.pos).."]"
-		tRes[#tRes+1] = "label[4.2,"..ypos..";"..state.."]"
-		tRes[#tRes+1] = "label[5.6,"..ypos..";"..owner.."]"
-		tRes[#tRes+1] = "label[7.1,"..ypos..";"
-		for _,s in ipairs(hyperloop.get_connections(dataSet.key_str)) do
-			tRes[#tRes + 1] = s
+		tRes[#tRes+1] = "label[2.7,"..ypos..";"..minetest.pos_to_string(dataSet.pos).."]"
+		tRes[#tRes+1] = "label[4.7,"..ypos..";"..state.."]"
+		tRes[#tRes+1] = "label[6.2,"..ypos..";"..owner.."]"
+		tRes[#tRes+1] = "label[7.8,"..ypos..";"
+		for _,key_str in ipairs(hyperloop.get_connections(dataSet.key_str)) do
+			if hyperloop.data.tAllStations[key_str].station_name ~= nil then
+				tRes[#tRes + 1] = hyperloop.data.tAllStations[key_str].station_name
+			else
+				tRes[#tRes + 1] = key_str
+			end
 			tRes[#tRes + 1] = ", "
 		end
 		tRes[#tRes] = "]"
@@ -70,11 +77,11 @@ local function map_on_use(itemstack, user)
 	--local pos = user:get_pos()
 	local pos = user:getpos()
 	local sStationList = station_list_as_string(pos)
-	local formspec = "size[10,8]" .. default.gui_bg ..
+	local formspec = "size[12,10]" .. default.gui_bg ..
 	default.gui_bg_img ..
 	"textarea[0.5,0.5;9.5,8;text;Station List:;" ..
 	sStationList .. "]" ..
-	"button_exit[4,7.5;2,1;close;Close]"
+	"button_exit[5,9.5;2,1;close;Close]"
 
 	minetest.show_formspec(player_name, "hyperloop:station_map", formspec)
 	return itemstack

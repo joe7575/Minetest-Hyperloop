@@ -125,7 +125,7 @@ local function place_wifi_node(pos, head_node)
 	-- update peer
 	hyperloop.update_head_node(peer_pos, minetest.pos_to_string(pos))
 	-- degrade head tube to link tube
-	hyperloop.degrade_tupe_node(head_node)
+	hyperloop.degrade_tupe_node(head_node, pos)
 	if hyperloop.debugging then
 		print("wifi meta="..dump(minetest.get_meta(pos):to_table()))
 	end

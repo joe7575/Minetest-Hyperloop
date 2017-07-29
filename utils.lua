@@ -41,39 +41,6 @@ function hyperloop.chat(player, text)
 	end
 end
 
---function hyperloop.rad_to_placedir(yaw)
---	-- radiant (0..2*PI) to my placedir (0..3) from N, W, S, E
---	return math.floor((yaw + PI/4) / PI * 2) % 4
---end
-
---function hyperloop.placedir_to_rad(placedir)
---	-- my placedir (0..3) from N, W, S, E to radiant (0..2*PI)
---	return placedir / 2 * PI
---end
-
---function hyperloop.placedir_to_dir(placedir)
---	-- my placedir (0..3) from N, W, S to E to dir vector
---	local tbl = {
---		[0] = { x=0,  y=0, z=1},
---		[1] = { x=-1, y=0, z=0},
---		[2] = { x=0,  y=0, z=-1},
---		[3] = { x=1,  y=0, z=0},
---	}
---	return tbl[placedir % 4]
---end
-
----- switch from original facedir to radiant oriented placedir
---function hyperloop.facedir_to_placedir(facedir)
---	local tbl = {[0]=0, [1]=3, [2]=2, [3]=1}
---	return tbl[facedir]
---end
-
----- switch from radiant oriented placedir to original facedir
---function hyperloop.placedir_to_facedir(placedir)
---	local tbl = {[0]=0, [1]=3, [2]=2, [3]=1}
---	return tbl[placedir]
---end
-
 function hyperloop.get_facedir(placer)
 	local lookdir = placer:get_look_dir()
 	return core.dir_to_facedir(lookdir)
@@ -84,7 +51,7 @@ function hyperloop.facedir_to_rad(facedir)
 	return tbl[facedir] / 2 * PI
 end
 
--- calculate the new pos based on the given pos, the players facedir
+-- calculate the new pos based on the given pos, the players facedir, the y-offset
 -- and the given walk path like "3F2L" (F-orward, L-eft, R-ight, B-ack).
 function hyperloop.new_pos(pos, facedir, path, y_offs)
 	local _pos = table.copy(pos)
@@ -294,7 +261,6 @@ function hyperloop.is_blocked(key_str)
 		return false
 	else
 		local t = hyperloop.data.tAllStations[key_str].time_blocked or 0
-		print(t, minetest.get_gametime())
 		return t > minetest.get_gametime()
 	end
 end
@@ -316,7 +282,6 @@ local function convert_station_list(tAllStations)
 				item.station_name = key
 			end
 			key = hyperloop.get_key_str(pos)
-			print(key.." = "..dump(item))
 		end
 		if item.version == 2 then
 			item.version = 3
