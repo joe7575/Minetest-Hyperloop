@@ -10,7 +10,20 @@ The fast and modern way of traveling.
 * It can be used even on small servers (Raspberry PI) without lagging
 * No configuration or programming of the tube network is necessary (only the station names have to be entered)
 
-The mod includes many different blocks for tubes, junctions, stations, elevators, ticket/booking machine, map tool, station builder, tube robot, and some signs and decoration blocks. It also includes WiFi tube blocks for very large distances (admin feature).
+The mod includes many different kind of blocks:
+- Hyperloop Stations Block to automatically build the pod/car
+- Hyperloop Booking Machine for the station to select the destination
+- Hyperloop Tube to connect two stations
+- Hyperloop Junction Block to connect up to 4 tubes for complex network structures
+- Hyperloop Tube Robot to automatically build tubes
+- Hyperloop Stations Sign
+- Hyperloop Promo Poster for station advertisement
+- Hyperloop Elevator to reach other levels
+- Hyperloop Elevator Shaft to connect two elevator cars 
+- Hyperloop Station Book with all available stations (for builders/engineers)
+- Hyperloop Tube Crowbar to crack tube lines (for admins)
+- Hyperloop WiFi Tubes for very large distances (admin feature)
+..and more.
 
 
 Browse on: ![GitHub](https://github.com/joe7575/Minetest-Hyperloop)
@@ -23,21 +36,18 @@ Download: ![GitHub](https://github.com/joe7575/Minetest-Hyperloop/archive/master
 Hyperloop is passenger transportation system for travelling through evacuated tubes my means of passenger pods.
 The tubes system with all stations and pods have to be build by the players.
 
-The pods can reach a maximum speed of up to 900 km/h. This requires a tube system on one level. That means all stations from one network have to be on the same level. Therefore, Hyperloop provides an elevator system to reach the station in the underground or in the air, depending on the tube level.
-
-To build a first route with 2 station, craft and place two Hyperloop Station Blocks, add items to the Station Block to build  the Station Pod, place a Booking Machines nearby both stations, and connect the stations by means of Hyperloop Tube blocks. You can use the Hyperloop Tube Robot to simplify the job. 
-
 
 **Some additional facts:**
 
 The tube route is automatically protected. You can dig only the ends of a tube line (head blocks). The junction block / station has to be protected manually.
+There is an admin tool available to crack tube lines.
 
 Junction and Station Blocks can connect up to four tube lines. That means you can build complex networks of tube lines. Each junction/station can be reaches from each point with one trip.
 
 
 ## Still To Do
 
-* Admin tool to interrupt tube routes
+* find some bugs
 
 
 ## Dependencies
