@@ -243,7 +243,7 @@ minetest.register_node("hyperloop:booking_ground", {
 
 	light_source = 2,
 	paramtype2 = "facedir",
-	groups = {cracky=2},
+	groups = {cracky=2, not_in_creative_inventory=1},
 	is_ground_content = false,
 })
 

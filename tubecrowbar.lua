@@ -67,6 +67,14 @@ local function crack_tube_line(itemstack, placer, pointed_thing)
 				minetest.remove_node(pos)
 				itemstack:take_item(1)
 			end
+		elseif res == 4 and #nodes == 1 then
+			local peer1 = determine_peer(pos, nodes[1])
+			if peer1 ~= nil then
+				peer1 = minetest.pos_to_string(peer1)
+				hyperloop.swap_tube_node(nodes[1], peer1)
+				minetest.remove_node(pos)
+				itemstack:take_item(1)
+			end
 		end
 	end
 	return itemstack
@@ -79,6 +87,8 @@ minetest.register_node("hyperloop:tube_crowbar", {
 	wield_image = "hyperloop_tubecrowbar.png",
 	groups = {cracky=1, book=1},
 	on_use = crack_tube_line,
-	on_place = crack_tube_line,
+	on_place = function(itemstack, placer, pointed_thing)
+		return itemstack
+	end,
 })
 

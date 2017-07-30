@@ -200,6 +200,9 @@ function hyperloop.get_networks()
 end
 
 function hyperloop.check_network_level(pos, player)
+	if hyperloop.free_tube_placement_enabled then
+		return
+	end
 	for key,item in pairs(hyperloop.data.tAllStations) do
 		if pos.y == item.pos.y then
 			return

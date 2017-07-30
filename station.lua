@@ -243,7 +243,7 @@ local station_formspec =
 	"label[2.5,0;Hyperloop Station Pod Builder]" ..
 	"image[0.7,0.9;3,3;hyperloop_station_formspec.png]"..
 	"list[context;src;4,0.9;1,4;]"..
-	"label[5,1.2;30 x Hypersteel Pod Shall]" ..
+	"label[5,1.2;30 x Hypersteel Pod Shell]" ..
 	"label[5,2.2;4 x Hypersteel Ingot]" ..
 	"label[5,3.2;2 x Blue Wool]" ..
 	"label[5,4.2;2 x Glass]" ..

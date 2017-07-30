@@ -146,7 +146,7 @@ minetest.register_node("hyperloop:tube_wifi1", {
 		if head_node ~= nil then
 			if head_node.name == "hyperloop:tube1" then
 				local formspec = "size[5,4]"..
-				"field[0.5,0.5;3,1;channel;Insert channel ID;myName:myChannel]" ..
+				"field[0.5,0.5;3,1;channel;Insert channel ID;chA]" ..
 				"button_exit[1,2;2,1;exit;Save]"
 				local meta = minetest.get_meta(pos)
 				meta:set_string("formspec", formspec)
