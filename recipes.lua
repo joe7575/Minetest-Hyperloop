@@ -13,8 +13,6 @@
 
 ]]--
 
-hyperloop.wifi_enabled = minetest.setting_get("hyperloop_wifi_enabled") or false
-
 
 minetest.register_craftitem("hyperloop:hypersteel_ingot", {
 	description = "Hypersteel Ingot",

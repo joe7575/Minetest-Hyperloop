@@ -13,11 +13,13 @@
 
 local function enter_display(tStation, text)
     -- determine position
-    local lcd_pos = hyperloop.new_pos(tStation.pos, tStation.facedir, "1F", 2)
-	-- load map
-	minetest.forceload_block(lcd_pos)
-	-- update display
-	minetest.registered_nodes["hyperloop:lcd"].update(lcd_pos, text) 
+	if tStation ~= nil then
+		local lcd_pos = hyperloop.new_pos(tStation.pos, tStation.facedir, "1F", 2)
+		-- load map
+		minetest.forceload_block(lcd_pos)
+		-- update display
+		minetest.registered_nodes["hyperloop:lcd"].update(lcd_pos, text) 
+	end
 end
 
 local function on_final_close_door(tStation)

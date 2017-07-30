@@ -29,6 +29,7 @@
 --  3, nodes    - two head nodes available
 --  4, nodes    - one link node available
 --  5, nodes    - invalid position
+-- 12, nodes    - two link nodes available
 function hyperloop.scan_neighbours(pos)
 	local nodes = {}
 	local node, npos, idx
@@ -39,19 +40,20 @@ function hyperloop.scan_neighbours(pos)
 		if string.find(node.name, "hyperloop:tube") then
 			node.pos = npos
 			table.insert(nodes, node)
-			if npos.y ~= pos.y	then	-- invalid level?
+			-- tubes on invalid level?
+			if not hyperloop.free_tube_placement_enabled and npos.y ~= pos.y then	
 				return 5, nodes
 			end
 			idx = string.byte(node.name, -1) - 48
 			if idx == 0 then        	-- single node?
 				idx = 1
 			elseif idx == 2 then    	-- link node?
-				return 4, nodes
+				idx = 4
 			end
 			res = res * 2 + idx
 		end
 	end
-	if res > 3 then
+	if res > 4 and res ~= 12 then
 		res = 5
 	end
 	return res, nodes
@@ -100,6 +102,23 @@ function hyperloop.remove_node(pos, node)
 	minetest.swap_node(pos, node)
 end
 
+-- Upgrade the tube and add meta data
+-- param node: node to be replaced
+-- param peer_pos: peer node position as string
+function hyperloop.swap_tube_node(node, peer_pos)
+	local pos = minetest.pos_to_string(node.pos)
+	hyperloop.update_head_node(pos, peer_pos)
+	hyperloop.update_head_node(peer_pos, pos)
+	-- upgrade
+	node.diggable = true
+	if node.name == "hyperloop:tube2" then          -- 2 connections?
+		node.name = "hyperloop:tube1"
+	elseif node.name == "hyperloop:tube1" then      -- 1 connection?
+		node.name = "hyperloop:tube0"
+	end
+	minetest.get_meta(node.pos):set_string("infotext", peer_pos)
+	minetest.swap_node(node.pos, node)
+end
 
 -- Upgrade one node.
 -- Needed when a tube node is digged.
@@ -109,18 +128,7 @@ function hyperloop.upgrade_node(digged_node_pos)
 		local new_head_node = nodes[1]
 		-- copy peer pos first
 		local peer_pos = minetest.get_meta(digged_node_pos):get_string("peer")
-		local pos = minetest.pos_to_string(new_head_node.pos)
-		hyperloop.update_head_node(pos, peer_pos)
-		hyperloop.update_head_node(peer_pos, pos)
-		-- upgrade
-		new_head_node.diggable = true
-		if new_head_node.name == "hyperloop:tube2" then          -- 2 connections?
-			new_head_node.name = "hyperloop:tube1"
-		elseif new_head_node.name == "hyperloop:tube1" then      -- 1 connection?
-			new_head_node.name = "hyperloop:tube0"
-		end
-		minetest.get_meta(new_head_node.pos):set_string("infotext", peer_pos)
-		minetest.swap_node(new_head_node.pos, new_head_node)
+		hyperloop.swap_tube_node(new_head_node, peer_pos)
 	end
 end
 

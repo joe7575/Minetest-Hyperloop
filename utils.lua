@@ -139,11 +139,11 @@ end
 -- tRes is used for the resulting table (recursive call)
 local function get_stations(tStations, key_str, tRes)
 	if tStations[key_str] == nil then
-		return nil
+		return {}
 	end
 	local dataSet = table.copy(tStations[key_str])
 	if dataSet == nil then
-		return nil
+		return {}
 	end
 	tStations[key_str] = nil
 	for _,route in ipairs(dataSet["routes"]) do
@@ -239,6 +239,11 @@ function hyperloop.reserve(departure, arrival)
 	end
 end
 
+local function get_key_str(pos)
+	pos = minetest.pos_to_string(pos)
+	return '"'..string.sub(pos, 2, -2)..'"'
+end
+
 -- block the already reserved stations
 function hyperloop.block(departure, arrival, seconds)
 	if hyperloop.data.tAllStations[departure] == nil then
@@ -270,30 +275,14 @@ end
 -------------------------------------------------------------------------------
 local wpath = minetest.get_worldpath()
 
--- Convert V1 to V2
+-- Convert legacy data
 local function convert_station_list(tAllStations)
 	tRes = {}
 	for key,item in pairs(tAllStations) do
-		if item.version == nil then
-			item.version = 2
-			local pos = minetest.string_to_pos(item.pos)
-			item.pos = pos
-			if item.seat == true and item.booking_pos ~= nil then
-				item.station_name = key
-			end
-			key = hyperloop.get_key_str(pos)
+		-- remove legacy data
+		if item.version == hyperloop.version then
+			tRes[key] = item
 		end
-		if item.version == 2 then
-			item.version = 3
-			if item.placedir ~= nil then
-				tbl = {[0]=0, [1]=3, [2]=2, [3]=1}
-				item.facedir = tbl[item.placedir]
-				item.placedir = nil
-			elseif item.facedir == nil then
-				item.facedir = 0
-			end
-		end
-		tRes[key] = item
 	end
 	return tRes
 end

@@ -63,6 +63,16 @@ local function valid_station_name(pos, station_name)
 	return min_key
 end
 
+local function naming_formspec(pos)
+	local meta = minetest.get_meta(pos)
+	local formspec = "size[6,4]"..
+	"label[0,0;Please insert station name to which this booking machine belongs]" ..
+	"field[0.5,1.5;5,1;name;Station name;MyTown]" ..
+	"field[0.5,2.7;5,1;info;Additional station information;]" ..
+	"button_exit[2,3.6;2,1;exit;Save]"
+	meta:set_string("formspec", formspec)
+	meta:set_int("change_counter", 0)
+end
 
 -- Form spec for the station list
 -- param key_str: local station key
@@ -89,6 +99,84 @@ local function formspec(key_str)
 	return table.concat(tRes)
 end
 
+
+local function on_receive_fields(pos, formname, fields, player)
+	local meta = minetest.get_meta(pos)
+	-- station name entered?
+	if fields.name ~= nil then
+		local station_name = string.trim(fields.name)
+		if station_name == "" then
+			return
+		end
+		-- valid name entered?
+		local key_str = valid_station_name(pos, station_name)
+		if key_str ~= nil then
+			if hyperloop.data.tAllStations[key_str]["booking_pos"] ~= nil then
+				hyperloop.chat(player, "Station has already a booking machine!")
+				return
+			end
+			-- store meta and generate station formspec
+			hyperloop.data.tAllStations[key_str]["booking_pos"] = pos
+			hyperloop.data.tAllStations[key_str]["booking_info"] = string.trim(fields.info)
+			hyperloop.data.tAllStations[key_str]["station_name"] = station_name
+			meta:set_string("key_str", key_str)
+			meta:set_string("infotext", "Station: "..station_name)
+			meta:set_string("formspec", formspec(key_str))
+			hyperloop.data.change_counter = hyperloop.data.change_counter + 1
+		else
+			hyperloop.chat(player, "Invalid station name!")
+		end
+	-- destination selected?
+	elseif fields.button ~= nil then
+		local key_str = meta:get_string("key_str")
+		local idx = tonumber(fields.button)
+		local destination = get_station_list(key_str)[idx]
+		-- place booking of not already blocked
+		if hyperloop.reserve(key_str, destination) then
+			local dest_pos = hyperloop.data.tAllStations[destination].pos
+			hyperloop.data.booking[key_str] = hyperloop.get_key_str(dest_pos)
+			-- open the pod door
+			hyperloop.open_pod_door(hyperloop.get_station_data(key_str))
+		else
+			hyperloop.chat(player, "Station is still blocked. Please try again in a few seconds!")
+		end
+	end
+end
+	
+local function on_destruct(pos)
+	local meta = minetest.get_meta(pos)
+	local key_str = meta:get_string("key_str")
+	if hyperloop.data.tAllStations[key_str] ~= nil 
+	and hyperloop.data.tAllStations[key_str]["booking_pos"] ~= nil then
+		hyperloop.data.tAllStations[key_str]["station_name"] = nil
+		hyperloop.data.tAllStations[key_str]["booking_pos"] = nil
+		hyperloop.data.tAllStations[key_str]["booking_info"] = nil
+	end
+	hyperloop.data.change_counter = hyperloop.data.change_counter + 1
+end
+
+local function update(pos)
+	local meta = minetest.get_meta(pos)
+	local key_str = meta:get_string("key_str")
+	local stations = get_station_list(key_str)
+	meta:set_string("formspec", formspec(key_str, stations))
+end
+
+-- wap from wall to ground 
+local function swap_node(pos, placer)
+	pos.y = pos.y - 1
+	if minetest.get_node_or_nil(pos).name ~= "air" then
+		local node = minetest.get_node(pos)
+		node.name = "hyperloop:booking_ground"
+		node.param2 = hyperloop.get_facedir(placer)
+		pos.y = pos.y + 1
+		minetest.swap_node(pos, node)
+	else
+		pos.y = pos.y + 1
+	end
+end
+
+-- wall mounted booking machine
 minetest.register_node("hyperloop:booking", {
 	description = "Hyperloop Booking Machine",
 	tiles = {
@@ -101,78 +189,57 @@ minetest.register_node("hyperloop:booking", {
 		"hyperloop_booking_front.png",
 	},
 	
+	drawtype = "nodebox",
+	node_box = {
+		type = "fixed",
+		fixed = {
+			{ -8/16, -8/16, 2/16,  8/16,  8/16, 8/16},
+		},
+	},
+	
 	after_place_node = function(pos, placer, itemstack, pointed_thing)
-		local meta = minetest.get_meta(pos)
-		local formspec = "size[6,4]"..
-		"label[0,0;Please insert station name to which this booking machine belongs]" ..
-		"field[0.5,1.5;5,1;name;Station name;MyTown]" ..
-		"field[0.5,2.7;5,1;info;Additional station information;]" ..
-		"button_exit[2,3.6;2,1;exit;Save]"
-		meta:set_string("formspec", formspec)
-		meta:set_int("change_counter", 0)
+		naming_formspec(pos)
+		swap_node(pos, placer)
 	end,
 
-	on_receive_fields = function(pos, formname, fields, player)
-		local meta = minetest.get_meta(pos)
-		-- station name entered?
-		if fields.name ~= nil then
-			local station_name = string.trim(fields.name)
-			if station_name == "" then
-				return
-			end
-			-- valid name entered?
-			local key_str = valid_station_name(pos, station_name)
-			if key_str ~= nil then
-				if hyperloop.data.tAllStations[key_str]["booking_pos"] ~= nil then
-					hyperloop.chat(player, "Station has already a booking machine!")
-					return
-				end
-				-- store meta and generate station formspec
-				hyperloop.data.tAllStations[key_str]["booking_pos"] = pos
-				hyperloop.data.tAllStations[key_str]["booking_info"] = string.trim(fields.info)
-				hyperloop.data.tAllStations[key_str]["station_name"] = station_name
-				meta:set_string("key_str", key_str)
-				meta:set_string("infotext", "Station: "..station_name)
-				meta:set_string("formspec", formspec(key_str))
-				hyperloop.data.change_counter = hyperloop.data.change_counter + 1
-			else
-				hyperloop.chat(player, "Invalid station name!")
-			end
-		-- destination selected?
-		elseif fields.button ~= nil then
-			local key_str = meta:get_string("key_str")
-			local idx = tonumber(fields.button)
-			local destination = get_station_list(key_str)[idx]
-			-- place booking of not already blocked
-			if hyperloop.reserve(key_str, destination) then
-				local dest_pos = hyperloop.data.tAllStations[destination].pos
-				hyperloop.data.booking[key_str] = hyperloop.get_key_str(dest_pos)
-				-- open the pod door
-				hyperloop.open_pod_door(hyperloop.get_station_data(key_str))
-			else
-				hyperloop.chat(player, "Station is still blocked. Please try again in a few seconds!")
-			end
-		end
+	on_receive_fields = on_receive_fields,
+	on_destruct = on_destruct,
+	update = update,
+
+	light_source = 2,
+	paramtype2 = "facedir",
+	groups = {cracky=2},
+	is_ground_content = false,
+})
+
+-- ground mounted booking machine
+minetest.register_node("hyperloop:booking_ground", {
+	description = "Hyperloop Booking Machine",
+	tiles = {
+		-- up, down, right, left, back, front
+		"hyperloop_booking.png",
+		"hyperloop_booking.png",
+		"hyperloop_booking.png",
+		"hyperloop_booking.png",
+		"hyperloop_booking.png",
+		"hyperloop_booking_front.png",
+	},
+	
+	drawtype = "nodebox",
+	node_box = {
+		type = "fixed",
+		fixed = {
+			{ -8/16, -8/16, -3/16,  8/16,  8/16, 3/16},
+		},
+	},
+	
+	after_place_node = function(pos, placer, itemstack, pointed_thing)
+		naming_formspec(pos)
 	end,
 
-	on_destruct = function(pos)
-		local meta = minetest.get_meta(pos)
-		local key_str = meta:get_string("key_str")
-		if hyperloop.data.tAllStations[key_str] ~= nil 
-		and hyperloop.data.tAllStations[key_str]["booking_pos"] ~= nil then
-			hyperloop.data.tAllStations[key_str]["station_name"] = nil
-			hyperloop.data.tAllStations[key_str]["booking_pos"] = nil
-			hyperloop.data.tAllStations[key_str]["booking_info"] = nil
-		end
-		hyperloop.data.change_counter = hyperloop.data.change_counter + 1
-	end,
-
-	update = function(pos)
-		local meta = minetest.get_meta(pos)
-		local key_str = meta:get_string("key_str")
-		local stations = get_station_list(key_str)
-		meta:set_string("formspec", formspec(key_str, stations))
-	end,
+	on_receive_fields = on_receive_fields,
+	on_destruct = on_destruct,
+	update = update,
 
 	light_source = 2,
 	paramtype2 = "facedir",

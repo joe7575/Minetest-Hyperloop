@@ -25,6 +25,7 @@
 
 hyperloop = {
 	data = {
+		version = 1,				-- compatibility version
 		tAllStations = {},		-- tube networks
 		tAllElevators = {},     -- evevators
 		tWifi = {},				-- WiFi pairing
@@ -33,7 +34,10 @@ hyperloop = {
 	}
 }
 
-hyperloop.debugging = false
+-- Configuration settings
+hyperloop.debugging = false		-- for development only
+hyperloop.wifi_enabled = minetest.setting_get("hyperloop_wifi_enabled") or false
+hyperloop.free_tube_placement_enabled = minetest.setting_get("hyperloop_free_tube_placement_enabled") or false
 
 dofile(minetest.get_modpath("hyperloop") .. "/utils.lua")
 dofile(minetest.get_modpath("hyperloop") .. "/tube.lua")
@@ -48,6 +52,7 @@ dofile(minetest.get_modpath("hyperloop") .. "/wifi.lua")
 dofile(minetest.get_modpath("hyperloop") .. "/elevator.lua")
 dofile(minetest.get_modpath("hyperloop") .. "/shaft.lua")
 dofile(minetest.get_modpath("hyperloop") .. "/deco.lua")
+dofile(minetest.get_modpath("hyperloop") .. "/tubecrowbar.lua")
 dofile(minetest.get_modpath("hyperloop") .. "/recipes.lua")
 
 print ("[MOD] Hyperloop loaded")

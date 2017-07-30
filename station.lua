@@ -143,7 +143,7 @@ local function store_station(pos, placer)
 	-- do a facedir correction 
 	facedir = (facedir + 3) % 4				-- face to LCD
 	hyperloop.data.tAllStations[key_str] = {
-		version=2,							-- for version checks
+		version=hyperloop.version,			-- for version checks
 		pos=pos, 							-- station/junction block
 		routes={}, 							-- will be calculated later
 		time_blocked=0, 					-- for reservations
@@ -155,7 +155,7 @@ end
 local function store_junction(pos, placer)
 	local key_str = hyperloop.get_key_str(pos)
 	hyperloop.data.tAllStations[key_str] = {
-		version=2,							-- for version checks
+		version=hyperloop.version,			-- for version checks
 		pos=pos, 							-- station/junction block
 		routes={}, 							-- will be calculated later
 		owner=placer:get_player_name(), 
@@ -324,20 +324,25 @@ local function destroy_station(pos, placer)
 	end		
 	
 	local key_str = hyperloop.get_key_str(pos)
-	local facedir = hyperloop.data.tAllStations[key_str].facedir
-	-- remove nodes
-	local _pos = table.copy(pos)
-	for _,item in ipairs(AssemblyPlan) do
-		local y, path, node_name = item[1], item[2], item[4]
-		_pos = hyperloop.new_pos(_pos, facedir, path, y)
-		minetest.remove_node(_pos)
+	if key_str ~= nil and hyperloop.data.tAllStations[key_str] ~= nil then
+		local facedir = hyperloop.data.tAllStations[key_str].facedir
+		-- remove nodes
+		local _pos = table.copy(pos)
+		for _,item in ipairs(AssemblyPlan) do
+			local y, path, node_name = item[1], item[2], item[4]
+			_pos = hyperloop.new_pos(_pos, facedir, path, y)
+			minetest.remove_node(_pos)
+		end
+		-- maintain meta
+		local meta = minetest.get_meta(pos)
+		meta:set_string("formspec", station_formspec .. "button_exit[1,3.9;2,1;build;Build Station]")
+		local inv = meta:get_inventory()
+		add_inventory_items(inv)
+		meta:set_int("built", 0)
+	else
+		local meta = minetest.get_meta(pos)
+		meta:set_int("built", 0)
 	end
-	-- maintain meta
-	local meta = minetest.get_meta(pos)
-	meta:set_string("formspec", station_formspec .. "button_exit[1,3.9;2,1;build;Build Station]")
-	local inv = meta:get_inventory()
-	add_inventory_items(inv)
-	meta:set_int("built", 0)
 end
 
 minetest.register_node("hyperloop:station", {
