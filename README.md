@@ -4,7 +4,7 @@
 
 ## Minetest goes Hyperloop!
 
-The fast and modern way of traveling.
+The fast and modern way of travelling.
 * Hyperloop allows travelling from point point in seconds (900 km/h) :-)
 * Hyperloop tubes can be build in teamwork together with other players
 * It can be used even on small servers (Raspberry PI) without lagging

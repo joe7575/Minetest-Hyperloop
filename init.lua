@@ -3,7 +3,7 @@
 	Hyperloop Mod
 	=============
 
-	v0.06 by JoSt
+	v0.08 by JoSt
 
 	Copyright (C) 2017 Joachim Stolberg
 
@@ -18,7 +18,7 @@
 	2017-07-16  v0.05  Doors can be opened manually
 	2017-07-24  v0.06  Tubes with limited slope, elevator and deco blocks added
 	2017-07-28  v0.07  Slope removed, Station auto-builder added
-	2017-07-29  v0.08  Signs added, tube robot added
+	2017-07-30  v0.08  Signs added, tube robot added, crowbar added
 
 ]]--
 
