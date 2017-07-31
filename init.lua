@@ -3,7 +3,7 @@
 	Hyperloop Mod
 	=============
 
-	v0.08 by JoSt
+	v0.09 by JoSt
 
 	Copyright (C) 2017 Joachim Stolberg
 
@@ -19,6 +19,7 @@
 	2017-07-24  v0.06  Tubes with limited slope, elevator and deco blocks added
 	2017-07-28  v0.07  Slope removed, Station auto-builder added
 	2017-07-30  v0.08  Signs added, tube robot added, crowbar added
+	2017-07-31  v0.09  Some bug fixes on the Bocking Machine
 
 ]]--
 

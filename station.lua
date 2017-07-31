@@ -21,7 +21,7 @@
 			{"(-752,2,-313)", "(-757,2,-313)"}, 
 			{"(-751,2,-312)", "(-751,2,-309)"}
 		}, 
-		version = 2,
+		version = 1,
 		time_blocked = 0, 
 		booking_pos = {x,y,z},
 		booking_info = "...",
@@ -33,7 +33,7 @@
 	
 	Add Station Block: 
 		- key_str = get_key_str(pos)
-		- version = 2
+		- version = 1
 		- routes = {...}
 		- time_blocked = 0
 		- owner = placer:name()

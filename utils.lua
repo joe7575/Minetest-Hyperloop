@@ -135,7 +135,7 @@ local function get_peer_station(tStations, rev_route)
 	end
 end
 
--- Return a table with all station names, the given 'key_str' is connected with
+-- Return a table with all station key_strings, the given 'key_str' is connected with
 -- tRes is used for the resulting table (recursive call)
 local function get_stations(tStations, key_str, tRes)
 	if tStations[key_str] == nil then
@@ -157,7 +157,7 @@ local function get_stations(tStations, key_str, tRes)
 	return tRes
 end
 
--- Return a table with all network station names, the given 'key_str' belongs too
+-- Return a table with all network station key_strings, the given 'key_str' belongs too
 function hyperloop.get_network_stations(key_str)
 	local tRes = {}
 	local tStations = table.copy(hyperloop.data.tAllStations)
@@ -170,7 +170,7 @@ function hyperloop.get_network_stations(key_str)
 	return tOut
 end
 	
--- Return a table with all station names, the given 'key_str' is directly connected with
+-- Return a table with all station key_strings, the given 'key_str' is directly connected with
 function hyperloop.get_connections(key_str)
 	local tRes = {}
 	local dataSet = hyperloop.data.tAllStations[key_str]
@@ -187,7 +187,7 @@ function hyperloop.get_connections(key_str)
 	return tRes
 end
 	
--- Return the networks table with all station names per network
+-- Return the networks table with all station key_strings per network
 function hyperloop.get_networks()
 	local tNetwork = {}
 	local tStations = table.copy(hyperloop.data.tAllStations)
@@ -217,18 +217,22 @@ end
 -------------------------------------------------------------------------------
 
 -- reserve departure and arrival stations for some time
-function hyperloop.reserve(departure, arrival)
+function hyperloop.reserve(departure, arrival, player)
 	if hyperloop.data.tAllStations[departure] == nil then
+		hyperloop.chat(player, "Station data is corrupted. Please rebuild the station!")
 		return false
 	elseif hyperloop.data.tAllStations[arrival] == nil then
+		hyperloop.chat(player, "Station data is corrupted. Please rebuild the station!")
 		return false
 	else
 		local t1 = hyperloop.data.tAllStations[departure].time_blocked or 0
 		local t2 = hyperloop.data.tAllStations[arrival].time_blocked or 0
 		
 		if t1 > minetest.get_gametime() then
+			hyperloop.chat(player, "Station is still blocked. Please try again in a few seconds!")
 			return false
 		elseif t2 > minetest.get_gametime() then
+			hyperloop.chat(player, "Station is still blocked. Please try again in a few seconds!")
 			return false
 		else
 			-- place a reservation for 20 seconds to start the trip
@@ -280,7 +284,7 @@ local wpath = minetest.get_worldpath()
 
 -- Convert legacy data
 local function convert_station_list(tAllStations)
-	tRes = {}
+	local tRes = {}
 	for key,item in pairs(tAllStations) do
 		-- remove legacy data
 		if item.version == hyperloop.version then

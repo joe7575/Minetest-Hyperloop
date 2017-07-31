@@ -38,12 +38,26 @@ end
 
 -- return sorted list of all network stations
 local function get_station_list(key_str)	
-	local stations = hyperloop.get_network_stations(key_str)
-	if stations == nil then
-		return nil
+	local tRes = {}
+	local local_pos = hyperloop.data.tAllStations[key_str]["pos"]
+	for idx,dest_key in ipairs(hyperloop.get_network_stations(key_str)) do
+		if idx >= 12 then
+			break
+		end
+		local dest_pos = hyperloop.data.tAllStations[dest_key]["pos"]
+		tRes[#tRes+1] = {
+			key_str = dest_key,
+			info = hyperloop.data.tAllStations[dest_key]["booking_info"] or "",
+			pos = dest_pos,
+			name = hyperloop.data.tAllStations[dest_key]["station_name"],
+			distance = hyperloop.distance(local_pos, dest_pos),
+			pos_str = minetest.pos_to_string(dest_pos)
+		}
 	end
-	table.sort(stations)
-	return stations
+	table.sort(tRes, function(x,y)
+			return x.distance < y.distance
+		end)
+	return tRes
 end
 
 -- check station name if unique, determine the nearest station and return key_str
@@ -80,22 +94,17 @@ end
 local function formspec(key_str)
 	local tRes = {"size[12,10]label[3,0; Wähle dein Ziel :: Select your destination]"}
 	tRes[2] = "label[1,0.6;Destination]label[3.5,0.6;Distance]label[5,0.6;Position]label[7,0.6;Local Info]"
-	local local_pos = hyperloop.data.tAllStations[key_str]["pos"]
-	for idx,dest_key in ipairs(get_station_list(key_str)) do
+	for idx,tDest in ipairs(get_station_list(key_str)) do
 		if idx >= 12 then
 			break
 		end
 		local ypos = 0.5 + idx*0.8
 		local ypos2 = ypos - 0.2
-		local dest_info = hyperloop.data.tAllStations[dest_key]["booking_info"] or ""
-		local dest_pos = hyperloop.data.tAllStations[dest_key]["pos"]
-		local dest_name = hyperloop.data.tAllStations[dest_key]["station_name"]
-		local distance = hyperloop.distance(local_pos, dest_pos)
 		tRes[#tRes+1] = "button_exit[0,"..ypos2..";1,1;button;"..idx.."]"
-		tRes[#tRes+1] = "label[1,"..ypos..";"..dest_name.."]"
-		tRes[#tRes+1] = "label[3.5,"..ypos..";"..distance.." m]"
-		tRes[#tRes+1] = "label[4.7,"..ypos..";"..minetest.pos_to_string(dest_pos).."]"
-		tRes[#tRes+1] = "label[7,"..ypos..";"..dest_info.."]"
+		tRes[#tRes+1] = "label[1,"..ypos..";"..tDest.name.."]"
+		tRes[#tRes+1] = "label[3.5,"..ypos..";"..tDest.distance.." m]"
+		tRes[#tRes+1] = "label[4.7,"..ypos..";"..tDest.pos_str.."]"
+		tRes[#tRes+1] = "label[7,"..ypos..";"..tDest.info.."]"
 	end
 	return table.concat(tRes)
 end
@@ -131,15 +140,12 @@ local function on_receive_fields(pos, formname, fields, player)
 	elseif fields.button ~= nil then
 		local key_str = meta:get_string("key_str")
 		local idx = tonumber(fields.button)
-		local destination = get_station_list(key_str)[idx]
-		-- place booking of not already blocked
-		if hyperloop.reserve(key_str, destination) then
-			local dest_pos = hyperloop.data.tAllStations[destination].pos
-			hyperloop.data.booking[key_str] = hyperloop.get_key_str(dest_pos)
+		local tDest = get_station_list(key_str)[idx]
+		-- place booking if not already blocked
+		if hyperloop.reserve(key_str, tDest.key_str, player) then
+			hyperloop.data.booking[key_str] = hyperloop.get_key_str(tDest.pos)
 			-- open the pod door
 			hyperloop.open_pod_door(hyperloop.get_station_data(key_str))
-		else
-			hyperloop.chat(player, "Station is still blocked. Please try again in a few seconds!")
 		end
 	end
 end

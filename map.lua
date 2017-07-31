@@ -13,6 +13,34 @@
 
 ]]--
 
+-- Check data base and remove invalid entries
+local function check_station_data()
+	local tRes = {}
+	local node
+	for key,item in pairs(table.copy(hyperloop.data.tAllStations)) do
+		if item.pos ~= nil then
+			node = minetest.get_node(item.pos)
+			if node ~= nil then
+				if node.name == "hyperloop:station" or node.name == "hyperloop:junction" or node.name == "ignore" then
+					-- valid data
+					tRes[key] = item
+				else -- node removed via WorldEdit?
+					print("[Hyperloop] "..key..": "..node.name.." is no station")
+				end
+			else -- unloaded?
+				print("[Hyperloop] "..key..": node is nil")
+				-- probably valid data
+				tRes[key] = item
+			end
+		else
+			-- invalid data
+			print("[Hyperloop] "..key..": item.pos == nil")
+		end
+	end
+	hyperloop.data.tAllStations = tRes
+end
+
+
 -- Return a text block with all station names and their attributes
 local function station_list_as_string(pos)
 	local sortedList = {}
@@ -30,8 +58,8 @@ local function station_list_as_string(pos)
 		print("tAllStations="..dump(sortedList))
 		print("tWifi="..dump(hyperloop.data.tWifi))
 	end
-	local tRes = {"label[0,0;Dist.]label[0.9,0;Station/Junction]label[2.7,0;Position]"..
-		          "label[4.7,0;State]label[6.2,0;Owner]label[7.8,0;Directly connected with]"}
+	local tRes = {"label[0,0;Dist.]label[1.1,0;Station/Junction]label[2.9,0;Position]"..
+		          "label[4.9,0;State]label[6.4,0;Owner]label[8,0;Directly connected with]"}
 	local state, owner
 	for idx,dataSet in ipairs(sortedList) do
 		if idx == 18 then
@@ -53,11 +81,11 @@ local function station_list_as_string(pos)
 			owner = "unknown"
 		end
 		tRes[#tRes+1] = "label[0,"..ypos..";"..dataSet.distance.." m]"
-		tRes[#tRes+1] = "label[0.9,"..ypos..";"..dataSet.station_name.."]"
-		tRes[#tRes+1] = "label[2.7,"..ypos..";"..minetest.pos_to_string(dataSet.pos).."]"
-		tRes[#tRes+1] = "label[4.7,"..ypos..";"..state.."]"
-		tRes[#tRes+1] = "label[6.2,"..ypos..";"..owner.."]"
-		tRes[#tRes+1] = "label[7.8,"..ypos..";"
+		tRes[#tRes+1] = "label[1.1,"..ypos..";"..dataSet.station_name.."]"
+		tRes[#tRes+1] = "label[2.9,"..ypos..";"..minetest.pos_to_string(dataSet.pos).."]"
+		tRes[#tRes+1] = "label[4.9,"..ypos..";"..state.."]"
+		tRes[#tRes+1] = "label[6.4,"..ypos..";"..owner.."]"
+		tRes[#tRes+1] = "label[8,"..ypos..";"
 		for _,key_str in ipairs(hyperloop.get_connections(dataSet.key_str)) do
 			if hyperloop.data.tAllStations[key_str].station_name ~= nil then
 				tRes[#tRes + 1] = hyperloop.data.tAllStations[key_str].station_name
@@ -73,14 +101,14 @@ end
 
 
 local function map_on_use(itemstack, user)
+	check_station_data()
 	local player_name = user:get_player_name()
 	--local pos = user:get_pos()
 	local pos = user:getpos()
 	local sStationList = station_list_as_string(pos)
 	local formspec = "size[12,10]" .. default.gui_bg ..
 	default.gui_bg_img ..
-	"textarea[0.5,0.5;9.5,8;text;Station List:;" ..
-	sStationList .. "]" ..
+	sStationList ..
 	"button_exit[5,9.5;2,1;close;Close]"
 
 	minetest.show_formspec(player_name, "hyperloop:station_map", formspec)
