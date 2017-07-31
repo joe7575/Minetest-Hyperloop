@@ -26,6 +26,7 @@ function hyperloop.update_all_booking_machines()
 	for _, dataset in pairs(hyperloop.data.tAllStations) do
 		if dataset.booking_pos ~= nil then
 			minetest.registered_nodes["hyperloop:booking"].update(dataset.booking_pos)
+			minetest.registered_nodes["hyperloop:booking_ground"].update(dataset.booking_pos)
 		end
 	end
 	t = minetest.get_us_time() - t
@@ -240,7 +241,7 @@ minetest.register_node("hyperloop:booking_ground", {
 	on_receive_fields = on_receive_fields,
 	on_destruct = on_destruct,
 	update = update,
-
+	drop = "hyperloop:booking",
 	light_source = 2,
 	paramtype2 = "facedir",
 	groups = {cracky=2, not_in_creative_inventory=1},
@@ -249,7 +250,7 @@ minetest.register_node("hyperloop:booking_ground", {
 
 minetest.register_abm({
 	label = "[Hyperloop] Booking machine update",
-	nodenames = {"hyperloop:booking"},
+	nodenames = {"hyperloop:booking", "hyperloop:booking_ground"},
 	interval = 10.0, -- Run every 10 seconds
 	chance = 1,
 	action = function(pos, node, active_object_count, active_object_count_wider)
