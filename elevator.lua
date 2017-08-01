@@ -23,6 +23,7 @@
 		name = "...",	-- floor name
 		up = true,		-- connetion flag
 		down = true,	-- connetion flag
+		busy = false,   -- travel flag
 	}
 ]]--
 
@@ -212,70 +213,82 @@ function hyperloop.update_elevator(pos)
 end
 
 
--- place the elevator door on the given position: y, y+1
-local function place_door(pos, facedir, floor_pos)
-	if minetest.get_node_or_nil(pos).name == "air" then
-		minetest.add_node(pos, {name="hyperloop:elevator_door", param2=facedir})	
-		set_floor_pos(pos, floor_pos)
-	end
-	pos.y = pos.y + 1
-	if minetest.get_node_or_nil(pos).name == "air" then
-		minetest.add_node(pos, {name="hyperloop:elevator_door_top", param2=facedir})	
-		set_floor_pos(pos, floor_pos)
-	end
-	pos.y = pos.y - 1	-- restore old value
-end	
-
--- remove the elevator door on the given position: y, y+1
-local function remove_door(pos)
-	if minetest.get_node_or_nil(pos).name == "hyperloop:elevator_door" then
-		minetest.remove_node(pos)	
-	end
-	pos.y = pos.y + 1
-	if minetest.get_node_or_nil(pos).name == "hyperloop:elevator_door_top" then
-		minetest.remove_node(pos)	
-	end
-	pos.y = pos.y - 1	-- restore old value
-end	
-
-local function door_command(floor_pos, facedir, cmnd)
-	local pos = hyperloop.new_pos(floor_pos, facedir, "1B", 0)
-	if cmnd == "close" then
-		place_door(pos, facedir, floor_pos)
-	elseif cmnd == "open" then
-		remove_door(pos)
-	end
-end
+-- Open/close/darken the elevator door
+-- floor_pos: position of elevator floor
+-- cmnd: "close", "open", or "darken"
+local function door_command(floor_pos, facedir, cmnd, sound)
+	-- one step up
+	local door_pos1 = hyperloop.new_pos(floor_pos, facedir, "1B", 0)
+	local door_pos2 = hyperloop.new_pos(floor_pos, facedir, "1B", 1)
+	local node1 = minetest.get_node(door_pos1)
+	local node2 = minetest.get_node(door_pos2)
 	
--- on arrival station
-local function on_close_door(pos, facedir)
+	if sound then
+		minetest.sound_play("ele_door", {
+				pos = floor_pos,
+				gain = 0.8,
+				max_hear_distance = 10,
+			})
+	end
+	if cmnd == "open" then
+		node1.name = "air"
+		minetest.swap_node(door_pos1, node1)
+		node2.name = "air"
+		minetest.swap_node(door_pos2, node2)
+	elseif cmnd == "close" then
+		node1.name = "hyperloop:elevator_door"
+		node1.param2 = facedir
+		minetest.swap_node(door_pos1, node1)
+		node2.name = "hyperloop:elevator_door_top"
+		node2.param2 = facedir
+		minetest.swap_node(door_pos2, node2)
+	elseif cmnd == "darken" then
+		node1.name = "hyperloop:elevator_door_dark"
+		node1.param2 = facedir
+		minetest.swap_node(door_pos1, node1)
+		node2.name = "hyperloop:elevator_door_dark_top"
+		node2.param2 = facedir
+		minetest.swap_node(door_pos2, node2)
+	end
+end
+
+local function on_final_close_door(tArrival)
 	-- close the door and play sound if no player is around
-	if hyperloop.is_player_around(pos) then
+	if hyperloop.is_player_around(tArrival.pos) then
 		-- try again later
-		minetest.after(3.0, on_close_door, pos, facedir)
+		minetest.after(3.0, on_final_close_door, tArrival)
 	else
-		door_command(pos, facedir, "close")
+		door_command(tArrival.pos, tArrival.facedir, "close", true)
 	end
 end
 
--- on arrival station
-local function on_open_door(pos, facedir)
-	minetest.sound_play("door", {
-			pos = pos,
-			gain = 0.5,
-			max_hear_distance = 10,
-		})
-	door_command(pos, facedir, "open")
-	minetest.after(5.0, on_close_door, pos, facedir)
+local function on_open_door(tArrival)
+	door_command(tArrival.pos, tArrival.facedir, "open", true)
+	minetest.after(5.0, on_final_close_door, tArrival)
+	tArrival.busy = false
 end
 
-local function on_arrival(pos, player)
-	local floor = get_floor_item(pos)
-	--door_command(dest.pos, facedir, "close")
+local function on_arrival_floor(tDeparture, tArrival, player, snd)
+	door_command(tDeparture.pos, tDeparture.facedir, "close", false)
+	door_command(tArrival.pos, tArrival.facedir, "close", false)
+	tDeparture.busy = false
 	if player ~= nil then
-		player:setpos(floor.pos)
+		player:setpos(tArrival.pos)
 	end
-	minetest.after(1.0, on_open_door, floor.pos, floor.facedir)
+	minetest.sound_stop(snd)
+	minetest.after(1.0, on_open_door, tArrival)
+end
+
+local function on_travel(tDeparture, tArrival, player, seconds)
+	door_command(tDeparture.pos, tDeparture.facedir, "darken", false)
+	door_command(tArrival.pos, tArrival.facedir, "darken", false)
+	local snd = minetest.sound_play("ele_norm", {
+			pos = tDeparture.pos,
+			gain = 0.5,
+			max_hear_distance = 3,
+			loop = true,
+		})
+	minetest.after(seconds, on_arrival_floor, tDeparture, tArrival, player, snd)
 end
 
 minetest.register_node("hyperloop:elevator_bottom", {
@@ -353,22 +366,29 @@ minetest.register_node("hyperloop:elevator_bottom", {
 			hyperloop.update_elevator(floor_pos)
 		-- destination selected?
 		elseif fields.button ~= nil then
-			local floor_pos = get_floor_pos(pos)
-			local floor = get_floor_item(floor_pos)
+			local floor = get_floor_item(get_floor_pos(pos))
 			local idx = tonumber(fields.button)
-			local list = floor_list(floor_pos)
+			local list = floor_list(floor.pos)
 			local dest = list[#list-idx]
-			if dest.pos.y ~= floor_pos.y then
-				--local facedir = get_floor_item(floor_pos).facedir
-				minetest.sound_play("door", {
-						pos = floor_pos,
-						gain = 0.5,
-						max_hear_distance = 10,
-					})
-				door_command(floor_pos, floor.facedir, "close")
-				door_command(dest.pos, dest.facedir, "close")
-				minetest.after(2.0, on_arrival, dest.pos, player)
+			local dist = math.abs(dest.pos.y - floor.pos.y)
+			
+			if dist ~= 0 and floor.busy ~= true then
+				-- due to the missing display, a trip needś 20 sec maximum
+				local seconds = math.min(1 + math.floor(dist/30), 20)
+				floor.busy = true
+				minetest.forceload_block(dest.pos)
+				door_command(floor.pos, floor.facedir, "close", true)
+				door_command(dest.pos, dest.facedir, "close", true)
+				minetest.after(1.0, on_travel, floor, dest, player, seconds)
 			end
+		end
+	end,
+
+	on_punch = function(pos, node, puncher, pointed_thing)
+		local floor_pos = get_floor_pos(pos)
+		local floor = get_floor_item(floor_pos)
+		if floor.busy ~= true then
+			door_command(floor_pos, floor.facedir, "open", true)
 		end
 	end,
 
@@ -458,8 +478,12 @@ minetest.register_node("hyperloop:elevator_door", {
 	
 	on_rightclick = function(pos, node, clicker, itemstack, pointed_thing)
 		local floor_pos = get_floor_pos(pos)
-		local floor = get_floor_item(floor_pos)
-		door_command(floor.pos, floor.facedir, "open")
+		if floor_pos ~= nil then
+			local floor = get_floor_item(floor_pos)
+			if floor.busy ~= true then
+				door_command(floor.pos, floor.facedir, "open", true)
+			end
+		end
 	end,
 	
 	drop = "",
@@ -469,3 +493,49 @@ minetest.register_node("hyperloop:elevator_door", {
 	groups = {snappy = 3, not_in_creative_inventory=1},
 })
 
+minetest.register_node("hyperloop:elevator_door_dark_top", {
+	description = "Hyperloop Elevator Door",
+	tiles = {
+		-- up, down, right, left, back, front
+		"hyperloop_elevator_dark_top.png",
+	},
+	drawtype = "nodebox",
+	node_box = {
+		type = "fixed",
+		fixed = {
+			{ -8/16, -8/16,  7/16,   8/16,  8/16, 8/16},
+		},
+	},
+	
+	drop = "",
+	paramtype = 'light',
+	paramtype2 = "facedir",
+	is_ground_content = false,
+	groups = {snappy = 3, not_in_creative_inventory=1},
+})
+
+minetest.register_node("hyperloop:elevator_door_dark", {
+	description = "Hyperloop Elevator Door",
+	tiles = {
+		-- up, down, right, left, back, front
+		"hyperloop_elevator_dark.png",
+	},
+	drawtype = "nodebox",
+	node_box = {
+		type = "fixed",
+		fixed = {
+			{ -8/16, -8/16,  7/16,   8/16,  8/16, 8/16},
+		},
+	},
+	
+	selection_box = {
+		type = "fixed",
+		fixed = { -8/16, -8/16, 7/16,   8/16, 24/16, 8/16 },
+	},
+	
+	drop = "",
+	paramtype = 'light',
+	paramtype2 = "facedir",
+	is_ground_content = false,
+	groups = {snappy = 3, not_in_creative_inventory=1},
+})

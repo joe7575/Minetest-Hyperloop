@@ -213,6 +213,7 @@ minetest.register_node("hyperloop:booking", {
 	on_destruct = on_destruct,
 	update = update,
 
+	paramtype = 'light',
 	light_source = 2,
 	paramtype2 = "facedir",
 	groups = {cracky=2},
@@ -249,6 +250,7 @@ minetest.register_node("hyperloop:booking_ground", {
 	update = update,
 	drop = "hyperloop:booking",
 	light_source = 2,
+	paramtype = 'light',
 	paramtype2 = "facedir",
 	groups = {cracky=2, not_in_creative_inventory=1},
 	is_ground_content = false,

@@ -142,6 +142,7 @@ minetest.register_node("hyperloop:signR", {
 	end,
 	
 	paramtype2 = "facedir",
+	paramtype = 'light',
 	light_source = 4,
 	is_ground_content = false,
 	groups = {cracky = 2, stone = 2},
@@ -178,6 +179,7 @@ minetest.register_node("hyperloop:signL", {
 	end,
 	
 	paramtype2 = "facedir",
+	paramtype = 'light',
 	light_source = 4,
 	is_ground_content = false,
 	groups = {cracky = 2, stone = 2},
@@ -203,6 +205,7 @@ minetest.register_node("hyperloop:signR_ground", {
 	},
 	paramtype2 = "facedir",
 	drop = "hyperloop:signR",
+	paramtype = 'light',
 	light_source = 4,
 	is_ground_content = false,
 	groups = {cracky = 2, stone = 2, not_in_creative_inventory=1},
@@ -228,6 +231,7 @@ minetest.register_node("hyperloop:signL_ground", {
 	},
 	paramtype2 = "facedir",
 	drop = "hyperloop:signL",
+	paramtype = 'light',
 	light_source = 4,
 	is_ground_content = false,
 	groups = {cracky = 2, stone = 2, not_in_creative_inventory=1},
