@@ -183,3 +183,10 @@ minetest.register_craft({
 	},
 })
 
+minetest.register_craft({
+	type = "cooking",
+	output = "dye:cyan",
+	recipe = "default:cactus",
+	cooktime = 3,
+})
+
