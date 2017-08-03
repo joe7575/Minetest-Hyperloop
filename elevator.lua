@@ -236,6 +236,8 @@ local function door_command(floor_pos, facedir, cmnd, sound)
 		node2.name = "air"
 		minetest.swap_node(door_pos2, node2)
 	elseif cmnd == "close" then
+		set_floor_pos(door_pos1, floor_pos)
+		set_floor_pos(door_pos2, floor_pos)
 		node1.name = "hyperloop:elevator_door"
 		node1.param2 = facedir
 		minetest.swap_node(door_pos1, node1)
@@ -449,6 +451,11 @@ minetest.register_node("hyperloop:elevator_door_top", {
 			{ -8/16, -8/16,  7/16,   8/16,  8/16, 8/16},
 		},
 	},
+	
+	after_place_node = function(pos, placer, itemstack, pointed_thing)
+		-- store floor_pos (lower car block) as meta data
+		set_floor_pos(pos, pos)
+	end,
 	
 	drop = "",
 	paramtype = 'light',
