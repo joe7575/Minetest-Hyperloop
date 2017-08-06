@@ -3,7 +3,7 @@
 	Hyperloop Mod
 	=============
 
-	v0.10 by JoSt
+	v0.11 by JoSt
 
 	Copyright (C) 2017 Joachim Stolberg
 
@@ -21,6 +21,7 @@
 	2017-07-30  v0.08  Signs added, tube robot added, crowbar added
 	2017-07-31  v0.09  Some bug fixes on the Bocking Machine
 	2017-08-01  v0.10  Elevator now with sound and travel animation plus minor bug fixes
+	2017-08-06  v0.11  Crowbar now allows repairing of illegally detroyed tubes
 
 ]]--
 
