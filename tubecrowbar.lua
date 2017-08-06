@@ -41,6 +41,20 @@ local function determine_peer(pos, node)
 	end
 end
 			
+-- Repare the given node to a tube2 node and add meta data
+-- param pos: node pos to be repared
+-- param peer_pos: peer node pos
+local function repare_tube_node(pos, peer_pos)
+	-- swap
+	node = minetest.get_node(pos)
+	node.diggable = true
+	node.name = "hyperloop:tube1"
+	minetest.swap_node(pos, node)
+	-- update
+	pos = minetest.pos_to_string(pos)
+	peer_pos = minetest.pos_to_string(peer_pos)
+	hyperloop.update_head_node(pos, peer_pos)
+end
 			
 			
 local function crack_tube_line(itemstack, placer, pointed_thing)
@@ -56,7 +70,8 @@ local function crack_tube_line(itemstack, placer, pointed_thing)
             max_hear_distance=5,
             loop=false})
 		local res, nodes = hyperloop.scan_neighbours(pos)
-		if res == 12 and #nodes == 2 then
+		if res == 12 and #nodes == 2 then	
+			-- dig one node in the middle of two tune2 blocks
 			local peer1 = determine_peer(pos, nodes[1])
 			local peer2 = determine_peer(pos, nodes[2])
 			if peer1 ~= nil and peer2 ~= nil then
@@ -68,12 +83,11 @@ local function crack_tube_line(itemstack, placer, pointed_thing)
 				itemstack:take_item(1)
 			end
 		elseif res == 4 and #nodes == 1 then
-			local peer1 = determine_peer(pos, nodes[1])
-			if peer1 ~= nil then
-				peer1 = minetest.pos_to_string(peer1)
-				hyperloop.swap_tube_node(nodes[1], peer1)
-				minetest.remove_node(pos)
-				itemstack:take_item(1)
+			-- repair the punched tubes by replacing head node and updating peer node
+			local pos2 = determine_peer(pos, nodes[1])
+			if pos2 ~= nil then
+				repare_tube_node(pos, pos2)
+				repare_tube_node(pos2, pos)
 			end
 		end
 	end

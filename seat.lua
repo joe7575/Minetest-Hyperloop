@@ -96,7 +96,7 @@ local function display_timer(pos, elapsed)
 	end
 	meta:set_int("arrival_time", atime)
 	local text = meta:get_string("lcd_text")
-	if atime > 0 then
+	if atime > 5 then
 		enter_display(tStation, text..atime.." sec")
 		return true
 	else
