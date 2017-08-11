@@ -35,11 +35,25 @@ function hyperloop.scan_neighbours(pos)
 	local node, npos, idx
 	local res = 0
 	for _,dir in ipairs(hyperloop.NeighborPos) do
+		node = nil
 		npos = vector.add(pos, dir)
-		node = minetest.get_node(npos)
-		if string.find(node.name, "hyperloop:tube") then
-			node.pos = npos
-			table.insert(nodes, node)
+		-- check meta data first for the case the node is not loaded
+		local peer = minetest.get_meta(npos):get_string("peer")
+		--local peer = ""----------------------------------------------
+		print(dump(peer))-----------------------
+		-- tube1 block available?
+		if peer ~= "" and peer ~= minetest.pos_to_string(npos) then
+			node = {pos=npos, name="hyperloop:tube1"}
+		else
+			node = minetest.get_node(npos)
+			if string.find(node.name, "hyperloop:tube") then
+				node.pos = npos
+			else
+				node = nil
+			end
+		end
+		if node then		
+			table.insert(nodes, table.copy(node))
 			-- tubes on invalid level?
 			if not hyperloop.free_tube_placement_enabled and npos.y ~= pos.y then	
 				return 5, nodes

@@ -101,6 +101,7 @@ local AssemblyPlan = {
 }
 
 -- update junction and station blocks
+-- pos is the head node position
 function hyperloop.update_junction(pos)
 	local node = minetest.get_node(pos)
 	if node.name ~= "ignore" then   -- node loaded?
