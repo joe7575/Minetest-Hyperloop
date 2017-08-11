@@ -39,8 +39,6 @@ function hyperloop.scan_neighbours(pos)
 		npos = vector.add(pos, dir)
 		-- check meta data first for the case the node is not loaded
 		local peer = minetest.get_meta(npos):get_string("peer")
-		--local peer = ""----------------------------------------------
-		print(dump(peer))-----------------------
 		-- tube1 block available?
 		if peer ~= "" and peer ~= minetest.pos_to_string(npos) then
 			node = {pos=npos, name="hyperloop:tube1"}
