@@ -241,6 +241,9 @@ end
 
 local station_formspec =
 	"size[8,9]"..
+	default.gui_bg..
+	default.gui_bg_img..
+	default.gui_slots..
 	"label[2.5,0;Hyperloop Station Pod Builder]" ..
 	"image[0.7,0.9;3,3;hyperloop_station_formspec.png]"..
 	"list[context;src;4,0.9;1,4;]"..

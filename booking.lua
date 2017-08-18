@@ -81,6 +81,9 @@ end
 local function naming_formspec(pos)
 	local meta = minetest.get_meta(pos)
 	local formspec = "size[6,4]"..
+	default.gui_bg..
+	default.gui_bg_img..
+	default.gui_slots..
 	"label[0,0;Please insert station name to which this booking machine belongs]" ..
 	"field[0.5,1.5;5,1;name;Station name;MyTown]" ..
 	"field[0.5,2.7;5,1;info;Additional station information;]" ..
