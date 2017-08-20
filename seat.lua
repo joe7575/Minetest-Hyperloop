@@ -151,11 +151,11 @@ local function on_start_travel(pos, node, clicker)
 				 meter_to_km(dist).." | Arrival in: | "
 	local atime
 	if dist < 1000 then
-		atime = 10 + math.floor(dist/100)		-- 10..20 sec
+		atime = 10 + math.floor(dist/200)		-- 10..15 sec
 	elseif dist < 10000 then
-		atime = 20 + math.floor(dist/300)		-- 23..53 sec
+		atime = 15 + math.floor(dist/600)		-- 16..32 sec
 	else
-		atime = 40 + math.floor(dist/600)		-- 56..240 sec (120.000m)
+		atime = 32								-- 32 sec is the maximum
 	end
 	enter_display(tDeparture, text..atime.." sec")
 
