@@ -29,7 +29,22 @@ minetest.register_node("hyperloop:shaft", {
 
 	after_place_node = function(pos, placer, itemstack, pointed_thing)
 		local npos = table.copy(pos)
-		npos.y = npos.y - 1
+		-- check above
+		npos.y = npos.y + 1
+		if minetest.get_node_or_nil(npos).name == "hyperloop:shaft" then
+			local node = minetest.get_node(npos)
+			node.name = "hyperloop:shaft2"
+			minetest.swap_node(npos, node)
+			return
+		elseif minetest.get_node_or_nil(npos).name == "hyperloop:elevator_top" then
+			npos.y = npos.y - 1
+			hyperloop.update_elevator(npos)
+			npos.y = npos.y + 1
+			return
+		end
+		
+		-- check below
+		npos.y = npos.y - 2
 		if minetest.get_node_or_nil(npos).name == "hyperloop:shaft" then
 			local node = minetest.get_node(npos)
 			node.name = "hyperloop:shaft2"
@@ -53,6 +68,12 @@ minetest.register_node("hyperloop:shaft", {
 		elseif minetest.get_node_or_nil(npos).name == "hyperloop:elevator_top" then
 			npos.y = npos.y - 1
 			hyperloop.update_elevator(npos)
+		end
+		npos.y = npos.y + 2
+		if minetest.get_node_or_nil(npos).name == "hyperloop:shaft2" then
+			local node = minetest.get_node(npos)
+			node.name = "hyperloop:shaft"
+			minetest.swap_node(npos, node)
 		end
 	end,
 	
