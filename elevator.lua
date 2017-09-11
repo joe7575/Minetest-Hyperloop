@@ -352,7 +352,13 @@ minetest.register_node("hyperloop:elevator_bottom", {
 		minetest.add_node(pos, {name="hyperloop:elevator_top", param2=facedir})
 		-- store floor_pos (lower car block) as meta data
 		set_floor_pos(pos, floor_pos)
-		pos.y = pos.y - 1
+		pos.y = pos.y + 1
+		if minetest.get_node_or_nil(pos).name == "hyperloop:shaft" then
+			local node = minetest.get_node(pos)
+			node.name = "hyperloop:shaft2"
+			minetest.swap_node(pos, node)
+		end
+		pos.y = pos.y -2
 	end,
 
 	on_receive_fields = function(pos, formname, fields, player)
@@ -411,6 +417,12 @@ minetest.register_node("hyperloop:elevator_bottom", {
 		minetest.remove_node(pos)
 		pos.y = pos.y - 1
 		remove_from_elevator_list(pos)
+		pos.y = pos.y + 2
+		if minetest.get_node_or_nil(pos).name == "hyperloop:shaft2" then
+			local node = minetest.get_node(pos)
+			node.name = "hyperloop:shaft"
+			minetest.swap_node(pos, node)
+		end
 	end,
 
 })
