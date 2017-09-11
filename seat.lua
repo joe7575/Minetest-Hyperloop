@@ -57,9 +57,14 @@ local function on_arrival(tDeparture, tArrival, player, snd)
 		player:setpos(pos)
 		-- rotate player to look in correct arrival direction
 		-- calculate the look correction
-		local offs = hyperloop.facedir_to_rad(tDeparture.facedir) - player:get_look_horizontal()
-		local yaw = hyperloop.facedir_to_rad(tArrival.facedir) - offs
-		player:set_look_yaw(yaw)
+		-- workaround to prevent server crashes
+		local val1 = hyperloop.facedir_to_rad(tDeparture.facedir)
+		local val2 = player:get_look_horizontal()
+		if val1 ~= nil and val2 ~= nil then
+			local offs = val1 - val2
+			local yaw = hyperloop.facedir_to_rad(tArrival.facedir) - offs
+			player:set_look_yaw(yaw)
+		end
 	end
 	-- play arrival sound
 	minetest.sound_stop(snd)
@@ -184,6 +189,8 @@ minetest.register_node("hyperloop:seat", {
 		"hyperloop_seat-side.png",
 	},
 	drawtype = "nodebox",
+	paramtype = 'light',
+	light_source = 1,	
 	paramtype2 = "facedir",
 	is_ground_content = false,
 	walkable = false,
