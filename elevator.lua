@@ -364,24 +364,30 @@ minetest.register_node("hyperloop:elevator_bottom", {
 			end
 			-- store the floor name in the global elevator list
 			local floor_pos = get_floor_pos(pos)
-			add_to_elevator_list(floor_pos, {name=floor})
-			hyperloop.update_elevator(floor_pos)
+			if floor_pos ~= nil then
+				add_to_elevator_list(floor_pos, {name=floor})
+				hyperloop.update_elevator(floor_pos)
+			end
 		-- destination selected?
 		elseif fields.button ~= nil then
 			local floor = get_floor_item(get_floor_pos(pos))
-			local idx = tonumber(fields.button)
-			local list = floor_list(floor.pos)
-			local dest = list[#list-idx]
-			local dist = math.abs(dest.pos.y - floor.pos.y)
-			
-			if dist ~= 0 and floor.busy ~= true then
-				-- due to the missing display, a trip needś 20 sec maximum
-				local seconds = math.min(1 + math.floor(dist/30), 20)
-				floor.busy = true
-				minetest.forceload_block(dest.pos)
-				door_command(floor.pos, floor.facedir, "close", true)
-				door_command(dest.pos, dest.facedir, "close", true)
-				minetest.after(1.0, on_travel, floor, dest, player, seconds)
+			if floor then
+				local idx = tonumber(fields.button)
+				local list = floor_list(floor.pos)
+				local dest = list[#list-idx]
+				if dest and dest.pos and floor.pos then
+					local dist = math.abs(dest.pos.y - floor.pos.y)
+					
+					if dist ~= 0 and floor.busy ~= true then
+						-- due to the missing display, a trip needś 20 sec maximum
+						local seconds = math.min(1 + math.floor(dist/30), 20)
+						floor.busy = true
+						minetest.forceload_block(dest.pos)
+						door_command(floor.pos, floor.facedir, "close", true)
+						door_command(dest.pos, dest.facedir, "close", true)
+						minetest.after(1.0, on_travel, floor, dest, player, seconds)
+					end
+				end
 			end
 		end
 	end,
