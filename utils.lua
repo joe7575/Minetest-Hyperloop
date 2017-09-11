@@ -54,6 +54,9 @@ end
 -- calculate the new pos based on the given pos, the players facedir, the y-offset
 -- and the given walk path like "3F2L" (F-orward, L-eft, R-ight, B-ack).
 function hyperloop.new_pos(pos, facedir, path, y_offs)
+	if facedir == nil or pos == nil or path == nil or y_offs == nil then ------------------ TODO crash???
+		return pos
+	end
 	local _pos = table.copy(pos)
 	_pos.y = _pos.y + y_offs
 	while path:len() > 0 do
