@@ -117,6 +117,8 @@ minetest.register_node("hyperloop:doorTopPassive", {
 		meta:set_string("key_str", key_str)
 	end,
 	
+	paramtype = 'light',
+	light_source = 1,
 	paramtype2 = "facedir",
 	drop = "",
 	sounds = default.node_sound_metal_defaults(),
@@ -181,6 +183,8 @@ minetest.register_node("hyperloop:doorBottom", {
 		meta:set_string("key_str", key_str)
 	end,
 	
+	paramtype = 'light',
+	light_source = 1,
 	paramtype2 = "facedir",
 	drop = "",
 	sounds = default.node_sound_metal_defaults(),
