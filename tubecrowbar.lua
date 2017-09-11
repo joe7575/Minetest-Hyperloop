@@ -56,14 +56,38 @@ local function repare_tube_node(pos, peer_pos)
 	hyperloop.update_head_node(pos, peer_pos)
 end
 			
-			
+
+local function repair_shaft(pos)
+    local npos = table.copy(pos)
+	npos.y = npos.y - 1
+	if minetest.get_node_or_nil(npos).name == "hyperloop:elevator_top" then
+		npos.y = npos.y - 1
+		hyperloop.update_elevator(npos)
+	end
+	npos.y = npos.y + 2
+	if minetest.get_node_or_nil(npos).name == "hyperloop:elevator_bottom" then
+		hyperloop.update_elevator(npos)
+	end
+end
+
+
 local function crack_tube_line(itemstack, placer, pointed_thing)
 	if pointed_thing.type ~= "node" then
 		return
 	end
 	local pos = pointed_thing.under
 	local node = minetest.get_node(pos)
-	if node.name == "hyperloop:tube2" then
+	-- Check Elevator shafts
+	if node.name == "hyperloop:shaft2" then
+			node.name = "hyperloop:shaft"
+			minetest.swap_node(pos, node)
+			repair_shaft(pos)
+	elseif node.name == "hyperloop:shaft" then
+			node.name = "hyperloop:shaft2"
+			minetest.swap_node(pos, node)
+			repair_shaft(pos)
+	-- Check Hyperloop tubes
+	elseif node.name == "hyperloop:tube2" then
         minetest.sound_play({
             name="default_dig_cracky"},{
             gain=1,
