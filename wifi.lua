@@ -91,6 +91,8 @@ local function wifi_update(pos, peer_pos)
 	end
 	-- store peer_pos and tube head pos locally
 	minetest.get_meta(pos):set_string("wifi_peer", peer_pos)
+	minetest.get_meta(pos):set_string("infotext", "tube peer="..rmt_head_pos1..
+					" wifi peer="..minetest.pos_to_string(peer_pos))
 	return rmt_head_pos1
 end
 
@@ -111,6 +113,8 @@ local function wifi_pairing(pos, peer_pos)
 	hyperloop.update_head_node(rmt_head_pos2, rmt_head_pos1)
 	-- store peer_pos and tube head pos locally
 	minetest.get_meta(pos):set_string("wifi_peer", peer_pos)
+	minetest.get_meta(pos):set_string("infotext", "tube peer="..rmt_head_pos1..
+					" wifi peer="..minetest.pos_to_string(peer_pos))
 	if hyperloop.debugging then
 		print("wifi_pairing meta="..dump(minetest.get_meta(pos):to_table()))
 	end
