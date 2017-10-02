@@ -125,6 +125,9 @@ local function on_start_travel(pos, node, clicker)
 	local meta = minetest.get_meta(pos)
 	local key_str = meta:get_string("key_str")
 	local tDeparture = hyperloop.get_station_data(key_str)
+	if tDeparture == nil then
+		return
+	end
 	-- arrival data
 	key_str = hyperloop.data.booking[tDeparture.key_str]
 	if key_str == nil then

@@ -44,9 +44,9 @@ local function place_tube(pos, name, facedir, placer)
 	if minetest.is_protected(pos, placer:get_player_name()) then
 		hyperloop.chat(placer, "Area is protected!")
 		return false
-	elseif minetest.get_node_or_nil(pos).name ~= "air" and 
-		   minetest.get_node_or_nil(pos).name ~= "default:water_source" and
-		   minetest.get_node_or_nil(pos).name ~= "default:water_flowing" then
+	end
+	node = minetest.get_node(pos)
+	if node.name ~= "air" and node.name ~= "default:water_source" and node.name ~= "default:water_flowing" then
 		return false
 	end
 	if hyperloop.scan_neighbours(pos) ~= 1 then
