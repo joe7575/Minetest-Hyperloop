@@ -143,17 +143,19 @@ local function on_receive_fields(pos, formname, fields, player)
 	elseif fields.button ~= nil then
 		local key_str = meta:get_string("key_str")
 		local idx = tonumber(fields.button)
-		local tDest = get_station_list(key_str)[idx]
-		if tDest ~= nil then
-			-- place booking if not already blocked
-			if hyperloop.reserve(key_str, tDest.key_str, player) then
-				hyperloop.data.booking[key_str] = hyperloop.get_key_str(tDest.pos)
-				-- open the pod door
-				hyperloop.open_pod_door(hyperloop.get_station_data(key_str))
+		if key_str and idx then
+			local tDest = get_station_list(key_str)[idx]
+			if tDest ~= nil then
+				-- place booking if not already blocked
+				if hyperloop.reserve(key_str, tDest.key_str, player) then
+					hyperloop.data.booking[key_str] = hyperloop.get_key_str(tDest.pos)
+					-- open the pod door
+					hyperloop.open_pod_door(hyperloop.get_station_data(key_str))
+				end
+			else
+				-- data is corrupt, try an update
+				hyperloop.data.change_counter = hyperloop.data.change_counter + 1
 			end
-		else
-			-- data is corrupt, try an update
-			hyperloop.data.change_counter = hyperloop.data.change_counter + 1
 		end
 	end
 end
