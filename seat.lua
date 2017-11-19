@@ -53,7 +53,7 @@ local function on_arrival(tDeparture, tArrival, player, snd)
 	-- move player to the arrival station
 	if player ~= nil then
 		local pos = table.copy(tArrival.pos)
-		pos.y = pos.y + 1
+		pos.y = pos.y + 0.5
 		player:setpos(pos)
 		-- rotate player to look in correct arrival direction
 		-- calculate the look correction
