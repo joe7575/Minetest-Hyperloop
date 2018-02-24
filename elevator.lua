@@ -275,7 +275,9 @@ local function on_arrival_floor(tDeparture, tArrival, player, snd)
 	door_command(tArrival.pos, tArrival.facedir, "close", false)
 	tDeparture.busy = false
 	if player ~= nil then
-		player:setpos(tArrival.pos)
+		local pos = table.copy(tArrival.pos)
+		pos.y = pos.y - 0.5
+		player:setpos(pos)
 	end
 	minetest.sound_stop(snd)
 	minetest.after(1.0, on_open_door, tArrival)

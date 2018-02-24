@@ -74,7 +74,7 @@ local function on_arrival(tDeparture, tArrival, player, snd)
 			max_hear_distance = 2
 		})
 
-	minetest.after(6.0, on_open_door, tArrival)
+	minetest.after(4.0, on_open_door, tArrival)
 end
 
 local function on_travel(tDeparture, tArrival, player, atime)
