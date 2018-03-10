@@ -28,12 +28,12 @@
 
 hyperloop = {
 	data = {
-		version = 1,				-- compatibility version
-		tAllStations = {},		-- tube networks
-		tAllElevators = {},     -- evevators
-		tWifi = {},				-- WiFi pairing
-		booking = {},			-- placed bookings
-		change_counter = 0,		-- used for booking machine updates
+		version = 1,            -- compatibility version
+		tAllStations = {},      -- tube networks
+		tAllElevators = {},     -- elevators
+		tWifi = {},             -- WiFi pairing
+		booking = {},           -- placed bookings
+		change_counter = 0,     -- used for booking machine updates
 	}
 }
 

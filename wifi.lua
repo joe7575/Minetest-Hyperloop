@@ -67,6 +67,8 @@ local function wifi_register(pos, channel)
 	if hyperloop.data.tWifi[channel] == nil then
 		hyperloop.data.tWifi[channel] = pos
 		return nil
+	elseif vector.equals(hyperloop.data.tWifi[channel], pos) then
+		return nil
 	else
 		local pos = hyperloop.data.tWifi[channel]
 		hyperloop.data.tWifi[channel] = nil
@@ -176,11 +178,11 @@ minetest.register_node("hyperloop:tube_wifi1", {
 		end
 		local meta = minetest.get_meta(pos)
 		meta:set_string("channel", fields.channel)
-		meta:set_string("formspec", nil)
 		local peer_pos = wifi_register(pos, fields.channel)
 		if peer_pos ~= nil then
 			if wifi_pairing(pos, peer_pos) then
 				hyperloop.chat(player, "WiFi pairing completed!")
+				meta:set_string("formspec", nil)
 			else
 				hyperloop.chat(player, "Pairing fault. Retry please!")
 			end
