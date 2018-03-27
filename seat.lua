@@ -15,8 +15,6 @@ local function enter_display(tStation, text)
     -- determine position
 	if tStation ~= nil then
 		local lcd_pos = hyperloop.new_pos(tStation.pos, tStation.facedir, "1F", 2)
-		-- load map
-		minetest.forceload_block(lcd_pos)
 		-- update display
 		minetest.registered_nodes["hyperloop:lcd"].update(lcd_pos, text) 
 	end
@@ -101,7 +99,7 @@ local function display_timer(pos, elapsed)
 	end
 	meta:set_int("arrival_time", atime)
 	local text = meta:get_string("lcd_text")
-	if atime > 5 then
+	if atime > 2 then
 		enter_display(tStation, text..atime.." sec")
 		return true
 	else
@@ -176,7 +174,7 @@ local function on_start_travel(pos, node, clicker)
 	minetest.get_node_timer(pos):start(1.0)
 	hyperloop.close_pod_door(tDeparture)
 
-	atime = atime - 9 -- substract start/arrival time
+	atime = atime - 7 -- substract start/arrival time
 	minetest.after(4.9, on_travel, tDeparture, tArrival, clicker, atime)
 end
 

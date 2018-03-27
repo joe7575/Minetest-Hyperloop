@@ -3,9 +3,9 @@
 	Hyperloop Mod
 	=============
 
-	v0.11 by JoSt
+	v0.12 by JoSt
 
-	Copyright (C) 2017 Joachim Stolberg
+	Copyright (C) 2017,2018 Joachim Stolberg
 
 	LGPLv2.1+
 	See LICENSE.txt for more information
@@ -22,6 +22,9 @@
 	2017-07-31  v0.09  Some bug fixes on the Bocking Machine
 	2017-08-01  v0.10  Elevator now with sound and travel animation plus minor bug fixes
 	2017-08-06  v0.11  Crowbar now allows repairing of illegally detroyed tubes
+	2018-03-27  v0.12  Some minor improvements with player position, arrival time,
+	                   Wifi node improvements, Podshell cheating bugfix,
+	                   forceload_block removed.
 
 ]]--
 

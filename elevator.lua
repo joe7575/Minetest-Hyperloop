@@ -390,7 +390,6 @@ minetest.register_node("hyperloop:elevator_bottom", {
 						-- due to the missing display, a trip needś 20 sec maximum
 						local seconds = math.min(1 + math.floor(dist/30), 20)
 						floor.busy = true
-						minetest.forceload_block(dest.pos)
 						door_command(floor.pos, floor.facedir, "close", true)
 						door_command(dest.pos, dest.facedir, "close", true)
 						minetest.after(1.0, on_travel, floor, dest, player, seconds)

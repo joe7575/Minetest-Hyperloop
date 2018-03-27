@@ -79,7 +79,6 @@ local generate_line = function(s, ypos)
 			file = charmap[s:sub(i, i + 1)]
 			i = i + 2
 		else
-			print("[Hyperloop] W: LCD: unknown symbol in '"..s.."' at "..i)
 			i = i + 1
 		end
 		if file ~= nil then
