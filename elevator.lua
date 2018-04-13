@@ -270,7 +270,8 @@ local function on_open_door(tArrival)
 	tArrival.busy = false
 end
 
-local function on_arrival_floor(tDeparture, tArrival, player, snd)
+local function on_arrival_floor(tDeparture, tArrival, player_name, snd)
+	local player = minetest.get_player_by_name(player_name)
 	door_command(tDeparture.pos, tDeparture.facedir, "close", false)
 	door_command(tArrival.pos, tArrival.facedir, "close", false)
 	tDeparture.busy = false
@@ -283,7 +284,7 @@ local function on_arrival_floor(tDeparture, tArrival, player, snd)
 	minetest.after(1.0, on_open_door, tArrival)
 end
 
-local function on_travel(tDeparture, tArrival, player, seconds)
+local function on_travel(tDeparture, tArrival, player_name, seconds)
 	door_command(tDeparture.pos, tDeparture.facedir, "darken", false)
 	door_command(tArrival.pos, tArrival.facedir, "darken", false)
 	local snd = minetest.sound_play("ele_norm", {
@@ -292,7 +293,7 @@ local function on_travel(tDeparture, tArrival, player, seconds)
 			max_hear_distance = 3,
 			loop = true,
 		})
-	minetest.after(seconds, on_arrival_floor, tDeparture, tArrival, player, snd)
+	minetest.after(seconds, on_arrival_floor, tDeparture, tArrival, player_name, snd)
 end
 
 minetest.register_node("hyperloop:elevator_bottom", {
@@ -392,7 +393,7 @@ minetest.register_node("hyperloop:elevator_bottom", {
 						floor.busy = true
 						door_command(floor.pos, floor.facedir, "close", true)
 						door_command(dest.pos, dest.facedir, "close", true)
-						minetest.after(1.0, on_travel, floor, dest, player, seconds)
+						minetest.after(1.0, on_travel, floor, dest, player:get_player_name(), seconds)
 					end
 				end
 			end

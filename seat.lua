@@ -42,7 +42,8 @@ local function on_open_door(tArrival)
 	minetest.after(5.0, on_final_close_door, tArrival, tArrival.facedir)
 end
 
-local function on_arrival(tDeparture, tArrival, player, snd)
+local function on_arrival(tDeparture, tArrival, player_name, snd)
+	local player = minetest.get_player_by_name(player_name)
 	-- activate display
 	local text = " | Welcome at | | "..string.sub(tArrival.station_name, 1, 13)
 	enter_display(tArrival, text)
@@ -75,7 +76,7 @@ local function on_arrival(tDeparture, tArrival, player, snd)
 	minetest.after(4.0, on_open_door, tArrival)
 end
 
-local function on_travel(tDeparture, tArrival, player, atime)
+local function on_travel(tDeparture, tArrival, player_name, atime)
 	-- play sound and switch door state
 	local snd = minetest.sound_play("normal2", {
 			pos = tDeparture.pos,
@@ -84,7 +85,7 @@ local function on_travel(tDeparture, tArrival, player, atime)
 			loop = true,
 		})
 	hyperloop.animate_pod_door(tDeparture)
-	minetest.after(atime, on_arrival, tDeparture, tArrival, player, snd)
+	minetest.after(atime, on_arrival, tDeparture, tArrival, player_name, snd)
 	minetest.after(atime, on_final_close_door, tDeparture)
 end
 
@@ -175,7 +176,7 @@ local function on_start_travel(pos, node, clicker)
 	hyperloop.close_pod_door(tDeparture)
 
 	atime = atime - 7 -- substract start/arrival time
-	minetest.after(4.9, on_travel, tDeparture, tArrival, clicker, atime)
+	minetest.after(4.9, on_travel, tDeparture, tArrival, clicker:get_player_name(), atime)
 end
 
 -- Hyperloop Seat
