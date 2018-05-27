@@ -53,7 +53,7 @@ local function on_arrival(tDeparture, tArrival, player_name, snd)
 	if player ~= nil then
 		local pos = table.copy(tArrival.pos)
 		pos.y = pos.y + 0.5
-		player:setpos(pos)
+		player:set_pos(pos)
 		-- rotate player to look in correct arrival direction
 		-- calculate the look correction
 		-- workaround to prevent server crashes
@@ -148,7 +148,7 @@ local function on_start_travel(pos, node, clicker)
 	-- close the door at arrival station
 	hyperloop.close_pod_door(tArrival)
 	-- place player on the seat
-	clicker:setpos(pos)
+	clicker:set_pos(pos)
 	-- rotate player to look in move direction
 	clicker:set_look_horizontal(hyperloop.facedir_to_rad(tDeparture.facedir))
 
