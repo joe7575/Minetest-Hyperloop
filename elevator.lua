@@ -27,6 +27,20 @@
 	}
 ]]--
 
+-- use Voxel Manipulator to read the node
+local function read_node_with_vm(pos)
+	local vm = VoxelManip()
+	local MinEdge, MaxEdge = vm:read_from_map(pos, pos)
+	local data = vm:get_data()
+	local param2_data = vm:get_param2_data()
+	local area = VoxelArea:new({MinEdge = MinEdge, MaxEdge = MaxEdge})
+	return {
+		name = minetest.get_name_from_content_id(data[area:index(pos.x, pos.y, pos.z)]),
+		param2 = param2_data[area:index(pos.x, pos.y, pos.z)]
+	}
+end
+
+
 -- return index of the table position matching pos or nil
 local function pos_index(tbl, pos)
 	for idx,v in ipairs(tbl) do
@@ -100,6 +114,14 @@ local function dbg_out(label, pos)
 	end
 end
 
+local function check_shaft_below_given_floor_pos(pos)
+	return read_node_with_vm({x=pos.x, y=pos.y-1, z=pos.z}).name == "hyperloop:shaft"
+end
+
+local function check_shaft_above_given_floor_pos(pos)
+	return read_node_with_vm({x=pos.x, y=pos.y+2, z=pos.z}).name == "hyperloop:shaft"
+end
+
 -- return a sorted list of connected floors
 local function floor_list(pos)
 	local floors = table.copy(get_elevator_list(pos))
@@ -107,21 +129,23 @@ local function floor_list(pos)
 	table.sort(floors, function(x,y) 
 			return x.pos.y > y.pos.y
 		end)
+	
 	-- check if elevator is complete
+	local tOut = {}
 	for idx,floor in ipairs(floors) do
 		if idx == 1 then
-			if floor.down == false then
-				return {}
-			end
+			floor.down = floor.down or check_shaft_below_given_floor_pos(floor.pos)
+			if floor.down then table.insert(tOut, floor) end
 		elseif idx == #floors then
-			if floor.up == false then
-				return {}
-			end
-		elseif floor.up == false or floor.down == false then
-			return {}
+			floor.up = floor.up or check_shaft_above_given_floor_pos(floor.pos)
+			if floor.up then table.insert(tOut, floor) end
+		else
+			floor.down = floor.down or check_shaft_below_given_floor_pos(floor.pos)
+			floor.up   = floor.up or check_shaft_above_given_floor_pos(floor.pos)
+			if floor.up and floor.down then table.insert(tOut, floor) end
 		end
 	end
-	return floors
+	return tOut
 end
 
 
