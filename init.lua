@@ -3,7 +3,7 @@
 	Hyperloop Mod
 	=============
 
-	v0.13 by JoSt
+	v1.00 by JoSt
 
 	Copyright (C) 2017,2018 Joachim Stolberg
 
@@ -26,6 +26,7 @@
 	                   Wifi node improvements, Podshell cheating bugfix,
 	                   forceload_block removed.
 	2018-04-13  v0.13  Potential "Never Store ObjectRefs" bug fixed
+	2018-10-27  v1.00  Release
 
 ]]--
 

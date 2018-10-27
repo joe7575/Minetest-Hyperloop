@@ -45,17 +45,12 @@ There is an admin tool available to crack tube lines.
 Junction and Station Blocks can connect up to four tube lines. That means you can build complex networks of tube lines. Each junction/station can be reaches from each point with one trip.
 
 
-## Still To Do
-
-* find some bugs
-
-
 ## Dependencies
 default  
 
 
 # License
-Copyright (C) 2017 Joachim Stolberg  
+Copyright (C) 2017,2018 Joachim Stolberg  
 Code: Licensed under the GNU LGPL version 2.1 or later. See LICENSE.txt and http://www.gnu.org/licenses/lgpl-2.1.txt  
 Textures: CC0  
 Display: Derived from the work of kaeza, sofar and others (digilines) LGPLv2.1+
