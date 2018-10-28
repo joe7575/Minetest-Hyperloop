@@ -189,7 +189,7 @@ minetest.register_entity(":hyperloop_lcd:text", {
 	textures = {},
 
 	on_activate = function(self)
-		local meta = minetest.get_meta(self.object:getpos())
+		local meta = minetest.get_meta(self.object:get_pos())
 		local text = meta:get_string("text")
 		self.object:set_properties({textures={generate_texture(create_lines(text))}})
 	end

@@ -184,6 +184,16 @@ minetest.register_craft({
 })
 
 minetest.register_craft({
+	output = "hyperloop:waypoint",
+	recipe = {
+		{"", "", ""},
+		{"", "", ""},
+		{"default:steel_ingot", "hyperloop:hypersteel_ingot", "default:gold_ingot"},
+	},
+})
+
+
+minetest.register_craft({
 	type = "cooking",
 	output = "dye:cyan",
 	recipe = "default:cactus",

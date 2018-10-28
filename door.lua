@@ -76,7 +76,6 @@ end
 -- door command based on the station data table
 function hyperloop.open_pod_door(tStation)
 	if tStation ~= nil then
-		print(S(tStation.pos), tStation.facedir)
 		local door_pos = hyperloop.new_pos(tStation.pos, tStation.facedir, "1F1L", 1)
 		door_command(door_pos, "open")
 	end

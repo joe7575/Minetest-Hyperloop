@@ -95,9 +95,6 @@ local function display_timer(pos, elapsed)
 	local key_str = meta:get_string("key_str")
 	local tStation = hyperloop.get_station_data(key_str)
 	local atime = meta:get_int("arrival_time") - 1
-	if hyperloop.debugging then
-		print("Timer".. atime)
-	end
 	meta:set_int("arrival_time", atime)
 	local text = meta:get_string("lcd_text")
 	if atime > 2 then

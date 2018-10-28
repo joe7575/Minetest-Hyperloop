@@ -13,37 +13,6 @@
 
 ]]--
 
--- Check data base and remove invalid entries
-local function check_station_data()
-	local tRes = {}
-	local node
-	--local keys = {}
-	for key,item in pairs(table.copy(hyperloop.data.tAllStations)) do
---keys[#keys + 1] = key
-		if item.pos ~= nil then
-			node = minetest.get_node(item.pos)
-			if node ~= nil then
-				if node.name == "hyperloop:station" or node.name == "hyperloop:junction" or node.name == "ignore" then
-					-- valid data
-					tRes[key] = item
-					--tRes[idx] = #keys
-				else -- node removed via WorldEdit?
-					print("[Hyperloop] "..key..": "..node.name.." is no station")
-				end
-			else -- unloaded?
-				print("[Hyperloop] "..key..": node is nil")
-				-- probably valid data
-				tRes[key] = item
-			end
-		else
-			-- invalid data
-			print("[Hyperloop] "..key..": item.pos == nil")
-		end
-	end
-	hyperloop.data.tAllStations = tRes
-end
-
-
 -- Return a text block with all station names and their attributes
 local function station_list_as_string(pos)
 	-- First sort the station list according to the players distance.
@@ -114,10 +83,8 @@ end
 
 
 local function map_on_use(itemstack, user)
-	--check_station_data()
 	local player_name = user:get_player_name()
-	--local pos = user:get_pos()
-	local pos = user:getpos()
+	local pos = user:get_pos()
 	local sStationList = station_list_as_string(pos)
 	local formspec = "size[12,10]" .. default.gui_bg ..
 	default.gui_bg_img ..
@@ -136,5 +103,6 @@ minetest.register_node("hyperloop:station_map", {
 	groups = {cracky=1, book=1},
 	on_use = map_on_use,
 	on_place = map_on_use,
+	stack_max = 1,
 })
 

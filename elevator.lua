@@ -283,7 +283,6 @@ local function update_elevator(pos, called_from_peer)
 	-- check lower position
 	npos = Shaft:get_connected_node_pos(pos, 5)
 	down = Shaft:secondary_node(npos) ~= nil
-	print("update_elevator down", S(pos), S(npos), down)
 	-- update the evelator on the other end if it's not the caller
 	if down and not called_from_peer then
 		-- address the elevator lower part
@@ -295,7 +294,6 @@ local function update_elevator(pos, called_from_peer)
 	pos.y = pos.y + 1
 	npos = Shaft:get_connected_node_pos(pos, 6)
 	up = Shaft:secondary_node(npos) ~= nil
-	print("update_elevator up", S(pos), S(npos), up)
 	-- update the evelator on the other end if it's not the caller
 	if up and not called_from_peer then
 		update_elevator(npos, true)

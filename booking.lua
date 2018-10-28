@@ -21,7 +21,6 @@
 -- return sorted list of all network stations
 local function get_station_list(key_str)	
 	local tRes = {}
-	print("get_station_list")
 	local local_pos = hyperloop.data.tAllStations[key_str]["pos"]
 	for idx,dest_key in ipairs(hyperloop.get_network_stations(key_str)) do
 		local dest_pos = hyperloop.data.tAllStations[dest_key]["pos"]

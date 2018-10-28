@@ -211,9 +211,6 @@ function hyperloop.reserve(departure, arrival, player)
 			-- place a reservation for 20 seconds to start the trip
 			hyperloop.data.tAllStations[departure].time_blocked = minetest.get_gametime() + 20
 			hyperloop.data.tAllStations[arrival].time_blocked = minetest.get_gametime() + 20
-			if hyperloop.debugging then
-				print(departure.." and ".. arrival.." stations are reserved")
-			end
 			return true
 		end
 	end
@@ -228,9 +225,6 @@ function hyperloop.block(departure, arrival, seconds)
 	else
 		hyperloop.data.tAllStations[departure].time_blocked = minetest.get_gametime() + seconds
 		hyperloop.data.tAllStations[arrival].time_blocked = minetest.get_gametime() + seconds
-		if hyperloop.debugging then
-			print(departure.." and ".. arrival.." stations are blocked")
-		end
 		return true
 	end
 end

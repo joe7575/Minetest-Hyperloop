@@ -9,7 +9,7 @@
 	See LICENSE.txt for more information
 
 	History:
-	see junction.lua
+	see init.lua
 
 ]]--
 

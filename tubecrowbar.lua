@@ -87,25 +87,25 @@ local function route_list(lStationPositions, routes)
 	return table.concat(tRes)
 end
 
-local function dump_station_list(itemstack, placer, pointed_thing)
-	local lStationPositions = {}
-	local idx = 1
-	for _,item in pairs(hyperloop.data.tAllStations) do
-		local spos = S(item.pos)
-		lStationPositions[spos] = idx
-		idx = idx + 1
-	end
-	print("[Hyperloop] Station list")
-	for _,item in pairs(hyperloop.data.tAllStations) do
-		local spos = item.pos and S(item.pos) or "<unknown>"
-		local version = item.version or 0
-		local station_name = item.station_name or "<unknown>"
-		local junction = item.junction or false
-		local routes = route_list(lStationPositions, item.routes)
-		print("pos = "..spos..", ver = "..version..", name = "..station_name..", junc = "..dump(junction)..", routes = "..routes)
-	end
-	print(dump(hyperloop.data))
-end
+--local function dump_station_list(itemstack, placer, pointed_thing)
+--	local lStationPositions = {}
+--	local idx = 1
+--	for _,item in pairs(hyperloop.data.tAllStations) do
+--		local spos = S(item.pos)
+--		lStationPositions[spos] = idx
+--		idx = idx + 1
+--	end
+--	print("[Hyperloop] Station list")
+--	for _,item in pairs(hyperloop.data.tAllStations) do
+--		local spos = item.pos and S(item.pos) or "<unknown>"
+--		local version = item.version or 0
+--		local station_name = item.station_name or "<unknown>"
+--		local junction = item.junction or false
+--		local routes = route_list(lStationPositions, item.routes)
+--		print("pos = "..spos..", ver = "..version..", name = "..station_name..", junc = "..dump(junction)..", routes = "..routes)
+--	end
+--	print(dump(hyperloop.data))
+--end
 
 
 -- Tool for tube workers to crack a protected tube line
@@ -117,7 +117,7 @@ minetest.register_node("hyperloop:tube_crowbar", {
 	groups = {cracky=1, book=1},
 	on_use = remove_tube,
 	on_place = repair_tubes,
-	on_secondary_use = dump_station_list,
+	--on_secondary_use = dump_station_list,
 	node_placement_prediction = "",
 	stack_max = 1,
 })

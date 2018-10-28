@@ -9,7 +9,7 @@
 	See LICENSE.txt for more information
 
 	History:
-	see tube.lua
+	see init.lua
 
 ]]--
 
@@ -53,10 +53,14 @@ function hyperloop.check_network_level(pos, player)
 						   "Do you realy want to start a new network?!")
 end
 
+--                       North, East, South, West, Down, Up
+local allowed_6d_dirs = {true, true, true, true, false, false}  -- horizontal only
+if hyperloop.free_tube_placement_enabled then
+	allowed_6d_dirs = {true, true, true, true, true, true}  -- all directions
+end
+
 local Tube = tubelib2.Tube:new({
-	                -- North, East, South, West, Down, Up
-	--allowed_6d_dirs = {true, true, true, true, false, false},  -- horizontal only
-	allowed_6d_dirs = {true, true, true, true, true, true},  -- horizontal only
+	allowed_6d_dirs = allowed_6d_dirs,
 	max_tube_length = 1000, 
 	show_infotext = true,
 	primary_node_names = {"hyperloop:tube", "hyperloop:tube2"}, 
@@ -165,7 +169,6 @@ function hyperloop.update_routes(pos, called_from_peer, player_name)
 	end
 	for dir = 1,4 do -- check all 4 directions
 		local npos = Tube:get_connected_node_pos(pos, dir)
-		--print(S(pos), dir, S(npos), minetest.get_node(npos).name)
 		if Tube:secondary_node(npos) then
 			table.insert(tRoutes, {S(pos), S(npos)})
 			if not called_from_peer then
