@@ -17,13 +17,16 @@
 local function check_station_data()
 	local tRes = {}
 	local node
+	--local keys = {}
 	for key,item in pairs(table.copy(hyperloop.data.tAllStations)) do
+--keys[#keys + 1] = key
 		if item.pos ~= nil then
 			node = minetest.get_node(item.pos)
 			if node ~= nil then
 				if node.name == "hyperloop:station" or node.name == "hyperloop:junction" or node.name == "ignore" then
 					-- valid data
 					tRes[key] = item
+					--tRes[idx] = #keys
 				else -- node removed via WorldEdit?
 					print("[Hyperloop] "..key..": "..node.name.." is no station")
 				end
@@ -43,6 +46,7 @@ end
 
 -- Return a text block with all station names and their attributes
 local function station_list_as_string(pos)
+	-- First sort the station list according to the players distance.
 	local sortedList = {}
 	local distance = 0
 	for key_str, dataSet in pairs(table.copy(hyperloop.data.tAllStations)) do
@@ -54,12 +58,17 @@ local function station_list_as_string(pos)
 	table.sort(sortedList, function(x,y) 
 			return x.distance < y.distance
 		end)
-	if hyperloop.debugging then
-		print("tAllStations="..dump(sortedList))
-		print("tWifi="..dump(hyperloop.data.tWifi))
+	
+	-- Then generate a list with lStationPositions[pos] = idx
+	-- used to generate the "connected with" list.
+	local lStationPositions = {}
+	for idx,dataSet in ipairs(sortedList) do
+		local spos = minetest.pos_to_string(dataSet.pos)
+		lStationPositions[spos] = idx
 	end
-	local tRes = {"label[0,0;Dist.]label[1.1,0;Station/Junction]label[2.9,0;Position]"..
-		          "label[4.9,0;State]label[6.4,0;Owner]label[8,0;Directly connected with]"}
+	
+	local tRes = {"label[0,0;ID]label[0.7,0;Dist.]label[1.8,0;Station/Junction]label[4.2,0;Position]"..
+		          "label[5.9,0;State]label[7.9,0;Owner]label[10,0;Conn. with]"}
 	local state, owner
 	for idx,dataSet in ipairs(sortedList) do
 		if idx == 18 then
@@ -69,30 +78,34 @@ local function station_list_as_string(pos)
 		if dataSet.station_name ~= nil then
 			state = "Station"
 		elseif dataSet.junction == true then
-			dataSet.station_name = "<no name>"
+			dataSet.station_name = "Junction"
 			state = "Junction"
 		else
 			dataSet.station_name = "<no name>"
-			state = "No Booking M."
+			state = "unfinished"
 		end
 		if dataSet.owner ~= nil then
 			owner = dataSet.owner
 		else
 			owner = "unknown"
 		end
-		tRes[#tRes+1] = "label[0,"..ypos..";"..dataSet.distance.." m]"
-		tRes[#tRes+1] = "label[1.1,"..ypos..";"..dataSet.station_name.."]"
-		tRes[#tRes+1] = "label[2.9,"..ypos..";"..minetest.pos_to_string(dataSet.pos).."]"
-		tRes[#tRes+1] = "label[4.9,"..ypos..";"..state.."]"
-		tRes[#tRes+1] = "label[6.4,"..ypos..";"..owner.."]"
-		tRes[#tRes+1] = "label[8,"..ypos..";"
-		for _,key_str in ipairs(hyperloop.get_connections(dataSet.key_str)) do
-			if hyperloop.data.tAllStations[key_str].station_name ~= nil then
-				tRes[#tRes + 1] = hyperloop.data.tAllStations[key_str].station_name
+		tRes[#tRes+1] = "label[0,"..ypos..";"..idx.."]"
+		tRes[#tRes+1] = "label[0.7,"..ypos..";"..dataSet.distance.." m]"
+		tRes[#tRes+1] = "label[1.8,"..ypos..";"..dataSet.station_name.."]"
+		tRes[#tRes+1] = "label[4.2,"..ypos..";"..minetest.pos_to_string(dataSet.pos).."]"
+		tRes[#tRes+1] = "label[5.9,"..ypos..";"..state.."]"
+		tRes[#tRes+1] = "label[7.9,"..ypos..";"..owner.."]"
+		tRes[#tRes+1] = "label[10,"..ypos..";"
+		--print(idx, #dataSet.routes)
+		for _,route in ipairs(dataSet.routes) do
+			local spos = '('..string.sub(route[2], 2, -2)..')'
+			if lStationPositions[spos] then
+				tRes[#tRes + 1] = lStationPositions[spos]
+				tRes[#tRes + 1] = ", "
 			else
-				tRes[#tRes + 1] = key_str
+				tRes[#tRes + 1] = spos
+				tRes[#tRes + 1] = ", "
 			end
-			tRes[#tRes + 1] = ", "
 		end
 		tRes[#tRes] = "]"
 	end
@@ -101,7 +114,7 @@ end
 
 
 local function map_on_use(itemstack, user)
-	check_station_data()
+	--check_station_data()
 	local player_name = user:get_player_name()
 	--local pos = user:get_pos()
 	local pos = user:getpos()

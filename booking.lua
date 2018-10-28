@@ -18,32 +18,12 @@
 	hyperloop.data.booking[departure_key_str] = arrival_key_str
 ]]--
 
-function hyperloop.update_all_booking_machines()
-	if hyperloop.debugging then
-		print("update_all_booking_machines")
-	end
-	local t = minetest.get_us_time()
-	for _, dataset in pairs(hyperloop.data.tAllStations) do
-		if dataset.booking_pos ~= nil then
-			minetest.registered_nodes["hyperloop:booking"].update(dataset.booking_pos)
-			minetest.registered_nodes["hyperloop:booking_ground"].update(dataset.booking_pos)
-		end
-	end
-	t = minetest.get_us_time() - t
-	if hyperloop.debugging then
-		print("time="..t)
-	end
-end
-
-
 -- return sorted list of all network stations
 local function get_station_list(key_str)	
 	local tRes = {}
+	print("get_station_list")
 	local local_pos = hyperloop.data.tAllStations[key_str]["pos"]
 	for idx,dest_key in ipairs(hyperloop.get_network_stations(key_str)) do
-		if idx >= 12 then
-			break
-		end
 		local dest_pos = hyperloop.data.tAllStations[dest_key]["pos"]
 		tRes[#tRes+1] = {
 			key_str = dest_key,
@@ -53,6 +33,9 @@ local function get_station_list(key_str)
 			distance = hyperloop.distance(local_pos, dest_pos),
 			pos_str = minetest.pos_to_string(dest_pos)
 		}
+		if #tRes >= 12 then
+			break
+		end
 	end
 	table.sort(tRes, function(x,y)
 			return x.distance < y.distance
@@ -69,10 +52,12 @@ local function valid_station_name(pos, station_name)
 		if item.station_name == station_name then
 			return nil
 		end
-		dist = hyperloop.distance(pos, item.pos)
-		if dist < min_dist then
-			min_dist = dist
-			min_key = key
+		if not item.junction then
+			dist = hyperloop.distance(pos, item.pos)
+			if dist < min_dist then
+				min_dist = dist
+				min_key = key
+			end
 		end
 	end
 	return min_key
@@ -84,7 +69,7 @@ local function naming_formspec(pos)
 	default.gui_bg..
 	default.gui_bg_img..
 	default.gui_slots..
-	"label[0,0;Please insert station name to which this booking machine belongs]" ..
+	"label[0,0;Please enter the station name to\nwhich this booking machine belongs.]" ..
 	"field[0.5,1.5;5,1;name;Station name;MyTown]" ..
 	"field[0.5,2.7;5,1;info;Additional station information;]" ..
 	"button_exit[2,3.6;2,1;exit;Save]"
@@ -112,9 +97,22 @@ local function formspec(key_str)
 	return table.concat(tRes)
 end
 
+local function booking_machine_update(pos, meta)
+	local counter = meta:get_int("change_counter") or 0
+	if hyperloop.data.change_counter ~= counter then
+		local key_str = meta:get_string("key_str") or nil
+		if key_str ~= nil and hyperloop.data.tAllStations[key_str] ~= nil then
+			local stations = get_station_list(key_str)
+			meta:set_string("formspec", formspec(key_str, stations))
+		end
+		meta:set_int("change_counter", hyperloop.data.change_counter)
+	end
+end
+
 
 local function on_receive_fields(pos, formname, fields, player)
 	local meta = minetest.get_meta(pos)
+	booking_machine_update(pos, meta)
 	-- station name entered?
 	if fields.name ~= nil then
 		local station_name = string.trim(fields.name)
@@ -264,24 +262,5 @@ minetest.register_node("hyperloop:booking_ground", {
 	paramtype2 = "facedir",
 	groups = {cracky=2, not_in_creative_inventory=1},
 	is_ground_content = false,
-})
-
-minetest.register_abm({
-	label = "[Hyperloop] Booking machine update",
-	nodenames = {"hyperloop:booking", "hyperloop:booking_ground"},
-	interval = 10.0, -- Run every 10 seconds
-	chance = 1,
-	action = function(pos, node, active_object_count, active_object_count_wider)
-		local meta = minetest.get_meta(pos)
-		local counter = meta:get_int("change_counter") or 0
-		if hyperloop.data.change_counter ~= counter then
-			local key_str = meta:get_string("key_str") or nil
-			if key_str ~= nil and hyperloop.data.tAllStations[key_str] ~= nil then
-				local stations = get_station_list(key_str)
-				meta:set_string("formspec", formspec(key_str, stations))
-			end
-			meta:set_int("change_counter", hyperloop.data.change_counter)
-		end
-	end
 })
 

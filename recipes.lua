@@ -29,7 +29,7 @@ minetest.register_craft({
 })
 
 minetest.register_craft({
-	output = "hyperloop:tube0 8",
+	output = "hyperloop:tube 8",
 	recipe = {
 		{"", "hyperloop:hypersteel_ingot", ""},
 		{"hyperloop:hypersteel_ingot", "", "hyperloop:hypersteel_ingot"},

@@ -1,5 +1,8 @@
 # Hyperloop
 
+## THIS IS WORK IN PROGRESS !!!
+**Use release ![v1.0](https://github.com/joe7575/Minetest-Hyperloop/archive/v1.0.zip) instead**
+
 **A new evolution in the voxel word:**
 
 ## Minetest goes Hyperloop!
@@ -21,7 +24,7 @@ The mod includes many different kind of blocks:
 - Hyperloop Elevator to reach other levels
 - Hyperloop Elevator Shaft to connect two elevator cars 
 - Hyperloop Station Book with all available stations (for builders/engineers)
-- Hyperloop Tube Crowbar to crack tube lines (for admins)
+- Hyperloop Tube Crowbar to crack/repair tube lines (for admins)
 - Hyperloop WiFi Tubes for very large distances (admin feature)
 ..and more.
 

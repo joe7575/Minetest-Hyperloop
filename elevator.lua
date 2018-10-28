@@ -10,10 +10,6 @@
 
 ]]--
 
-
-----------------------------------------------------------------------------------------------------
-----------------------------------------------------------------------------------------------------
-
 --[[
 	spos = <pos.x>:<pos.z>
 	level = pos.y
@@ -27,18 +23,98 @@
 	}
 ]]--
 
--- use Voxel Manipulator to read the node
-local function read_node_with_vm(pos)
-	local vm = VoxelManip()
-	local MinEdge, MaxEdge = vm:read_from_map(pos, pos)
-	local data = vm:get_data()
-	local param2_data = vm:get_param2_data()
-	local area = VoxelArea:new({MinEdge = MinEdge, MaxEdge = MaxEdge})
-	return {
-		name = minetest.get_name_from_content_id(data[area:index(pos.x, pos.y, pos.z)]),
-		param2 = param2_data[area:index(pos.x, pos.y, pos.z)]
-	}
-end
+-- for lazy programmers
+local S = minetest.pos_to_string
+local P = minetest.string_to_pos
+local M = minetest.get_meta
+
+local Shaft = tubelib2.Tube:new({
+	                -- North, East, South, West, Down, Up
+	allowed_6d_dirs = {false, false, false, false, true, true},  -- vertical only
+	max_tube_length = 1000, 
+	show_infotext = true,
+	primary_node_names = {"hyperloop:shaft", "hyperloop:shaft2"}, 
+	secondary_node_names = {"hyperloop:elevator_bottom", "hyperloop:elevator_top"},
+	after_place_tube = function(pos, param2, tube_type, num_tubes, tbl)
+		if num_tubes == 2 then
+			minetest.set_node(pos, {name = "hyperloop:shaft2", param2 = param2})
+		else
+			minetest.set_node(pos, {name = "hyperloop:shaft", param2 = param2})
+		end
+		if not tbl or not tbl.convert then
+			minetest.sound_play({
+				name="default_place_node_metal"},{
+				gain=1,
+				max_hear_distance=5,
+				loop=false})
+		end
+	end,
+})
+
+hyperloop.Shaft = Shaft
+
+minetest.register_node("hyperloop:shaft", {
+	description = "Hyperloop Elevator Shaft",
+	inventory_image = minetest.inventorycube('hyperloop_tube_open.png', "hyperloop_tube_locked.png", "hyperloop_tube_locked.png"),
+	tiles = {
+		-- up, down, right, left, back, front
+		"hyperloop_tube_locked.png^[transformR90]",
+		"hyperloop_tube_locked.png^[transformR90]",
+		"hyperloop_tube_locked.png",
+		"hyperloop_tube_locked.png",
+		'hyperloop_tube_open.png',
+		'hyperloop_tube_open.png',
+	},
+
+	after_place_node = function(pos, placer, itemstack, pointed_thing)
+		if not Shaft:after_place_tube(pos, placer, pointed_thing) then
+			minetest.remove_node(pos)
+			return true
+		end
+		return false
+	end,
+	
+	after_dig_node = function(pos, oldnode, oldmetadata, digger)
+		Shaft:after_dig_tube(pos, oldnode, oldmetadata)
+	end,
+	
+	paramtype2 = "facedir", -- important!
+	node_placement_prediction = "", -- important!
+	on_rotate = screwdriver.disallow, -- important!
+	paramtype = "light",
+	light_source = 6,
+	sunlight_propagates = true,
+	is_ground_content = false,
+	groups = {cracky = 1},
+	sounds = default.node_sound_metal_defaults(),
+})
+
+minetest.register_node("hyperloop:shaft2", {
+	description = "Hyperloop Elevator Shaft",
+	tiles = {
+		-- up, down, right, left, back, front
+		"hyperloop_tube_locked.png^[transformR90]",
+		"hyperloop_tube_locked.png^[transformR90]",
+		"hyperloop_tube_locked.png",
+		"hyperloop_tube_locked.png",
+		"hyperloop_tube_locked.png",
+		"hyperloop_tube_locked.png",
+	},
+
+	after_dig_node = function(pos, oldnode, oldmetadata, digger)
+		Shaft:after_dig_tube(pos, oldnode, oldmetadata)
+	end,
+	
+	paramtype2 = "facedir", -- important!
+	on_rotate = screwdriver.disallow, -- important!
+	paramtype = "light",
+	sunlight_propagates = true,
+	is_ground_content = false,
+	diggable = false,
+	groups = {cracky = 1, not_in_creative_inventory=1},
+	sounds = default.node_sound_metal_defaults(),
+})
+
 
 
 -- return index of the table position matching pos or nil
@@ -114,14 +190,6 @@ local function dbg_out(label, pos)
 	end
 end
 
-local function check_shaft_below_given_floor_pos(pos)
-	return read_node_with_vm({x=pos.x, y=pos.y-1, z=pos.z}).name == "hyperloop:shaft"
-end
-
-local function check_shaft_above_given_floor_pos(pos)
-	return read_node_with_vm({x=pos.x, y=pos.y+2, z=pos.z}).name == "hyperloop:shaft"
-end
-
 -- return a sorted list of connected floors
 local function floor_list(pos)
 	local floors = table.copy(get_elevator_list(pos))
@@ -134,14 +202,10 @@ local function floor_list(pos)
 	local tOut = {}
 	for idx,floor in ipairs(floors) do
 		if idx == 1 then
-			floor.down = floor.down or check_shaft_below_given_floor_pos(floor.pos)
 			if floor.down then table.insert(tOut, floor) end
 		elseif idx == #floors then
-			floor.up = floor.up or check_shaft_above_given_floor_pos(floor.pos)
 			if floor.up then table.insert(tOut, floor) end
 		else
-			floor.down = floor.down or check_shaft_below_given_floor_pos(floor.pos)
-			floor.up   = floor.up or check_shaft_above_given_floor_pos(floor.pos)
 			if floor.up and floor.down then table.insert(tOut, floor) end
 		end
 	end
@@ -159,7 +223,7 @@ end
 -- read floor_pos (upper car block) from meta data
 local function get_floor_pos(pos)
 	local s = minetest.get_meta(pos):get_string("floor_pos")
-	if s == nil then
+	if s == nil or s == "" then
 		return nil
 	end
 	return minetest.string_to_pos(s)
@@ -211,28 +275,38 @@ local function remove_from_elevator_list(pos)
 	end
 end
 
-function hyperloop.update_elevator(pos)
+local function update_elevator(pos, called_from_peer)
 	local up = false
 	local down = false
+	local npos
+	
+	-- check lower position
+	npos = Shaft:get_connected_node_pos(pos, 5)
+	down = Shaft:secondary_node(npos) ~= nil
+	print("update_elevator down", S(pos), S(npos), down)
+	-- update the evelator on the other end if it's not the caller
+	if down and not called_from_peer then
+		-- address the elevator lower part
+		npos.y = npos.y - 1
+		update_elevator(npos, true)
+	end
+	
+	-- check upper position
+	pos.y = pos.y + 1
+	npos = Shaft:get_connected_node_pos(pos, 6)
+	up = Shaft:secondary_node(npos) ~= nil
+	print("update_elevator up", S(pos), S(npos), up)
+	-- update the evelator on the other end if it's not the caller
+	if up and not called_from_peer then
+		update_elevator(npos, true)
+	end
 	
 	pos.y = pos.y - 1
-	if string.find(minetest.get_node_or_nil(pos).name, "hyperloop:shaft") then
-		down = true
-	end
-	
-	pos.y = pos.y + 3
-	if string.find(minetest.get_node_or_nil(pos).name, "hyperloop:shaft") then
-		up = true
-	end
-	
-	pos.y = pos.y - 2
 	add_to_elevator_list(pos, {up=up, down=down})
 
-	-- update all elevator cars which are already named
+	-- update all elevator cars which are already available
 	for _,floor in ipairs(get_elevator_list(pos)) do
-		if floor.name ~= "<unknown>" then
 			update_formspec(floor.pos)
-		end
 	end
 end
 
@@ -355,7 +429,7 @@ minetest.register_node("hyperloop:elevator_bottom", {
 		set_floor_pos(pos, pos)
 		local facedir = hyperloop.get_facedir(placer)
 		add_to_elevator_list(pos, {name="<unknown>", up=false, down=false, facedir=facedir, pos=pos})
-		hyperloop.update_elevator(pos)
+		update_elevator(pos)
 		-- formspec
 		local meta = minetest.get_meta(pos)
 		local formspec = "size[6,4]"..
@@ -379,6 +453,8 @@ minetest.register_node("hyperloop:elevator_bottom", {
 		minetest.add_node(pos, {name="hyperloop:elevator_top", param2=facedir})
 		-- store floor_pos (lower car block) as meta data
 		set_floor_pos(pos, floor_pos)
+		
+		-- swap last shaft node
 		pos.y = pos.y + 1
 		if minetest.get_node_or_nil(pos).name == "hyperloop:shaft" then
 			local node = minetest.get_node(pos)
@@ -399,7 +475,7 @@ minetest.register_node("hyperloop:elevator_bottom", {
 			local floor_pos = get_floor_pos(pos)
 			if floor_pos ~= nil then
 				add_to_elevator_list(floor_pos, {name=floor})
-				hyperloop.update_elevator(floor_pos)
+				update_elevator(floor_pos)
 			end
 		-- destination selected?
 		elseif fields.button ~= nil then
@@ -425,6 +501,7 @@ minetest.register_node("hyperloop:elevator_bottom", {
 	end,
 
 	on_punch = function(pos, node, puncher, pointed_thing)
+		update_elevator(pos)
 		local floor_pos = get_floor_pos(pos)
 		local floor = get_floor_item(floor_pos)
 		if floor.busy ~= true then
@@ -590,3 +667,4 @@ minetest.register_node("hyperloop:elevator_door_dark", {
 	is_ground_content = false,
 	groups = {snappy = 3, not_in_creative_inventory=1},
 })
+

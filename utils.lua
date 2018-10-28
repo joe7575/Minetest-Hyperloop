@@ -26,15 +26,6 @@ function table_extend(table1, table2)
 end
 
 
-hyperloop.NeighborPos = {
-	{ x= 0, y= 1, z= 0},
-	{ x= 0, y=-1, z= 0},
-	{ x= 1, y= 0, z= 0},
-	{ x=-1, y= 0, z= 0},
-	{ x= 0, y= 0, z= 1},
-	{ x= 0, y= 0, z=-1},
-}
-
 function hyperloop.chat(player, text)
 	if player ~= nil then
 		minetest.chat_send_player(player:get_player_name(), "[Hyperloop] "..text)
@@ -54,7 +45,7 @@ end
 -- calculate the new pos based on the given pos, the players facedir, the y-offset
 -- and the given walk path like "3F2L" (F-orward, L-eft, R-ight, B-ack).
 function hyperloop.new_pos(pos, facedir, path, y_offs)
-	if facedir == nil or pos == nil or path == nil or y_offs == nil then ------------------ TODO crash???
+	if facedir == nil or pos == nil or path == nil or y_offs == nil then
 		return pos
 	end
 	local _pos = table.copy(pos)
@@ -98,23 +89,6 @@ function hyperloop.nearby(pos1, pos2)
 	return res == 1 or res == -1
 end
 
--- Scan for nodes with the given name in the surrounding
-function hyperloop.scan_for_nodes(pos, name)
-	local nodes = {}
-	local node, npos
-	local res = 0
-	for _,dir in ipairs(hyperloop.NeighborPos) do
-		npos = vector.add(pos, dir)
-		node = minetest.get_node(npos)
-		if node.name == name then
-			node.pos = npos
-			table.insert(nodes, node)
-			res = res + 1
-		end
-	end
-	return res, nodes
-end
-
 function hyperloop.is_player_around(pos)
 	for _,obj in ipairs(minetest.get_objects_inside_radius(pos, 2)) do
 		if obj:is_player() then
@@ -123,6 +97,19 @@ function hyperloop.is_player_around(pos)
 	end
 	return false
 end
+
+-------------------------------------------------------------------------------
+---- Routing
+-------------------------------------------------------------------------------
+
+-- station list key
+function hyperloop.get_key_str(pos)
+	pos = minetest.pos_to_string(pos)
+	return '"'..string.sub(pos, 2, -2)..'"'
+end
+
+local get_key_str = hyperloop.get_key_str
+
 
 -------------------------------------------------------------------------------
 ---- Station maintenance
@@ -136,6 +123,19 @@ local function get_peer_station(tStations, rev_route)
 			end
 		end
 	end
+end
+
+-- return the station data as table, based on the given station key
+function hyperloop.get_station_data(key_str)
+	if key_str ~= nil and hyperloop.data.tAllStations[key_str] ~= nil then
+		local item = table.copy(hyperloop.data.tAllStations[key_str])
+		if item.station_name == nil then  --ö station uncomplete?
+			return nil
+		end
+		item.key_str = key_str
+		return item
+	end
+	return nil
 end
 
 -- Return a table with all station key_strings, the given 'key_str' is connected with
@@ -173,23 +173,6 @@ function hyperloop.get_network_stations(key_str)
 	return tOut
 end
 	
--- Return a table with all station key_strings, the given 'key_str' is directly connected with
-function hyperloop.get_connections(key_str)
-	local tRes = {}
-	local dataSet = hyperloop.data.tAllStations[key_str]
-	if dataSet == nil then
-		return nil
-	end
-	for _,route in ipairs(dataSet["routes"]) do
-		local rev_route = {route[2], route[1]}
-		local s = get_peer_station(hyperloop.data.tAllStations, rev_route)
-		if s ~= nil then
-			tRes[#tRes + 1] = s
-		end
-	end
-	return tRes
-end
-	
 -- Return the networks table with all station key_strings per network
 function hyperloop.get_networks()
 	local tNetwork = {}
@@ -200,19 +183,6 @@ function hyperloop.get_networks()
 		key_str,_ = next(tStations, nil) 
 	end
 	return tNetwork
-end
-
-function hyperloop.check_network_level(pos, player)
-	if hyperloop.free_tube_placement_enabled then
-		return
-	end
-	for key,item in pairs(hyperloop.data.tAllStations) do
-		if pos.y == item.pos.y then
-			return
-		end
-	end
-	hyperloop.chat(player, "These is no station/junction on this level. "..
-						   "Do you realy want to start a new network?!")
 end
 
 -------------------------------------------------------------------------------
@@ -249,11 +219,6 @@ function hyperloop.reserve(departure, arrival, player)
 	end
 end
 
-local function get_key_str(pos)
-	pos = minetest.pos_to_string(pos)
-	return '"'..string.sub(pos, 2, -2)..'"'
-end
-
 -- block the already reserved stations
 function hyperloop.block(departure, arrival, seconds)
 	if hyperloop.data.tAllStations[departure] == nil then
@@ -280,56 +245,3 @@ function hyperloop.is_blocked(key_str)
 	end
 end
 
--------------------------------------------------------------------------------
----- Station File writing / reading utilities
--------------------------------------------------------------------------------
-local wpath = minetest.get_worldpath()
-
--- Convert legacy data
-local function convert_station_list(tAllStations)
-	local tRes = {}
-	for key,item in pairs(tAllStations) do
-		-- remove legacy data
-		if item.version == hyperloop.version then
-			tRes[key] = item
-		end
-	end
-	return tRes
-end
-
-function hyperloop.file2table(filename)
-	local f = io.open(wpath..DIR_DELIM..filename, "r")
-	if f == nil then return {} end
-	local t = f:read("*all")
-	f:close()
-	if t == "" or t == nil then return {} end
-	return minetest.deserialize(t)
-end
-
-function hyperloop.table2file(filename, table)
-	local f = io.open(wpath..DIR_DELIM..filename, "w")
-	f:write(minetest.serialize(table))
-	f:close()
-end
--- Store and read the station list to / from a file
--- so that upcoming actions are remembered when the game
--- is restarted
-function hyperloop.store_station_list()
-	hyperloop.table2file("mod_hyperloop.data", hyperloop.data)
-end
-
-local data = hyperloop.file2table("mod_hyperloop.data")
-if next(data) ~= nil then
-	hyperloop.data = data
-else
-	hyperloop.data.tAllStations = hyperloop.file2table("hyperloop_station_list")
-end	
-
--- convert to current format
-hyperloop.data.tAllStations = convert_station_list(hyperloop.data.tAllStations)
-
-minetest.register_on_shutdown(hyperloop.store_station_list)
-
--- store ring list once a day
-minetest.after(60*60*24, hyperloop.store_station_list)
-	

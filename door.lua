@@ -13,6 +13,11 @@
 
 ]]--
 
+-- for lazy programmers
+local S = minetest.pos_to_string
+local P = minetest.string_to_pos
+local M = minetest.get_meta
+
 -- Open the door for an emergency
 local function door_on_punch(pos, node, puncher, pointed_thing)
 	local meta = minetest.get_meta(pos)
@@ -71,6 +76,7 @@ end
 -- door command based on the station data table
 function hyperloop.open_pod_door(tStation)
 	if tStation ~= nil then
+		print(S(tStation.pos), tStation.facedir)
 		local door_pos = hyperloop.new_pos(tStation.pos, tStation.facedir, "1F1L", 1)
 		door_command(door_pos, "open")
 	end

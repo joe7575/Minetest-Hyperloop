@@ -13,120 +13,111 @@
 
 ]]--
 
-local function determine_peer(pos, node)
-	local _pos = table.copy(pos)
-	local _node = table.copy(node)
-	while true do
-		--print(minetest.pos_to_string(pos))
-		if _node.name == "hyperloop:tube2" then
-			local res, nodes = hyperloop.scan_neighbours(_node.pos)
-			if res == 12 and #nodes == 2 then
-				if vector.equals(nodes[1].pos, _pos) then
-					_pos = table.copy(_node.pos)
-					_node = nodes[2]
-				else
-					_pos = table.copy(_node.pos)
-					_node = nodes[1]
-				end
-			elseif nodes[1].name == "hyperloop:tube1" then
-				return nodes[1].pos
-			elseif nodes[2] ~= nil and nodes[2].name == "hyperloop:tube1" then
-				return nodes[2].pos
-			else
-				return nil
-			end
+-- for lazy programmers
+local S = minetest.pos_to_string
+local P = minetest.string_to_pos
+local M = minetest.get_meta
+
+local Shaft = hyperloop.Shaft
+local Tube = hyperloop.Tube
+
+local function tube_crowbar_help(placer)
+	minetest.chat_send_player(placer:get_player_name(), 
+		"[Crowbar Help]\nFor tubes/shafts:\n"..
+		"    left: remove node\n"..
+		"    right: repair tube/shaft line\n"..
+		"For Junctions/Stations:\n"..
+		"    left: update node")
+end	
+
+local function repair_tubes(itemstack, placer, pointed_thing)
+	if pointed_thing.type == "node" then
+		local pos = pointed_thing.under
+		local pos1, pos2, dir1, dir2, cnt1, cnt2 = Tube:tool_repair_tubes(pos)
+		if pos1 and pos2 then
+			minetest.chat_send_player(placer:get_player_name(), 
+				"[Hyperloop]:\nTo the "..tubelib2.dir_to_string(dir1)..": "..cnt1.." tubes to pos "..S(pos1))
+			minetest.chat_send_player(placer:get_player_name(), 
+				"To the "..tubelib2.dir_to_string(dir2)..": "..cnt2.." tubes to pos "..S(pos2))
+			return
+		end
+		pos1, pos2, dir1, dir2, cnt1, cnt2 = Shaft:tool_repair_tubes(pos)
+		if pos1 and pos2 then
+			minetest.chat_send_player(placer:get_player_name(), 
+				"[Hyperloop]:\nTo the "..tubelib2.dir_to_string(dir1)..": "..cnt1.." shafts to pos "..S(pos1))
+			minetest.chat_send_player(placer:get_player_name(), 
+				"To the "..tubelib2.dir_to_string(dir2)..": "..cnt2.." shafts to pos "..S(pos2))
+			return
+		end
+	else
+		tube_crowbar_help(placer)
+	end
+end
+
+local function remove_tube(itemstack, placer, pointed_thing)
+	if pointed_thing.type == "node" then
+		local pos = pointed_thing.under
+		local node = minetest.get_node(pos)
+		if node.name == "hyperloop:junction" or node.name == "hyperloop:station" then
+			hyperloop.update_routes(pos, nil, placer:get_player_name())
 		else
-			return nil
+			Tube:tool_remove_tube(pos, "default_break_metal")
+			Shaft:tool_remove_tube(pos, "default_break_metal")
+		end
+	else
+		tube_crowbar_help(placer)
+	end
+end
+
+local function route_list(lStationPositions, routes)
+	local tRes = {}
+	
+	for _,route in ipairs(routes) do
+		local spos = '('..string.sub(route[2], 2, -2)..')'
+		if lStationPositions[spos] then
+			tRes[#tRes + 1] = lStationPositions[spos]
+			tRes[#tRes + 1] = ", "
+		else
+			tRes[#tRes + 1] = spos
+			tRes[#tRes + 1] = ", "
 		end
 	end
+	tRes[#tRes] = ""
+	
+	return table.concat(tRes)
 end
-			
--- Repare the given node to a tube2 node and add meta data
--- param pos: node pos to be repared
--- param peer_pos: peer node pos
-local function repare_tube_node(pos, peer_pos)
-	-- swap
-	node = minetest.get_node(pos)
-	node.diggable = true
-	node.name = "hyperloop:tube1"
-	minetest.swap_node(pos, node)
-	-- update
-	pos = minetest.pos_to_string(pos)
-	peer_pos = minetest.pos_to_string(peer_pos)
-	hyperloop.update_head_node(pos, peer_pos)
-end
-			
 
-local function repair_shaft(pos)
-    local npos = table.copy(pos)
-	npos.y = npos.y - 1
-	if minetest.get_node_or_nil(npos).name == "hyperloop:elevator_top" then
-		npos.y = npos.y - 1
-		hyperloop.update_elevator(npos)
+local function dump_station_list(itemstack, placer, pointed_thing)
+	local lStationPositions = {}
+	local idx = 1
+	for _,item in pairs(hyperloop.data.tAllStations) do
+		local spos = S(item.pos)
+		lStationPositions[spos] = idx
+		idx = idx + 1
 	end
-	npos.y = npos.y + 2
-	if minetest.get_node_or_nil(npos).name == "hyperloop:elevator_bottom" then
-		hyperloop.update_elevator(npos)
+	print("[Hyperloop] Station list")
+	for _,item in pairs(hyperloop.data.tAllStations) do
+		local spos = item.pos and S(item.pos) or "<unknown>"
+		local version = item.version or 0
+		local station_name = item.station_name or "<unknown>"
+		local junction = item.junction or false
+		local routes = route_list(lStationPositions, item.routes)
+		print("pos = "..spos..", ver = "..version..", name = "..station_name..", junc = "..dump(junction)..", routes = "..routes)
 	end
+	print(dump(hyperloop.data))
 end
 
 
-local function crack_tube_line(itemstack, placer, pointed_thing)
-	if pointed_thing.type ~= "node" then
-		return
-	end
-	local pos = pointed_thing.under
-	local node = minetest.get_node(pos)
-	-- Check Elevator shafts
-	if node.name == "hyperloop:shaft2" then
-			node.name = "hyperloop:shaft"
-			minetest.swap_node(pos, node)
-			repair_shaft(pos)
-	elseif node.name == "hyperloop:shaft" then
-			node.name = "hyperloop:shaft2"
-			minetest.swap_node(pos, node)
-			repair_shaft(pos)
-	-- Check Hyperloop tubes
-	elseif node.name == "hyperloop:tube2" then
-        minetest.sound_play({
-            name="default_dig_cracky"},{
-            gain=1,
-            max_hear_distance=5,
-            loop=false})
-		local res, nodes = hyperloop.scan_neighbours(pos)
-		if res == 12 and #nodes == 2 then	
-			-- dig one node in the middle of two tune2 blocks
-			local peer1 = determine_peer(pos, nodes[1])
-			local peer2 = determine_peer(pos, nodes[2])
-			if peer1 ~= nil and peer2 ~= nil then
-				peer1 = minetest.pos_to_string(peer1)
-				peer2 = minetest.pos_to_string(peer2)
-				hyperloop.swap_tube_node(nodes[1], peer1)
-				hyperloop.swap_tube_node(nodes[2], peer2)
-				minetest.remove_node(pos)
-				itemstack:take_item(1)
-			end
-		elseif res == 4 and #nodes == 1 then
-			-- repair the punched tubes by replacing head node and updating peer node
-			local pos2 = determine_peer(pos, nodes[1])
-			if pos2 ~= nil then
-				repare_tube_node(pos, pos2)
-				repare_tube_node(pos2, pos)
-			end
-		end
-	end
-	return itemstack
-end
-
--- Tool for tube workers to crack a tube line
+-- Tool for tube workers to crack a protected tube line
 minetest.register_node("hyperloop:tube_crowbar", {
 	description = "Hyperloop Tube Crowbar",
 	inventory_image = "hyperloop_tubecrowbar.png",
 	wield_image = "hyperloop_tubecrowbar.png",
+	use_texture_alpha = true,
 	groups = {cracky=1, book=1},
-	on_use = crack_tube_line,
-	on_place = function(itemstack, placer, pointed_thing)
-		return itemstack
-	end,
+	on_use = remove_tube,
+	on_place = repair_tubes,
+	on_secondary_use = dump_station_list,
+	node_placement_prediction = "",
+	stack_max = 1,
 })
-

@@ -148,6 +148,7 @@ local function on_start_travel(pos, node, clicker)
 	-- close the door at arrival station
 	hyperloop.close_pod_door(tArrival)
 	-- place player on the seat
+	pos.y = pos.y + 0.5
 	clicker:set_pos(pos)
 	-- rotate player to look in move direction
 	clicker:set_look_horizontal(hyperloop.facedir_to_rad(tDeparture.facedir))
