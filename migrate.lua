@@ -23,122 +23,6 @@ local M = minetest.get_meta
 local Tube = hyperloop.Tube
 local Shaft = hyperloop.Shaft
 
-
---
--- Stations/Junctions
---
-
-Tube:on_convert_tube(function(pos, name, param2)
-	local dirs = {}
-	for dir = 1, 6 do
-		--local npos = Tube:primary_node(pos, dir)
-		local npos, node = Tube:get_next_node(pos, dir)
-		if node.name == "hyperloop:tube" or node.name == "hyperloop:tube1" or node.name == "hyperloop:tube2" then
-			dirs[#dirs+1] = dir
-		end
-	end
-	if #dirs == 1 then
-		return dirs[1], nil, 1
-	elseif #dirs == 2 then
-		return dirs[1], dirs[2], 2
-	else
-		print("on_convert_tube", dump(dirs))
-	end
-end)
-
-local function convert_tube_line(pos)
-	-- check all positions
-	for dir = 1, 6 do
-		local npos, node = Tube:get_next_node(pos, dir)
-		print("convert_tube_line", node.name)
-		if node and node.name == "hyperloop:tube1" then
-			Tube:convert_tube_line(pos, dir)
-		end
-	end
-end
-
-minetest.register_lbm({
-	label = "[Hyperloop] Station update",
-	name = "hyperloop:update_junction",
-	nodenames = {"hyperloop:junction", "hyperloop:station"},
-	run_at_every_load = true,
-	action = function(pos, node)
-		if hyperloop.debugging then
-			print("Junction/Station loaded")
-		end
-		convert_tube_line(pos)  -- migration
-		hyperloop.update_routes(pos)
-		Tube:after_place_crossing_node(pos)
-	end
-})
-
---
--- Wifi nodes
---
-function Tube:update_wifi_nodes(pos)
-	local peer_pos = M(pos):get_string("wifi_peer")
-	if peer_pos ~= "" then
-		Tube:set_pairing(pos, peer_pos)
-	end
-end
-
--- Migration to v2
--- Lagacy nodes are replaced but the pairing has to be repeated.
-minetest.register_lbm({
-	label = "[Hyperloop] Wifi update",
-	name = "hyperloop:update_wifi",
-	nodenames = {"hyperloop:tube_wifi1"},
-	run_at_every_load = true,
-	action = function(pos, node)
-		local tube_dir = Tube:get_primary_dir(pos)
-		Tube:after_place_node(pos, tube_dir)
-		Tube:update_wifi_nodes(pos)
-	end
-})
-
-
---
--- Elevator shafts
--- 
-Shaft:on_convert_tube(function(pos, name, param2)
-	if param2 < 30 then
-		print("param2", param2)
-		if name == "hyperloop:shaft2" then
-			return 5, 6, 2
-		elseif name == "hyperloop:shaft" then
-			return 5, 6, 1
-		end
-	end
-end)
-
-local function convert_shaft_line(pos)
-	-- check lower position
-	if Shaft:primary_node(pos, 5) then
-		Shaft:convert_tube_line(pos, 5)
-	end
-	-- check upper position
-	pos.y = pos.y + 1
-	if Shaft:primary_node(pos, 6) then
-		Shaft:convert_tube_line(pos, 6)
-	end
-	pos.y = pos.y - 1
-end
-
-
-minetest.register_lbm({
-	label = "[Hyperloop] Elevator update",
-	name = "hyperloop:update_elevator",
-	nodenames = {"hyperloop:elevator_bottom"},
-	run_at_every_load = true,
-	action = function(pos, node)
-		convert_shaft_line(pos)
-	end
-})
-
-
---
--- Tubes
---
 -- convert legacy tubes to current tubes
 minetest.register_node("hyperloop:tube0", {
 	description = "Hyperloop Legacy Tube",
@@ -171,53 +55,209 @@ minetest.register_node("hyperloop:tube0", {
 })
 
 
-local wpath = minetest.get_worldpath()
+--
+-- Wifi nodes
+--
+local tWifiNodes = {}
 
--- Convert legacy data
-local function convert_station_list(tAllStations)
-	local tRes = {}
-	for key,item in pairs(tAllStations) do
-		-- remove legacy data
-		if item.version == hyperloop.version then
-			tRes[key] = item
+-- Wifi nodes don't know their counterpart.
+-- But by means of the tube head nodes, two
+-- Wifi nodes in one tube line can be determined.
+local function determine_wifi_pairs(pos)
+	-- determine 1. tube head node
+	local pos1 = M(pos):get_string("peer")
+	if pos1 == "" then return end
+	-- determine 2. tube head node
+	local pos2 = M(P(pos1)):get_string("peer")
+	if pos2 == "" then return end
+	for k,item in pairs(tWifiNodes) do
+		-- entry already available
+		if item[1] == pos2 and item[2] == pos1 then
+			tWifiNodes[k] = nil
+			-- start paring
+			Tube:set_pairing(P(k), pos)
+			return
 		end
 	end
-	return tRes
+	-- add single Wifi node to pairing table
+	tWifiNodes[S(pos)] = {pos1, pos2}
 end
 
+local function next_node_on_the_way_to_a_wifi_node(pos)
+	local dirs = {}
+	for dir = 1, 6 do
+		local npos, node = Tube:get_next_node(pos, dir)
+		if node.name == "hyperloop:tube" or node.name == "hyperloop:tube1" or node.name == "hyperloop:tube2" then
+			dirs[#dirs+1] = dir
+		elseif node and node.name == "hyperloop:tube_wifi1" then
+			determine_wifi_pairs(npos)
+		end
+	end
+	if #dirs == 1 then
+		return dirs[1], nil, 1
+	elseif #dirs == 2 then
+		return dirs[1], dirs[2], 2
+	else
+		print("on_convert_tube", dump(dirs))
+	end
+end
+
+local function search_wifi_node(pos, dir)
+	local convert_next_tube = function(pos, dir)
+		local npos, node = Tube:get_next_node(pos, dir)
+		local dir1, dir2, num = next_node_on_the_way_to_a_wifi_node(npos)
+		if dir1 then
+			if tubelib2.Turn180Deg[dir] == dir1 then
+				return npos, dir2
+			else
+				return npos, dir1
+			end
+		end
+	end
+	
+	local cnt = 0
+	if not dir then	return pos, cnt end	
+	while true do
+		local new_pos, new_dir = convert_next_tube(pos, dir)
+		if not new_dir then	break end
+		pos, dir = new_pos, new_dir
+		cnt = cnt + 1
+	end
+	return pos, dir, cnt
+end	
+
+local function search_wifi_node_in_all_dirs(pos)
+	-- check all positions
+	for dir = 1, 6 do
+		local npos, node = Tube:get_next_node(pos, dir)
+		if node and node.name == "hyperloop:tube1" then
+			search_wifi_node(pos, dir)
+		end
+	end
+end
+
+
+--
+-- Stations/Junctions
+--
+
+Tube:on_convert_tube(function(pos, name, param2)
+	local dirs = {}
+	for dir = 1, 6 do
+		--local npos = Tube:primary_node(pos, dir)
+		local npos, node = Tube:get_next_node(pos, dir)
+		if node.name == "hyperloop:tube" or node.name == "hyperloop:tube1" or node.name == "hyperloop:tube2" then
+			dirs[#dirs+1] = dir
+		end
+	end
+	if #dirs == 1 then
+		return dirs[1], nil, 1
+	elseif #dirs == 2 then
+		return dirs[1], dirs[2], 2
+	else
+		print("on_convert_tube", dump(dirs))
+	end
+end)
+
+local function convert_tube_line(pos)
+	-- check all positions
+	for dir = 1, 6 do
+		local npos, node = Tube:get_next_node(pos, dir)
+		if node and node.name == "hyperloop:tube1" then
+			local peer = Tube:convert_tube_line(pos, dir)
+			--print("npos", FoundWifiNodes[S(npos)])
+		end
+	end
+end
+
+
+--
+-- Elevator shafts
+-- 
+Shaft:on_convert_tube(function(pos, name, param2)
+	if param2 < 30 then
+		print("param2", param2)
+		if name == "hyperloop:shaft2" then
+			return 5, 6, 2
+		elseif name == "hyperloop:shaft" then
+			return 5, 6, 1
+		end
+	end
+end)
+
+local function convert_shaft_line(pos)
+	-- check lower position
+	if Shaft:primary_node(pos, 5) then
+		Shaft:convert_tube_line(pos, 5)
+	end
+	-- check upper position
+	pos.y = pos.y + 1
+	if Shaft:primary_node(pos, 6) then
+		Shaft:convert_tube_line(pos, 6)
+	end
+	pos.y = pos.y - 1
+end
+
+
+local function convert_station_data(tAllStations)
+	for key,item in pairs(tAllStations) do
+		if item.pos and Tube:secondary_node(item.pos) then
+			hyperloop.data.tAllStations[key] = item
+		end
+	end
+	-- First perform the Wifi node pairing
+	-- before all tube node loose their meta data
+	-- while converted.
+	for key,item in pairs(tAllStations) do
+		if item.pos and Tube:secondary_node(item.pos) then
+			search_wifi_node_in_all_dirs(item.pos)
+		end
+	end
+	-- Then convert all tube nodes
+	for key,item in pairs(tAllStations) do
+		if item.pos and Tube:secondary_node(item.pos) then
+			convert_tube_line(item.pos)
+			Tube:after_place_node(item.pos)
+			hyperloop.update_routes(item.pos)
+		end
+	end
+end
+
+local function convert_elevator_data(tAllElevators)
+	for key,item in pairs(tAllElevators) do
+		if item.pos and Shaft:secondary_node(item.pos) then
+			hyperloop.data.tAllElevators[key] = item
+		end
+	end
+	for key,item in pairs(tAllElevators) do
+		if item.pos and Shaft:secondary_node(item.pos) then
+			convert_shaft_line(item.pos)
+		end
+	end
+end
+
+local wpath = minetest.get_worldpath()
 function hyperloop.file2table(filename)
 	local f = io.open(wpath..DIR_DELIM..filename, "r")
 	if f == nil then return {} end
 	local t = f:read("*all")
 	f:close()
-	if t == "" or t == nil then return {} end
+	if t == "" or t == nil then return nil end
 	return minetest.deserialize(t)
 end
 
-function hyperloop.table2file(filename, table)
-	local f = io.open(wpath..DIR_DELIM..filename, "w")
-	f:write(minetest.serialize(table))
-	f:close()
-end
--- Store and read the station list to / from a file
--- so that upcoming actions are remembered when the game
--- is restarted
-function hyperloop.store_station_list()
-	hyperloop.table2file("mod_hyperloop.data", hyperloop.data)
-end
-
-local data = hyperloop.file2table("mod_hyperloop.data")
-if next(data) ~= nil then
-	hyperloop.data = data
-else
-	hyperloop.data.tAllStations = hyperloop.file2table("hyperloop_station_list")
-end	
-
--- convert to current format
-hyperloop.data.tAllStations = convert_station_list(hyperloop.data.tAllStations)
-
-minetest.register_on_shutdown(hyperloop.store_station_list)
-
--- store ring list once a day
-minetest.after(60*60*24, hyperloop.store_station_list)
+local function migrate()
+	local data = hyperloop.file2table("mod_hyperloop.data")
+	if data then
+		hyperloop.convert = true
+		convert_station_data(data.tAllStations)
+		convert_elevator_data(data.tAllElevators)
+		minetest.safe_file_write(wpath..DIR_DELIM.."mod_hyperloop.data", "")
+		hyperloop.convert = nil
+	end
 	
+	print("NodesWithPeerMeta", dump(NodesWithPeerMeta))
+	print("tWifiNodes", dump(tWifiNodes))
+end
+
+minetest.after(10, migrate)

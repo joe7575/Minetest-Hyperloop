@@ -66,7 +66,7 @@ dofile(minetest.get_modpath("hyperloop") .. "/tubecrowbar.lua")
 dofile(minetest.get_modpath("hyperloop") .. "/recipes.lua")
 
 -- Migration from v1 to v2
---dofile(minetest.get_modpath("hyperloop") .. "/migrate.lua")
+dofile(minetest.get_modpath("hyperloop") .. "/migrate.lua")
 
 --
 -- Data base storage

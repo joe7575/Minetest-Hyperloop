@@ -65,13 +65,13 @@ local Tube = tubelib2.Tube:new({
 	show_infotext = true,
 	primary_node_names = {"hyperloop:tube", "hyperloop:tube2"}, 
 	secondary_node_names = {"hyperloop:junction", "hyperloop:station"},
-	after_place_tube = function(pos, param2, tube_type, num_tubes, tbl)
+	after_place_tube = function(pos, param2, tube_type, num_tubes)
 		if num_tubes == 2 then
 			minetest.set_node(pos, {name = "hyperloop:tube2", param2 = param2})
 		else
 			minetest.set_node(pos, {name = "hyperloop:tube", param2 = param2})
 		end
-		if not tbl or tbl.convert then
+		if not hyperloop.convert then
 			minetest.sound_play({
 				name="default_place_node_metal"},{
 				gain=1,
