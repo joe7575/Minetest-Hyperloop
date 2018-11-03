@@ -41,13 +41,6 @@ local Shaft = tubelib2.Tube:new({
 		else
 			minetest.set_node(pos, {name = "hyperloop:shaft", param2 = param2})
 		end
-		if not hyperloop.convert then
-			minetest.sound_play({
-				name="default_place_node_metal"},{
-				gain=1,
-				max_hear_distance=5,
-				loop=false})
-		end
 	end,
 })
 
@@ -55,7 +48,8 @@ hyperloop.Shaft = Shaft
 
 minetest.register_node("hyperloop:shaft", {
 	description = "Hyperloop Elevator Shaft",
-	inventory_image = minetest.inventorycube('hyperloop_tube_open.png', "hyperloop_tube_locked.png", "hyperloop_tube_locked.png"),
+	inventory_image = minetest.inventorycube('hyperloop_tube_open.png', 
+			"hyperloop_tube_locked.png", "hyperloop_tube_locked.png"),
 	tiles = {
 		-- up, down, right, left, back, front
 		"hyperloop_tube_locked.png^[transformR90]",
@@ -131,7 +125,8 @@ end
 local function remove_artifacts(floors)
 	local tbl = {}
 	for idx,floor in ipairs(floors) do
-		if floor.pos ~= nil and floor.name ~= nil and floor.up ~= nil and floor.down ~= nil then
+		if floor.pos ~= nil and floor.name ~= nil 
+		and floor.up ~= nil and floor.down ~= nil then
 			table.insert(tbl, floor)
 		end
 	end
@@ -151,7 +146,8 @@ local function get_elevator_list(pos)
 		hyperloop.data.tAllElevators[spos].floors = {}
 	end
 	-- remove invalid entries
-	hyperloop.data.tAllElevators[spos].floors = remove_artifacts(hyperloop.data.tAllElevators[spos].floors)
+	hyperloop.data.tAllElevators[spos].floors = 
+			remove_artifacts(hyperloop.data.tAllElevators[spos].floors)
 	return hyperloop.data.tAllElevators[spos].floors
 end
 
@@ -426,7 +422,8 @@ minetest.register_node("hyperloop:elevator_bottom", {
 		-- store floor_pos (lower car block) as meta data
 		set_floor_pos(pos, pos)
 		local facedir = hyperloop.get_facedir(placer)
-		add_to_elevator_list(pos, {name="<unknown>", up=false, down=false, facedir=facedir, pos=pos})
+		add_to_elevator_list(pos, {name="<unknown>", up=false, down=false, 
+				facedir=facedir, pos=pos})
 		update_elevator(pos)
 		-- formspec
 		local meta = minetest.get_meta(pos)

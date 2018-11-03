@@ -61,7 +61,7 @@ end
 
 local Tube = tubelib2.Tube:new({
 	allowed_6d_dirs = allowed_6d_dirs,
-	max_tube_length = 1000, 
+	max_tube_length = 10000, 
 	show_infotext = true,
 	primary_node_names = {"hyperloop:tube", "hyperloop:tube2"}, 
 	secondary_node_names = {"hyperloop:junction", "hyperloop:station"},
@@ -70,13 +70,6 @@ local Tube = tubelib2.Tube:new({
 			minetest.set_node(pos, {name = "hyperloop:tube2", param2 = param2})
 		else
 			minetest.set_node(pos, {name = "hyperloop:tube", param2 = param2})
-		end
-		if not hyperloop.convert then
-			minetest.sound_play({
-				name="default_place_node_metal"},{
-				gain=1,
-				max_hear_distance=5,
-				loop=false})
 		end
 	end,
 })
@@ -167,7 +160,7 @@ function hyperloop.update_routes(pos, called_from_peer, player_name)
 	if player_name then
 		minetest.chat_send_player(player_name, "[Hyperloop] "..S(pos))
 	end
-	for dir = 1,4 do -- check all 4 directions
+	for dir = 1,6 do -- check all 6 directions
 		local npos = Tube:get_connected_node_pos(pos, dir)
 		if Tube:secondary_node(npos) then
 			table.insert(tRoutes, {S(pos), S(npos)})

@@ -36,22 +36,18 @@ local function station_list_as_string(pos)
 		lStationPositions[spos] = idx
 	end
 	
-	local tRes = {"label[0,0;ID]label[0.7,0;Dist.]label[1.8,0;Station/Junction]label[4.2,0;Position]"..
-		          "label[5.9,0;State]label[7.9,0;Owner]label[10,0;Conn. with]"}
-	local state, owner
+	local tRes = {"label[0,0;ID]label[0.7,0;Dist.]label[1.8,0;Station/Junction]label[5.4,0;Position]"..
+		          "label[7.9,0;Owner]label[10,0;Conn. with]"}
+	local owner
 	for idx,dataSet in ipairs(sortedList) do
-		if idx == 18 then
+		if idx == 23 then
 			break
 		end
 		local ypos = 0.2 + idx * 0.4
-		if dataSet.station_name ~= nil then
-			state = "Station"
-		elseif dataSet.junction == true then
+		if dataSet.junction == true then
 			dataSet.station_name = "Junction"
-			state = "Junction"
-		else
+		elseif dataSet.station_name == nil then
 			dataSet.station_name = "<no name>"
-			state = "unfinished"
 		end
 		if dataSet.owner ~= nil then
 			owner = dataSet.owner
@@ -60,10 +56,9 @@ local function station_list_as_string(pos)
 		end
 		tRes[#tRes+1] = "label[0,"..ypos..";"..idx.."]"
 		tRes[#tRes+1] = "label[0.7,"..ypos..";"..dataSet.distance.." m]"
-		tRes[#tRes+1] = "label[1.8,"..ypos..";"..dataSet.station_name.."]"
-		tRes[#tRes+1] = "label[4.2,"..ypos..";"..minetest.pos_to_string(dataSet.pos).."]"
-		tRes[#tRes+1] = "label[5.9,"..ypos..";"..state.."]"
-		tRes[#tRes+1] = "label[7.9,"..ypos..";"..owner.."]"
+		tRes[#tRes+1] = "label[1.8,"..ypos..";"..string.sub(dataSet.station_name,1,24).."]"
+		tRes[#tRes+1] = "label[5.4,"..ypos..";"..minetest.pos_to_string(dataSet.pos).."]"
+		tRes[#tRes+1] = "label[7.9,"..ypos..";"..string.sub(owner,1,14).."]"
 		tRes[#tRes+1] = "label[10,"..ypos..";"
 		--print(idx, #dataSet.routes)
 		for _,route in ipairs(dataSet.routes) do
@@ -86,8 +81,10 @@ local function map_on_use(itemstack, user)
 	local player_name = user:get_player_name()
 	local pos = user:get_pos()
 	local sStationList = station_list_as_string(pos)
-	local formspec = "size[12,10]" .. default.gui_bg ..
-	default.gui_bg_img ..
+	local formspec = "size[12,10]" .. 
+	default.gui_bg..
+	default.gui_bg_img..
+	default.gui_slots..
 	sStationList ..
 	"button_exit[5,9.5;2,1;close;Close]"
 

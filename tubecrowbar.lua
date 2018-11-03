@@ -63,6 +63,11 @@ local function remove_tube(itemstack, placer, pointed_thing)
 		else
 			Tube:tool_remove_tube(pos, "default_break_metal")
 			Shaft:tool_remove_tube(pos, "default_break_metal")
+			minetest.sound_play({
+				name="default_place_node_metal"},{
+				gain=1,
+				max_hear_distance=5,
+				loop=false})
 		end
 	else
 		tube_crowbar_help(placer)

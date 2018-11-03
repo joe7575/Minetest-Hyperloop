@@ -141,24 +141,6 @@ end
 -- Stations/Junctions
 --
 
-Tube:on_convert_tube(function(pos, name, param2)
-	local dirs = {}
-	for dir = 1, 6 do
-		--local npos = Tube:primary_node(pos, dir)
-		local npos, node = Tube:get_next_node(pos, dir)
-		if node.name == "hyperloop:tube" or node.name == "hyperloop:tube1" or node.name == "hyperloop:tube2" then
-			dirs[#dirs+1] = dir
-		end
-	end
-	if #dirs == 1 then
-		return dirs[1], nil, 1
-	elseif #dirs == 2 then
-		return dirs[1], dirs[2], 2
-	else
-		print("on_convert_tube", dump(dirs))
-	end
-end)
-
 local function convert_tube_line(pos)
 	-- check all positions
 	for dir = 1, 6 do
@@ -174,16 +156,6 @@ end
 --
 -- Elevator shafts
 -- 
-Shaft:on_convert_tube(function(pos, name, param2)
-	if param2 < 30 then
-		print("param2", param2)
-		if name == "hyperloop:shaft2" then
-			return 5, 6, 2
-		elseif name == "hyperloop:shaft" then
-			return 5, 6, 1
-		end
-	end
-end)
 
 local function convert_shaft_line(pos)
 	-- check lower position
@@ -224,14 +196,21 @@ local function convert_station_data(tAllStations)
 end
 
 local function convert_elevator_data(tAllElevators)
-	for key,item in pairs(tAllElevators) do
-		if item.pos and Shaft:secondary_node(item.pos) then
-			hyperloop.data.tAllElevators[key] = item
+	hyperloop.data.tAllElevators = {}
+	for pos,item in pairs(tAllElevators) do
+		local tbl = {}
+		for _,floor in ipairs(item.floors) do
+			if floor.pos and Shaft:secondary_node(floor.pos) then
+				tbl[#tbl+1] = floor
+			end
 		end
+		hyperloop.data.tAllElevators[pos] = {floors = tbl}
 	end
-	for key,item in pairs(tAllElevators) do
-		if item.pos and Shaft:secondary_node(item.pos) then
-			convert_shaft_line(item.pos)
+	for pos,item in pairs(tAllElevators) do
+		for _,floor in ipairs(item.floors) do
+			if floor.pos and Shaft:secondary_node(floor.pos) then
+				convert_shaft_line(floor.pos)
+			end
 		end
 	end
 end
@@ -247,17 +226,16 @@ function hyperloop.file2table(filename)
 end
 
 local function migrate()
+	Shaft:add_legacy_node_names({"hyperloop:shaft", "hyperloop:shaft2"})
+	Tube:add_legacy_node_names({"hyperloop:tube", "hyperloop:tube1", "hyperloop:tube2"})
 	local data = hyperloop.file2table("mod_hyperloop.data")
 	if data then
 		hyperloop.convert = true
 		convert_station_data(data.tAllStations)
 		convert_elevator_data(data.tAllElevators)
-		minetest.safe_file_write(wpath..DIR_DELIM.."mod_hyperloop.data", "")
+		os.remove(wpath..DIR_DELIM.."mod_hyperloop.data")
 		hyperloop.convert = nil
 	end
-	
-	print("NodesWithPeerMeta", dump(NodesWithPeerMeta))
-	print("tWifiNodes", dump(tWifiNodes))
 end
 
-minetest.after(10, migrate)
+minetest.after(5, migrate)

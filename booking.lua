@@ -32,9 +32,6 @@ local function get_station_list(key_str)
 			distance = hyperloop.distance(local_pos, dest_pos),
 			pos_str = minetest.pos_to_string(dest_pos)
 		}
-		if #tRes >= 12 then
-			break
-		end
 	end
 	table.sort(tRes, function(x,y)
 			return x.distance < y.distance
@@ -79,8 +76,12 @@ end
 -- Form spec for the station list
 -- param key_str: local station key
 local function formspec(key_str)
-	local tRes = {"size[12,10]label[3,0; Wähle dein Ziel :: Select your destination]"}
-	tRes[2] = "label[1,0.6;Destination]label[3.5,0.6;Distance]label[5,0.6;Position]label[7,0.6;Local Info]"
+	local tRes = {"size[12,10]"..
+	default.gui_bg..
+	default.gui_bg_img..
+	default.gui_slots..
+	"label[3,0; Wähle dein Ziel :: Select your destination]"}
+	tRes[2] = "label[1,0.6;Destination]label[5.4,0.6;Distance]label[7,0.6;Local Info]"
 	for idx,tDest in ipairs(get_station_list(key_str)) do
 		if idx >= 12 then
 			break
@@ -88,9 +89,8 @@ local function formspec(key_str)
 		local ypos = 0.5 + idx*0.8
 		local ypos2 = ypos - 0.2
 		tRes[#tRes+1] = "button_exit[0,"..ypos2..";1,1;button;"..idx.."]"
-		tRes[#tRes+1] = "label[1,"..ypos..";"..tDest.name.."]"
-		tRes[#tRes+1] = "label[3.5,"..ypos..";"..tDest.distance.." m]"
-		tRes[#tRes+1] = "label[4.7,"..ypos..";"..tDest.pos_str.."]"
+		tRes[#tRes+1] = "label[1,"..ypos..";"..string.sub(tDest.name,1,28).."]"
+		tRes[#tRes+1] = "label[5.4,"..ypos..";"..tDest.distance.." m]"
 		tRes[#tRes+1] = "label[7,"..ypos..";"..tDest.info.."]"
 	end
 	return table.concat(tRes)
