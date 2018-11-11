@@ -101,8 +101,9 @@ local function booking_machine_update(pos, meta)
 	if hyperloop.data.change_counter ~= counter then
 		local key_str = meta:get_string("key_str") or nil
 		if key_str ~= nil and hyperloop.data.tAllStations[key_str] ~= nil then
-			local stations = get_station_list(key_str)
-			meta:set_string("formspec", formspec(key_str, stations))
+			--local stations = get_station_list(key_str)
+			--meta:set_string("formspec", formspec(key_str, stations))
+			meta:set_string("formspec", formspec(key_str))
 		end
 		meta:set_int("change_counter", hyperloop.data.change_counter)
 	end

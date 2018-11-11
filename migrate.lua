@@ -23,6 +23,8 @@ local M = minetest.get_meta
 local Tube = hyperloop.Tube
 local Shaft = hyperloop.Shaft
 
+local tLegacyNodeNames = {}
+
 -- convert legacy tubes to current tubes
 minetest.register_node("hyperloop:tube0", {
 	description = "Hyperloop Legacy Tube",
@@ -53,6 +55,49 @@ minetest.register_node("hyperloop:tube0", {
 	is_ground_content = false,
 	sounds = default.node_sound_metal_defaults(),
 })
+
+
+local function convert_legary_nodes(self, pos, dir)
+	local convert_next_tube = function(self, pos, dir)
+		local npos, node = self:get_node(pos, dir)
+		--print("convert_legary_nodes", S(npos), node.name)
+		if tLegacyNodeNames[node.name]  then
+			local dir1, dir2, num = self:determine_dir1_dir2_and_num_conn(npos)
+			--print("convert_legary_nodes", dir1, dir2, num)
+			if dir1 then
+				self.clbk_after_place_tube(self:tube_data_to_table(npos, dir1, 
+					dir2 or tubelib2.Turn180Deg[dir1], num))
+				if tubelib2.Turn180Deg[dir] == dir1 then
+					return npos, dir2
+				else
+					return npos, dir1
+				end
+			end
+		end
+	end
+	
+	local cnt = 0
+	if not dir then	return pos, dir, cnt end	
+	while cnt <= 100000 do
+		local new_pos, new_dir = convert_next_tube(self, pos, dir)
+		if not new_dir then	break end
+		pos, dir = new_pos, new_dir
+		cnt = cnt + 1
+	end
+	return pos, dir, cnt
+end	
+
+local function convert_line(self, pos, dir)
+	local fpos,fdir = convert_legary_nodes(self, pos, dir)
+	print("convert_line", S(pos), dir, S(fpos), fdir)
+	if not vector.equals(pos, fpos) then
+		local npos,ndir = self:get_pos(pos, dir)
+		self:add_meta(npos, fpos,fdir)
+		self:add_meta(fpos, npos,ndir)
+		self:update_secondary_node(npos,ndir, fpos,fdir)
+		--self:update_secondary_node(fpos,fdir, npos,ndir)
+	end
+end
 
 
 --
@@ -159,14 +204,10 @@ end
 
 local function convert_shaft_line(pos)
 	-- check lower position
-	if Shaft:primary_node(pos, 5) then
-		Shaft:convert_tube_line(pos, 5)
-	end
+	convert_line(Shaft, pos, 5)
 	-- check upper position
 	pos.y = pos.y + 1
-	if Shaft:primary_node(pos, 6) then
-		Shaft:convert_tube_line(pos, 6)
-	end
+	convert_line(Shaft, pos, 6)
 	pos.y = pos.y - 1
 end
 
@@ -196,29 +237,32 @@ local function convert_station_data(tAllStations)
 end
 
 local function convert_elevator_data(tAllElevators)
-	hyperloop.data.tAllElevators = {}
-	for pos,item in pairs(tAllElevators) do
-		local tbl = {}
-		for _,floor in ipairs(item.floors) do
+	tLegacyNodeNames = {
+		["hyperloop:shaft"] = true, 
+		["hyperloop:shaft2"] = true,
+	}
+	hyperloop.tDatabase.tElevators = {}
+	for pos,tElevator in pairs(tAllElevators) do
+		for _,floor in pairs(tElevator.floors) do
 			if floor.pos and Shaft:secondary_node(floor.pos) then
-				tbl[#tbl+1] = floor
-			end
-		end
-		hyperloop.data.tAllElevators[pos] = {floors = tbl}
-	end
-	for pos,item in pairs(tAllElevators) do
-		for _,floor in ipairs(item.floors) do
-			if floor.pos and Shaft:secondary_node(floor.pos) then
+				local new_floor = {
+					conn = {},
+					name = floor.name,
+					facedir = floor.facedir,
+				}
+				local sKey = S(floor.pos)
+				hyperloop.tDatabase.tElevators[sKey] = new_floor
 				convert_shaft_line(floor.pos)
 			end
 		end
 	end
 end
 
+
 local wpath = minetest.get_worldpath()
 function hyperloop.file2table(filename)
 	local f = io.open(wpath..DIR_DELIM..filename, "r")
-	if f == nil then return {} end
+	if f == nil then return nil end
 	local t = f:read("*all")
 	f:close()
 	if t == "" or t == nil then return nil end
@@ -226,16 +270,29 @@ function hyperloop.file2table(filename)
 end
 
 local function migrate()
-	Shaft:add_legacy_node_names({"hyperloop:shaft", "hyperloop:shaft2"})
-	Tube:add_legacy_node_names({"hyperloop:tube", "hyperloop:tube1", "hyperloop:tube2"})
 	local data = hyperloop.file2table("mod_hyperloop.data")
 	if data then
 		hyperloop.convert = true
-		convert_station_data(data.tAllStations)
+		--convert_station_data(data.tAllStations)
 		convert_elevator_data(data.tAllElevators)
 		os.remove(wpath..DIR_DELIM.."mod_hyperloop.data")
 		hyperloop.convert = nil
 	end
+	print(dump(hyperloop.tDatabase))
 end
 
 minetest.after(5, migrate)
+
+
+
+--function Tube:set_pairing(pos, peer_pos)
+	
+--	M(pos):set_int("tube_dir", self:get_primary_dir(pos))
+--	M(peer_pos):set_int("tube_dir", self:get_primary_dir(peer_pos))
+	
+--	local tube_dir1 = self:store_teleport_data(pos, peer_pos)
+--	local tube_dir2 = self:store_teleport_data(peer_pos, pos)
+
+--	self:delete_tube_meta_data(pos, tube_dir1)
+--	self:delete_tube_meta_data(peer_pos, tube_dir2)
+--end

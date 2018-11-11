@@ -3,24 +3,11 @@
 	Hyperloop Mod
 	=============
 
-	Copyright (C) 2017 Joachim Stolberg
+	Copyright (C) 2017-2019 Joachim Stolberg
 
 	LGPLv2.1+
 	See LICENSE.txt for more information
 
-]]--
-
---[[
-	spos = <pos.x>:<pos.z>
-	level = pos.y
-	hyperloop.data.tAllElevators[spos].floors[level] = {
-		pos = {x,y,z},	-- lower elevator block
-		facedir = n,	-- for the door placement
-		name = "...",	-- floor name
-		up = true,		-- connetion flag
-		down = true,	-- connetion flag
-		busy = false,   -- travel flag
-	}
 ]]--
 
 -- for lazy programmers
@@ -28,18 +15,39 @@ local S = minetest.pos_to_string
 local P = minetest.string_to_pos
 local M = minetest.get_meta
 
+-- Load support for intllib.
+local MP = minetest.get_modpath("hyperloop")
+local I, NS = dofile(MP.."/intllib.lua")
+
+-- To store elevator floors and formspecs
+local Cache = {}
+
+local kPLAYER_OVER_GROUND = 0.5
+
+-------------------------------------------------------------------------------
+-- Elevator Shaft
+-------------------------------------------------------------------------------
+
 local Shaft = tubelib2.Tube:new({
-	                -- North, East, South, West, Down, Up
-	allowed_6d_dirs = {false, false, false, false, true, true},  -- vertical only
+	--dirs_to_check = {5,6},  -- vertical only
+	dirs_to_check = {1,2,3,4,5,6},
 	max_tube_length = 1000, 
 	show_infotext = true,
-	primary_node_names = {"hyperloop:shaft", "hyperloop:shaft2"}, 
+	primary_node_names = {"hyperloop:shaft", "hyperloop:shaft2", "hyperloop:shaftA", "hyperloop:shaftA2"}, 
 	secondary_node_names = {"hyperloop:elevator_bottom", "hyperloop:elevator_top"},
 	after_place_tube = function(pos, param2, tube_type, num_tubes)
-		if num_tubes == 2 then
-			minetest.set_node(pos, {name = "hyperloop:shaft2", param2 = param2})
+		if tube_type == "S" then
+			if num_tubes == 2 then
+				minetest.set_node(pos, {name = "hyperloop:shaft2", param2 = param2})
+			else
+				minetest.set_node(pos, {name = "hyperloop:shaft", param2 = param2})
+			end
 		else
-			minetest.set_node(pos, {name = "hyperloop:shaft", param2 = param2})
+			if num_tubes == 2 then
+				minetest.set_node(pos, {name = "hyperloop:shaftA2", param2 = param2})
+			else
+				minetest.set_node(pos, {name = "hyperloop:shaftA", param2 = param2})
+			end
 		end
 	end,
 })
@@ -47,9 +55,8 @@ local Shaft = tubelib2.Tube:new({
 hyperloop.Shaft = Shaft
 
 minetest.register_node("hyperloop:shaft", {
-	description = "Hyperloop Elevator Shaft",
-	inventory_image = minetest.inventorycube('hyperloop_tube_open.png', 
-			"hyperloop_tube_locked.png", "hyperloop_tube_locked.png"),
+	description = I("Hyperloop Elevator Shaft"),
+	inventory_image = 'hyperloop_shaft_inv.png',
 	tiles = {
 		-- up, down, right, left, back, front
 		"hyperloop_tube_locked.png^[transformR90]",
@@ -58,6 +65,20 @@ minetest.register_node("hyperloop:shaft", {
 		"hyperloop_tube_locked.png",
 		'hyperloop_tube_open.png',
 		'hyperloop_tube_open.png',
+	},
+	drawtype = "nodebox",
+	node_box = {
+		type = "fixed",
+		fixed = {
+			{-8/16, -8/16, -8/16, -7/16,  8/16,  8/16},
+			{ 7/16, -8/16, -8/16,  8/16,  8/16,  8/16},
+			{-8/16,  7/16, -8/16,  8/16,  8/16,  8/16},
+			{-8/16, -8/16, -8/16,  8/16, -7/16,  8/16},
+		},
+	},
+	selection_box = {
+		type = "fixed",
+		fixed = {-8/16, -8/16, -8/16,  8/16, 8/16, 8/16},
 	},
 
 	after_place_node = function(pos, placer, itemstack, pointed_thing)
@@ -72,36 +93,102 @@ minetest.register_node("hyperloop:shaft", {
 		Shaft:after_dig_tube(pos, oldnode, oldmetadata)
 	end,
 	
+	climbable = true,
 	paramtype2 = "facedir", -- important!
-	node_placement_prediction = "", -- important!
 	on_rotate = screwdriver.disallow, -- important!
 	paramtype = "light",
-	light_source = 6,
+	light_source = 2,
 	sunlight_propagates = true,
 	is_ground_content = false,
 	groups = {cracky = 1},
 	sounds = default.node_sound_metal_defaults(),
 })
 
+minetest.register_node("hyperloop:shaftA", {
+	description = I("Hyperloop Elevator Shaft"),
+	tiles = {
+		-- up, down, right, left, back, front
+		"hyperloop_tube_locked.png^[transformR90]",
+		'hyperloop_tube_open.png',
+		"hyperloop_tube_locked.png",
+		"hyperloop_tube_locked.png",
+		"hyperloop_tube_locked.png",
+		'hyperloop_tube_open.png',
+	},
+	drawtype = "nodebox",
+	node_box = {
+		type = "fixed",
+		fixed = {
+			{-8/16, -8/16, -8/16, -7/16,  8/16,  8/16},
+			{ 7/16, -8/16, -8/16,  8/16,  8/16,  8/16},
+			{-8/16,  7/16, -8/16,  8/16,  8/16,  8/16},
+			{-8/16, -8/16,  7/16,  8/16,  8/16,  8/16},
+			{-8/16, -8/16, -8/16,  8/16, -7/16, -7/16},
+		},
+	},
+	selection_box = {
+		type = "fixed",
+		fixed = {-8/16, -8/16, -8/16,  8/16, 8/16, 8/16},
+	},
+
+	after_place_node = function(pos, placer, itemstack, pointed_thing)
+		if not Shaft:after_place_tube(pos, placer, pointed_thing) then
+			minetest.remove_node(pos)
+			return true
+		end
+		return false
+	end,
+	
+	after_dig_node = function(pos, oldnode, oldmetadata, digger)
+		Shaft:after_dig_tube(pos, oldnode, oldmetadata)
+	end,
+	
+	climbable = true,
+	paramtype2 = "facedir", -- important!
+	on_rotate = screwdriver.disallow, -- important!
+	paramtype = "light",
+	light_source = 2,
+	sunlight_propagates = true,
+	is_ground_content = false,
+	groups = {cracky = 1, not_in_creative_inventory=1},
+	sounds = default.node_sound_metal_defaults(),
+})
+
 minetest.register_node("hyperloop:shaft2", {
-	description = "Hyperloop Elevator Shaft",
+	description = I("Hyperloop Elevator Shaft"),
 	tiles = {
 		-- up, down, right, left, back, front
 		"hyperloop_tube_locked.png^[transformR90]",
 		"hyperloop_tube_locked.png^[transformR90]",
 		"hyperloop_tube_locked.png",
 		"hyperloop_tube_locked.png",
-		"hyperloop_tube_locked.png",
-		"hyperloop_tube_locked.png",
+		'hyperloop_tube_open.png',
+		'hyperloop_tube_open.png',
+	},
+	drawtype = "nodebox",
+	node_box = {
+		type = "fixed",
+		fixed = {
+			{-8/16, -8/16, -8/16, -7/16,  8/16,  8/16},
+			{ 7/16, -8/16, -8/16,  8/16,  8/16,  8/16},
+			{-8/16,  7/16, -8/16,  8/16,  8/16,  8/16},
+			{-8/16, -8/16, -8/16,  8/16, -7/16,  8/16},
+		},
+	},
+	selection_box = {
+		type = "fixed",
+		fixed = {-8/16, -8/16, -8/16,  8/16, 8/16, 8/16},
 	},
 
 	after_dig_node = function(pos, oldnode, oldmetadata, digger)
 		Shaft:after_dig_tube(pos, oldnode, oldmetadata)
 	end,
 	
+	climbable = true,
 	paramtype2 = "facedir", -- important!
 	on_rotate = screwdriver.disallow, -- important!
 	paramtype = "light",
+	light_source = 2,
 	sunlight_propagates = true,
 	is_ground_content = false,
 	diggable = false,
@@ -109,199 +196,98 @@ minetest.register_node("hyperloop:shaft2", {
 	sounds = default.node_sound_metal_defaults(),
 })
 
+minetest.register_node("hyperloop:shaftA2", {
+	description = I("Hyperloop Elevator Shaft"),
+	tiles = {
+		-- up, down, right, left, back, front
+		"hyperloop_tube_locked.png^[transformR90]",
+		'hyperloop_tube_open.png',
+		"hyperloop_tube_locked.png",
+		"hyperloop_tube_locked.png",
+		"hyperloop_tube_locked.png",
+		'hyperloop_tube_open.png',
+	},
+	drawtype = "nodebox",
+	node_box = {
+		type = "fixed",
+		fixed = {
+			{-8/16, -8/16, -8/16, -7/16,  8/16,  8/16},
+			{ 7/16, -8/16, -8/16,  8/16,  8/16,  8/16},
+			{-8/16,  7/16, -8/16,  8/16,  8/16,  8/16},
+			{-8/16, -8/16,  7/16,  8/16,  8/16,  8/16},
+			{-8/16, -8/16, -8/16,  8/16, -7/16, -7/16},
+		},
+	},
+	selection_box = {
+		type = "fixed",
+		fixed = {-8/16, -8/16, -8/16,  8/16, 8/16, 8/16},
+	},
 
-
--- return index of the table position matching pos or nil
-local function pos_index(tbl, pos)
-	for idx,v in ipairs(tbl) do
-		if v.pos.x == pos.x and v.pos.y == pos.y and v.pos.z == pos.z then
-			return idx
-		end
-	end
-	return nil
-end
-
--- remove invalid entries
-local function remove_artifacts(floors)
-	local tbl = {}
-	for idx,floor in ipairs(floors) do
-		if floor.pos ~= nil and floor.name ~= nil 
-		and floor.up ~= nil and floor.down ~= nil then
-			table.insert(tbl, floor)
-		end
-	end
-	return tbl
-end
-
-
--- determine the elevator list
-local function get_elevator_list(pos)
-	local spos = tostring(pos.x)..":"..tostring(pos.z)
-	if hyperloop.data.tAllElevators[spos] == nil then
-		-- create the elevator
-		hyperloop.data.tAllElevators[spos] = {}
-	end
-	if hyperloop.data.tAllElevators[spos].floors == nil then
-		-- create the floor list
-		hyperloop.data.tAllElevators[spos].floors = {}
-	end
-	-- remove invalid entries
-	hyperloop.data.tAllElevators[spos].floors = 
-			remove_artifacts(hyperloop.data.tAllElevators[spos].floors)
-	return hyperloop.data.tAllElevators[spos].floors
-end
-
-local function remove_elevator_list(pos)
-	local spos = tostring(pos.x)..":"..tostring(pos.z)
-	hyperloop.data.tAllElevators[spos] = nil
-end
-
--- determine the elevator floor item or create one
-local function get_floor_item(pos)
-	local floors = get_elevator_list(pos)
-	local idx = pos_index(floors, pos)
-	if idx == nil then
-		-- create the floor item
-		table.insert(floors, {pos=pos})
-		idx = #floors
-	end
-	return floors[idx]
-end
-
--- Add the given arguments to the elevator table
-local function add_to_elevator_list(pos, tArgs)
-	local floor = get_floor_item(pos)
-	for k,v in pairs(tArgs) do
-		floor[k] = v
-	end
-end
-
-local function dbg_out(label, pos)
-	print(label..":")
-	local floors = get_elevator_list(pos)
-	for _,floor in ipairs(floors) do
-		print("  pos="..floor.pos.x..","..floor.pos.y..","..floor.pos.z..
-			  " facedir="..tostring(floor.facedir).." name="..tostring(floor.name)..
-			  " up="..dump(floor.up).." down="..dump(floor.down))
-	end
-end
-
--- return a sorted list of connected floors
-local function floor_list(pos)
-	local floors = table.copy(get_elevator_list(pos))
-	-- sort the list
-	table.sort(floors, function(x,y) 
-			return x.pos.y > y.pos.y
-		end)
+	after_dig_node = function(pos, oldnode, oldmetadata, digger)
+		Shaft:after_dig_tube(pos, oldnode, oldmetadata)
+	end,
 	
-	-- check if elevator is complete
-	local tOut = {}
-	for idx,floor in ipairs(floors) do
-		if idx == 1 then
-			if floor.down then table.insert(tOut, floor) end
-		elseif idx == #floors then
-			if floor.up then table.insert(tOut, floor) end
-		else
-			if floor.up and floor.down then table.insert(tOut, floor) end
-		end
-	end
-	return tOut
-end
+	climbable = true,
+	paramtype2 = "facedir", -- important!
+	on_rotate = screwdriver.disallow, -- important!
+	paramtype = "light",
+	light_source = 2,
+	sunlight_propagates = true,
+	is_ground_content = false,
+	diggable = false,
+	groups = {cracky = 1, not_in_creative_inventory=1},
+	sounds = default.node_sound_metal_defaults(),
+})
 
+-------------------------------------------------------------------------------
+-- Elevator Car
+-------------------------------------------------------------------------------
 
--- store floor_pos (lower car block) as meta data
-local function set_floor_pos(pos, floor_pos)
-	local s = minetest.pos_to_string(floor_pos)
-	minetest.get_meta(pos):set_string("floor_pos", s)
-	return floor_pos
-end
-
--- read floor_pos (upper car block) from meta data
-local function get_floor_pos(pos)
-	local s = minetest.get_meta(pos):get_string("floor_pos")
-	if s == nil or s == "" then
-		return nil
-	end
-	return minetest.string_to_pos(s)
-end
-	
-	
 -- Form spec for the floor list
-local function formspec(pos)
-	local tRes = {"size[5,10]label[0.5,0; Wähle dein Ziel :: Select your destination]"}
-	tRes[2] = "label[1,0.6;Destination]label[2.5,0.6;Floor]"
-	local list = floor_list(pos)
-	for idx,floor in ipairs(list) do
+local function formspec(pos, lFloors)
+	local tRes = {"size[5,10]label[0.5,0; "..I("Select your destination").."]"}
+	tRes[2] = "label[1,0.6;"..I("Destination").."]label[2.5,0.6;"..I("Floor").."]"
+	for idx,floor in ipairs(lFloors) do
 		if idx >= 12 then
 			break
 		end
 		local ypos = 0.5 + idx*0.8
 		local ypos2 = ypos - 0.2
-		tRes[#tRes+1] = "button_exit[1,"..ypos2..";1,1;button;"..#list-idx.."]"
-		if floor.pos.y ~= pos.y then
-			tRes[#tRes+1] = "label[2.5,"..ypos..";"..floor.name.."]"
+		tRes[#tRes+1] = "button_exit[1,"..ypos2..";1,1;button;"..(#lFloors-idx).."]"
+		if vector.equals(floor.pos, pos) then
+			tRes[#tRes+1] = "label[2.5,"..ypos..";"..I("(current position)").."]"
 		else
-			tRes[#tRes+1] = "label[2.5,"..ypos..";(current position)]"
+			tRes[#tRes+1] = "label[2.5,"..ypos..";"..(floor.name or "<unknown>").."]"
 		end
 	end
 	return table.concat(tRes)
 end
 
 local function update_formspec(pos)
-	local meta = minetest.get_meta(pos)
-	meta:set_string("formspec", formspec(pos))
+	local sKey = S(pos)
+	if not Cache[sKey] or hyperloop.tDatabase.elevator_chng_cnt ~= Cache[sKey].change_counter then
+		local tFloors = hyperloop.get_elevator_table(pos)
+		local lFloors = hyperloop.sort_based_on_level(tFloors)
+		Cache[sKey] = {}
+		Cache[sKey].lFloors = lFloors
+		Cache[sKey].formspec = formspec(pos, lFloors)
+		Cache[sKey].change_counter = hyperloop.tDatabase.elevator_chng_cnt
+	end
+	M(pos):set_string("formspec", Cache[sKey].formspec)
 end
 
-local function remove_from_elevator_list(pos)
-	local floors = get_elevator_list(pos)
-	local idx = pos_index(floors, pos)
-	if idx ~= nil then
-		table.remove(floors, idx)
-	end
-	-- last car in the list?
-	if not next(floors) then
-		remove_elevator_list(pos)
+local function update_elevator(pos, out_dir, peer_pos, peer_in_dir)
+	if out_dir == 6 then  -- to the top?
+		-- switch to elevator_bottom node
+		pos = Shaft:get_pos(pos, 5)
 	else
-		-- update all other elevator cars 
-		for _,floor in ipairs(get_elevator_list(pos)) do
-			if floor.name ~= "<unknown>" then
-				update_formspec(floor.pos)
-			end
+		local _,node = Shaft:get_node(peer_pos)
+		if node.name == "hyperloop:elevator_top" then
+			peer_pos = Shaft:get_pos(peer_pos, 5)
 		end
 	end
-end
-
-local function update_elevator(pos, called_from_peer)
-	local up = false
-	local down = false
-	local npos
-	
-	-- check lower position
-	npos = Shaft:get_connected_node_pos(pos, 5)
-	down = Shaft:secondary_node(npos) ~= nil
-	-- update the evelator on the other end if it's not the caller
-	if down and not called_from_peer then
-		-- address the elevator lower part
-		npos.y = npos.y - 1
-		update_elevator(npos, true)
-	end
-	
-	-- check upper position
-	pos.y = pos.y + 1
-	npos = Shaft:get_connected_node_pos(pos, 6)
-	up = Shaft:secondary_node(npos) ~= nil
-	-- update the evelator on the other end if it's not the caller
-	if up and not called_from_peer then
-		update_elevator(npos, true)
-	end
-	
-	pos.y = pos.y - 1
-	add_to_elevator_list(pos, {up=up, down=down})
-
-	-- update all elevator cars which are already available
-	for _,floor in ipairs(get_elevator_list(pos)) do
-			update_formspec(floor.pos)
-	end
+	print("update_elevatorB", S(pos), out_dir, S(peer_pos), peer_in_dir)
+	hyperloop.update_elevator_conn_table(pos, out_dir, peer_pos)
 end
 
 
@@ -328,8 +314,8 @@ local function door_command(floor_pos, facedir, cmnd, sound)
 		node2.name = "air"
 		minetest.swap_node(door_pos2, node2)
 	elseif cmnd == "close" then
-		set_floor_pos(door_pos1, floor_pos)
-		set_floor_pos(door_pos2, floor_pos)
+		M(door_pos1):set_string("floor_pos", S(floor_pos))
+		M(door_pos2):set_string("floor_pos", S(floor_pos))
 		node1.name = "hyperloop:elevator_door"
 		node1.param2 = facedir
 		minetest.swap_node(door_pos1, node1)
@@ -368,9 +354,9 @@ local function on_arrival_floor(tDeparture, tArrival, player_name, snd)
 	door_command(tArrival.pos, tArrival.facedir, "close", false)
 	tDeparture.busy = false
 	if player ~= nil then
-		local pos = table.copy(tArrival.pos)
-		pos.y = pos.y - 0.5
-		player:set_pos(pos)
+		tArrival.pos.y = tArrival.pos.y - kPLAYER_OVER_GROUND
+		player:set_pos(tArrival.pos)
+		tArrival.pos.y = tArrival.pos.y + kPLAYER_OVER_GROUND
 	end
 	minetest.sound_stop(snd)
 	minetest.after(1.0, on_open_door, tArrival)
@@ -389,10 +375,10 @@ local function on_travel(tDeparture, tArrival, player_name, seconds)
 end
 
 minetest.register_node("hyperloop:elevator_bottom", {
-	description = "Hyperloop Elevator",
+	description = I("Hyperloop Elevator"),
 	tiles = {
-		"hyperloop_elevator.png",
-		"hyperloop_elevator.png",
+		"hyperloop_elevator_bottom.png",
+		"hyperloop_elevator_bottom.png",
 		"hyperloop_elevator.png",
 		"hyperloop_elevator.png",
 		"hyperloop_elevator.png",
@@ -404,59 +390,39 @@ minetest.register_node("hyperloop:elevator_bottom", {
 			{ -8/16, -8/16, -8/16,  -7/16,  8/16, 8/16},
 			{  7/16, -8/16, -8/16,   8/16,  8/16, 8/16},
 			{ -7/16, -8/16,  7/16,   7/16,  8/16, 8/16},
+			{ -8/16, -8/16, -8/16,   8/16, -7/16, 8/16},
 		},
 	},
 	selection_box = {
 		type = "fixed",
-		fixed = { -8/16, -8/16, -7/16,   8/16, 24/16, 8/16 },
+		fixed = { -8/16, -8/16, -8/16,   8/16, 23/16, 8/16 },
 	},
 	inventory_image = "hyperloop_elevator_inventory.png",
 	drawtype = "nodebox",
 	paramtype = 'light',
-	light_source = 4,
+	light_source = 6,
 	paramtype2 = "facedir",
 	is_ground_content = false,
 	groups = {snappy = 3},
 
 	after_place_node = function(pos, placer, itemstack, pointed_thing)
-		-- store floor_pos (lower car block) as meta data
-		set_floor_pos(pos, pos)
 		local facedir = hyperloop.get_facedir(placer)
-		add_to_elevator_list(pos, {name="<unknown>", up=false, down=false, 
-				facedir=facedir, pos=pos})
-		update_elevator(pos)
+		hyperloop.update_elevator(pos, "<unknown>", {facedir=facedir, busy=false})
+		
+		Shaft:after_place_node(pos, {5})
+		
 		-- formspec
 		local meta = minetest.get_meta(pos)
 		local formspec = "size[6,4]"..
-		"label[0,0;Please insert floor name]" ..
-		"field[0.5,1.5;5,1;floor;Floor name;Base]" ..
-		"button_exit[2,3.6;2,1;exit;Save]"
+		"label[0,0;"..I("Please insert floor name").."]" ..
+		"field[0.5,1.5;5,1;floor;"..I("Floor name")..";"..I("Base").."]" ..
+		"button_exit[2,3.6;2,1;exit;"..I("Save").."]"
 		meta:set_string("formspec", formspec)
 		
-		-- swap last shaft node
-		pos.y = pos.y - 1
-		if minetest.get_node_or_nil(pos).name == "hyperloop:shaft" then
-			local node = minetest.get_node(pos)
-			node.name = "hyperloop:shaft2"
-			minetest.swap_node(pos, node)
-		end
-		pos.y = pos.y + 1
-		
 		-- add upper part of the car
-		local floor_pos = table.copy(pos)
-		pos.y = pos.y + 1
+		pos = Shaft:get_pos(pos, 6)
 		minetest.add_node(pos, {name="hyperloop:elevator_top", param2=facedir})
-		-- store floor_pos (lower car block) as meta data
-		set_floor_pos(pos, floor_pos)
-		
-		-- swap last shaft node
-		pos.y = pos.y + 1
-		if minetest.get_node_or_nil(pos).name == "hyperloop:shaft" then
-			local node = minetest.get_node(pos)
-			node.name = "hyperloop:shaft2"
-			minetest.swap_node(pos, node)
-		end
-		pos.y = pos.y -2
+		Shaft:after_place_node(pos, {6})
 	end,
 
 	on_receive_fields = function(pos, formname, fields, player)
@@ -466,24 +432,25 @@ minetest.register_node("hyperloop:elevator_bottom", {
 			if floor == "" then
 				return
 			end
-			-- store the floor name in the global elevator list
-			local floor_pos = get_floor_pos(pos)
-			if floor_pos ~= nil then
-				add_to_elevator_list(floor_pos, {name=floor})
-				update_elevator(floor_pos)
-			end
-		-- destination selected?
-		elseif fields.button ~= nil then
-			local floor = get_floor_item(get_floor_pos(pos))
+			hyperloop.update_elevator(pos, floor, {})
+			update_formspec(pos)
+		elseif fields.button ~= nil then -- destination selected?
+			update_formspec(pos)
+			local floor = hyperloop.get_elevator(pos)
 			if floor then
+				local sKey = S(pos)
 				local idx = tonumber(fields.button)
-				local list = floor_list(floor.pos)
-				local dest = list[#list-idx]
+				local lFloors = Cache[sKey].lFloors
+				local dest = lFloors[#lFloors-idx]
 				if dest and dest.pos and floor.pos then
-					local dist = math.abs(dest.pos.y - floor.pos.y)
-					
+					local dist = hyperloop.distance(dest.pos, floor.pos)
 					if dist ~= 0 and floor.busy ~= true then
-						-- due to the missing display, a trip needś 20 sec maximum
+						if player ~= nil then
+							pos.y = pos.y - kPLAYER_OVER_GROUND
+							player:set_pos(pos)
+							pos.y = pos.y + kPLAYER_OVER_GROUND
+						end
+						-- due to the missing display, a trip needs 20 sec maximum
 						local seconds = math.min(1 + math.floor(dist/30), 20)
 						floor.busy = true
 						door_command(floor.pos, floor.facedir, "close", true)
@@ -496,41 +463,32 @@ minetest.register_node("hyperloop:elevator_bottom", {
 	end,
 
 	on_punch = function(pos, node, puncher, pointed_thing)
-		update_elevator(pos)
-		local floor_pos = get_floor_pos(pos)
-		local floor = get_floor_item(floor_pos)
-		if floor.busy ~= true then
-			door_command(floor_pos, floor.facedir, "open", true)
+		update_formspec(pos)
+		local floor = hyperloop.get_elevator(pos)
+		--dbg()
+		if floor and floor.busy ~= true then
+			door_command(pos, floor.facedir, "open", true)
 		end
 	end,
 
-	on_destruct = function(pos)
-		pos.y = pos.y - 1
-		if minetest.get_node_or_nil(pos).name == "hyperloop:shaft2" then
-			local node = minetest.get_node(pos)
-			node.name = "hyperloop:shaft"
-			minetest.swap_node(pos, node)
-		end
-		pos.y = pos.y + 2
+	tubelib2_on_update = update_elevator,
+	
+	after_dig_node = function(pos, oldnode, oldmetadata, digger)
+		Shaft:after_dig_node(pos, {5})
+		hyperloop.delete_elevator(pos)
+		-- remove the bottom also
+		pos = Shaft:get_pos(pos, 6)
 		minetest.remove_node(pos)
-		pos.y = pos.y - 1
-		remove_from_elevator_list(pos)
-		pos.y = pos.y + 2
-		if minetest.get_node_or_nil(pos).name == "hyperloop:shaft2" then
-			local node = minetest.get_node(pos)
-			node.name = "hyperloop:shaft"
-			minetest.swap_node(pos, node)
-		end
+		Shaft:after_dig_node(pos, {6})
 	end,
-
 })
 
 minetest.register_node("hyperloop:elevator_top", {
-	description = "Hyperloop Elevator",
+	description = I("Hyperloop Elevator"),
 	tiles = {
 		-- up, down, right, left, back, front
-		"hyperloop_elevator.png",
-		"hyperloop_elevator.png",
+		"hyperloop_elevator_bottom.png",
+		"hyperloop_elevator_bottom.png",
 		"hyperloop_elevator_top.png",
 		"hyperloop_elevator.png",
 		"hyperloop_elevator.png",
@@ -539,15 +497,18 @@ minetest.register_node("hyperloop:elevator_top", {
 	node_box = {
 		type = "fixed",
 		fixed = {
+			{ -8/16,  7/16, -8/16,   8/16,  8/16, 8/16},
 			{ -8/16, -8/16, -8/16,  -7/16,  8/16, 8/16},
 			{  7/16, -8/16, -8/16,   8/16,  8/16, 8/16},
 			{ -7/16, -8/16,  7/16,   7/16,  8/16, 8/16},
 		},
 	},
 	
+	tubelib2_on_update = update_elevator,
+	
 	drawtype = "nodebox",
 	paramtype = 'light',
-	light_source = 2,
+	light_source = 6,
 	paramtype2 = "facedir",
 	is_ground_content = false,
 	groups = {snappy = 3, not_in_creative_inventory=1},
@@ -567,11 +528,6 @@ minetest.register_node("hyperloop:elevator_door_top", {
 			{ -8/16, -8/16,  7/16,   8/16,  8/16, 8/16},
 		},
 	},
-	
-	after_place_node = function(pos, placer, itemstack, pointed_thing)
-		-- store floor_pos (lower car block) as meta data
-		set_floor_pos(pos, pos)
-	end,
 	
 	drop = "",
 	paramtype = 'light',
@@ -600,9 +556,10 @@ minetest.register_node("hyperloop:elevator_door", {
 	},
 	
 	on_rightclick = function(pos, node, clicker, itemstack, pointed_thing)
-		local floor_pos = get_floor_pos(pos)
+		local floor_pos = P(M(pos):get_string("floor_pos"))
 		if floor_pos ~= nil then
-			local floor = get_floor_item(floor_pos)
+			update_formspec(floor_pos)
+			local floor = hyperloop.get_elevator(floor_pos)
 			if floor.busy ~= true then
 				door_command(floor.pos, floor.facedir, "open", true)
 			end
@@ -662,4 +619,3 @@ minetest.register_node("hyperloop:elevator_door_dark", {
 	is_ground_content = false,
 	groups = {snappy = 3, not_in_creative_inventory=1},
 })
-

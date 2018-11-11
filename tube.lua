@@ -86,8 +86,16 @@ minetest.register_node("hyperloop:tube", {
 		"hyperloop_tube_closed.png^[transformR90]",
 		'hyperloop_tube_closed.png',
 		'hyperloop_tube_closed.png',
-		'hyperloop_tube_open.png',
-		'hyperloop_tube_open.png',
+		{
+			image = 'hyperloop_tube_open_active.png',
+			backface_culling = false,
+			animation = {
+				type = "vertical_frames",
+				aspect_w = 32,
+				aspect_h = 32,
+				length = 0.5,
+			},
+		},
 	},
 
 	after_place_node = function(pos, placer, itemstack, pointed_thing)
@@ -103,9 +111,9 @@ minetest.register_node("hyperloop:tube", {
 	end,
 	
 	paramtype2 = "facedir", -- important!
-	node_placement_prediction = "", -- important!
 	on_rotate = screwdriver.disallow, -- important!
 	paramtype = "light",
+	light_source = 2,
 	sunlight_propagates = true,
 	is_ground_content = false,
 	groups = {cracky = 1},
@@ -131,6 +139,7 @@ minetest.register_node("hyperloop:tube2", {
 	paramtype2 = "facedir", -- important!
 	on_rotate = screwdriver.disallow, -- important!
 	paramtype = "light",
+	light_source = 2,
 	sunlight_propagates = true,
 	is_ground_content = false,
 	diggable = false,
