@@ -3,18 +3,15 @@
 	Hyperloop Mod
 	=============
 
-	Copyright (C) 2017 Joachim Stolberg
+	Copyright (C) 2017-2019 Joachim Stolberg
 
 	LGPLv2.1+
 	See LICENSE.txt for more information
 
-	History:
-	see init.lua
-
 ]]--
 
 -- for lazy programmers
-local S = minetest.pos_to_string
+local S = function(pos) if pos then return minetest.pos_to_string(pos) end end
 local P = minetest.string_to_pos
 local M = minetest.get_meta
 
@@ -45,6 +42,18 @@ local function repair_tubes(itemstack, placer, pointed_thing)
 				gain=2,
 				max_hear_distance=5,
 				loop=false})
+		else
+			local dir1, dir2, fpos1, fpos2, fdir1, fdir2, cnt1, cnt2 = 
+					Tube:tool_repair_tube(pos, placer, pointed_thing)
+			if fpos1 and fpos2 then
+				minetest.chat_send_player(placer:get_player_name(), chat_message(dir1, cnt1, fpos1, fdir1))
+				minetest.chat_send_player(placer:get_player_name(), chat_message(dir2, cnt2, fpos2, fdir2))
+				minetest.sound_play({
+					name="hyperloop_crowbar"},{
+					gain=2,
+					max_hear_distance=5,
+					loop=false})
+			end
 		end
 	else
 		minetest.chat_send_player(placer:get_player_name(), 
@@ -55,9 +64,14 @@ local function repair_tubes(itemstack, placer, pointed_thing)
 end
 
 local function remove_tube(itemstack, placer, pointed_thing)
-	if pointed_thing.type == "node" then
-		local pos = pointed_thing.under
-		Shaft:tool_remove_tube(pos, "default_break_glass")
+	if minetest.check_player_privs(placer:get_player_name(), "hyperloop") then
+		if pointed_thing.type == "node" then
+			local pos = pointed_thing.under
+			Shaft:tool_remove_tube(pos, "default_break_glass")
+			Tube:tool_remove_tube(pos, "default_break_glass")
+		end
+	else
+		minetest.chat_send_player(placer:get_player_name(), "You don't have the necessary privs!")
 	end
 end
 
@@ -78,3 +92,8 @@ minetest.register_node("hyperloop:tube_crowbar", {
 	node_placement_prediction = "",
 	stack_max = 1,
 })
+
+minetest.register_privilege("hyperloop", 
+	{description = "Rights to remove tube nodes by means of the crowbar", 
+	give_to_singleplayer = false})
+

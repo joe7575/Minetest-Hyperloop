@@ -3,32 +3,30 @@
 	Hyperloop Mod
 	=============
 
-	Copyright (C) 2017 Joachim Stolberg
+	Copyright (C) 2017-2019 Joachim Stolberg
 
 	LGPLv2.1+
 	See LICENSE.txt for more information
 
-	History:
-	see init.lua
-
 ]]--
 
 -- for lazy programmers
-local S = minetest.pos_to_string
+local S = function(pos) if pos then return minetest.pos_to_string(pos) end end
 local P = minetest.string_to_pos
 local M = minetest.get_meta
 
+--- Load support for intllib.
+local MP = minetest.get_modpath("hyperloop")
+local I, NS = dofile(MP.."/intllib.lua")
+
 -- Open the door for an emergency
 local function door_on_punch(pos, node, puncher, pointed_thing)
-	local meta = minetest.get_meta(pos)
-	local key_str = meta:get_string("key_str")
-	if hyperloop.data.tAllStations[key_str] ~= nil then
-		local station_name = hyperloop.data.tAllStations[key_str].station_name
-		if station_name == nil then
-			hyperloop.chat(puncher, "The Booking Machine for this station is missing!")
-		elseif not hyperloop.is_blocked(station_name) then
-			local tStation = hyperloop.get_station_data(key_str)
-			hyperloop.open_pod_door(tStation)
+	local station = hyperloop.get_base_station(pos)
+	if station then
+		if station.name == "Station" then
+			hyperloop.chat(puncher, I("The Booking Machine for this station is missing!"))
+		elseif not hyperloop.is_blocked(station.pos) then
+			hyperloop.open_pod_door(station)
 		end
 	end
 end
@@ -116,12 +114,12 @@ minetest.register_node("hyperloop:doorTopPassive", {
 	
 	on_punch = door_on_punch,
 	
-	auto_place_node = function(pos, placer, facedir, key_str)
-		local meta = minetest.get_meta(pos)
-		meta:set_int("facedir", facedir)
-		meta:set_string("key_str", key_str)
+	auto_place_node = function(pos, facedir, sStationPos)
+		M(pos):set_int("facedir", facedir)
+		M(pos):set_string("sStationPos", sStationPos)
 	end,
 	
+	on_rotate = screwdriver.disallow,	
 	paramtype = 'light',
 	light_source = 1,
 	paramtype2 = "facedir",
@@ -155,6 +153,8 @@ minetest.register_node("hyperloop:doorTopActive", {
 		type = "fixed",
 		fixed = {-8/16, -8/16, -5/16, 8/16, 8/16, 5/16},
 	},
+	
+	on_rotate = screwdriver.disallow,	
 	paramtype2 = "facedir",
 	drop = "",
 	light_source = 2,
@@ -182,12 +182,12 @@ minetest.register_node("hyperloop:doorBottom", {
 	
 	on_punch = door_on_punch,
 	
-	auto_place_node = function(pos, placer, facedir, key_str)
-		local meta = minetest.get_meta(pos)
-		meta:set_int("facedir", facedir)
-		meta:set_string("key_str", key_str)
+	auto_place_node = function(pos, facedir, sStationPos)
+		M(pos):set_int("facedir", facedir)
+		M(pos):set_string("sStationPos", sStationPos)
 	end,
 	
+	on_rotate = screwdriver.disallow,	
 	paramtype = 'light',
 	light_source = 1,
 	paramtype2 = "facedir",

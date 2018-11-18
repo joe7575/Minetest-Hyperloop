@@ -31,26 +31,34 @@
 
 ]]--
 
+hyperloop = {}
 
+-- Configuration settings
+hyperloop.wifi_enabled = minetest.setting_get("hyperloop_wifi_enabled") or false
+hyperloop.free_tube_placement_enabled = minetest.setting_get("hyperloop_free_tube_placement_enabled") or false
+
+
+dofile(minetest.get_modpath("hyperloop") .. "/network.lua")
 dofile(minetest.get_modpath("hyperloop") .. "/data_base.lua")
+dofile(minetest.get_modpath("hyperloop") .. "/booking.lua")
 dofile(minetest.get_modpath("hyperloop") .. "/utils.lua")
 dofile(minetest.get_modpath("hyperloop") .. "/elevator.lua")
+dofile(minetest.get_modpath("hyperloop") .. "/tube.lua")
 dofile(minetest.get_modpath("hyperloop") .. "/tubecrowbar.lua")
---dofile(minetest.get_modpath("hyperloop") .. "/tube.lua")
---dofile(minetest.get_modpath("hyperloop") .. "/booking.lua")
---dofile(minetest.get_modpath("hyperloop") .. "/junction.lua")
---dofile(minetest.get_modpath("hyperloop") .. "/station.lua")
---if hyperloop.wifi_enabled then
---	dofile(minetest.get_modpath("hyperloop") .. "/wifi.lua")
---end
---dofile(minetest.get_modpath("hyperloop") .. "/map.lua")
---dofile(minetest.get_modpath("hyperloop") .. "/door.lua")
---dofile(minetest.get_modpath("hyperloop") .. "/seat.lua")
+dofile(minetest.get_modpath("hyperloop") .. "/junction.lua")
+dofile(minetest.get_modpath("hyperloop") .. "/station.lua")
+dofile(minetest.get_modpath("hyperloop") .. "/booking_node.lua")
+if hyperloop.wifi_enabled then
+	dofile(minetest.get_modpath("hyperloop") .. "/wifi.lua")
+end
+dofile(minetest.get_modpath("hyperloop") .. "/map.lua")
+dofile(minetest.get_modpath("hyperloop") .. "/door.lua")
+dofile(minetest.get_modpath("hyperloop") .. "/seat.lua")
 --dofile(minetest.get_modpath("hyperloop") .. "/robot.lua")
---dofile(minetest.get_modpath("hyperloop") .. "/lcd.lua")
---dofile(minetest.get_modpath("hyperloop") .. "/waypoint.lua")
---dofile(minetest.get_modpath("hyperloop") .. "/deco.lua")
---dofile(minetest.get_modpath("hyperloop") .. "/recipes.lua")
+dofile(minetest.get_modpath("hyperloop") .. "/lcd.lua")
+dofile(minetest.get_modpath("hyperloop") .. "/waypoint.lua")
+dofile(minetest.get_modpath("hyperloop") .. "/deco.lua")
+dofile(minetest.get_modpath("hyperloop") .. "/recipes.lua")
 ---- Migration from v1 to v2
 dofile(minetest.get_modpath("hyperloop") .. "/migrate.lua")
 

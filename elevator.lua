@@ -11,7 +11,7 @@
 ]]--
 
 -- for lazy programmers
-local S = minetest.pos_to_string
+local S = function(pos) if pos then return minetest.pos_to_string(pos) end end
 local P = minetest.string_to_pos
 local M = minetest.get_meta
 
@@ -38,15 +38,15 @@ local Shaft = tubelib2.Tube:new({
 	after_place_tube = function(pos, param2, tube_type, num_tubes)
 		if tube_type == "S" then
 			if num_tubes == 2 then
-				minetest.set_node(pos, {name = "hyperloop:shaft2", param2 = param2})
+				minetest.swap_node(pos, {name = "hyperloop:shaft2", param2 = param2})
 			else
-				minetest.set_node(pos, {name = "hyperloop:shaft", param2 = param2})
+				minetest.swap_node(pos, {name = "hyperloop:shaft", param2 = param2})
 			end
 		else
 			if num_tubes == 2 then
-				minetest.set_node(pos, {name = "hyperloop:shaftA2", param2 = param2})
+				minetest.swap_node(pos, {name = "hyperloop:shaftA2", param2 = param2})
 			else
-				minetest.set_node(pos, {name = "hyperloop:shaftA", param2 = param2})
+				minetest.swap_node(pos, {name = "hyperloop:shaftA", param2 = param2})
 			end
 		end
 	end,
@@ -59,12 +59,12 @@ minetest.register_node("hyperloop:shaft", {
 	inventory_image = 'hyperloop_shaft_inv.png',
 	tiles = {
 		-- up, down, right, left, back, front
-		"hyperloop_tube_locked.png^[transformR90]",
-		"hyperloop_tube_locked.png^[transformR90]",
-		"hyperloop_tube_locked.png",
-		"hyperloop_tube_locked.png",
-		'hyperloop_tube_open.png',
-		'hyperloop_tube_open.png',
+		"hyperloop_tube_closed.png^[transformR90]",
+		"hyperloop_tube_closed.png^[transformR90]",
+		"hyperloop_tube_closed.png",
+		"hyperloop_tube_closed.png",
+		'hyperloop_tube.png',
+		'hyperloop_tube.png',
 	},
 	drawtype = "nodebox",
 	node_box = {
@@ -108,12 +108,12 @@ minetest.register_node("hyperloop:shaftA", {
 	description = I("Hyperloop Elevator Shaft"),
 	tiles = {
 		-- up, down, right, left, back, front
-		"hyperloop_tube_locked.png^[transformR90]",
-		'hyperloop_tube_open.png',
-		"hyperloop_tube_locked.png",
-		"hyperloop_tube_locked.png",
-		"hyperloop_tube_locked.png",
-		'hyperloop_tube_open.png',
+		"hyperloop_tube_closed.png^[transformR90]",
+		'hyperloop_tube.png',
+		"hyperloop_tube_closed.png",
+		"hyperloop_tube_closed.png",
+		"hyperloop_tube_closed.png",
+		'hyperloop_tube.png',
 	},
 	drawtype = "nodebox",
 	node_box = {
@@ -151,6 +151,7 @@ minetest.register_node("hyperloop:shaftA", {
 	sunlight_propagates = true,
 	is_ground_content = false,
 	groups = {cracky = 1, not_in_creative_inventory=1},
+	drop = "hyperloop:shaft",
 	sounds = default.node_sound_metal_defaults(),
 })
 
@@ -158,12 +159,12 @@ minetest.register_node("hyperloop:shaft2", {
 	description = I("Hyperloop Elevator Shaft"),
 	tiles = {
 		-- up, down, right, left, back, front
-		"hyperloop_tube_locked.png^[transformR90]",
-		"hyperloop_tube_locked.png^[transformR90]",
-		"hyperloop_tube_locked.png",
-		"hyperloop_tube_locked.png",
-		'hyperloop_tube_open.png',
-		'hyperloop_tube_open.png',
+		"hyperloop_tube_locked.png^hyperloop_elogo.png^[transformR270]",
+		"hyperloop_tube_locked.png^hyperloop_elogo.png^[transformR90]",
+		"hyperloop_tube_locked.png^hyperloop_elogo.png^[transformR180]",
+		"hyperloop_tube_locked.png^hyperloop_elogo.png",
+		'hyperloop_tube.png',
+		'hyperloop_tube.png',
 	},
 	drawtype = "nodebox",
 	node_box = {
@@ -200,12 +201,12 @@ minetest.register_node("hyperloop:shaftA2", {
 	description = I("Hyperloop Elevator Shaft"),
 	tiles = {
 		-- up, down, right, left, back, front
-		"hyperloop_tube_locked.png^[transformR90]",
-		'hyperloop_tube_open.png',
-		"hyperloop_tube_locked.png",
-		"hyperloop_tube_locked.png",
-		"hyperloop_tube_locked.png",
-		'hyperloop_tube_open.png',
+		"hyperloop_tube_locked.png^hyperloop_elogo.png^[transformR270]",
+		'hyperloop_tube.png',
+		"hyperloop_tube_locked.png^hyperloop_elogo.png^[transformR180]",
+		"hyperloop_tube_locked.png^hyperloop_elogo.png^[transformR180]",
+		"hyperloop_tube_locked.png^hyperloop_elogo.png^[transformR90]",
+		'hyperloop_tube.png',
 	},
 	drawtype = "nodebox",
 	node_box = {
@@ -560,7 +561,7 @@ minetest.register_node("hyperloop:elevator_door", {
 		if floor_pos ~= nil then
 			update_formspec(floor_pos)
 			local floor = hyperloop.get_elevator(floor_pos)
-			if floor.busy ~= true then
+			if floor and floor.busy ~= true then
 				door_command(floor.pos, floor.facedir, "open", true)
 			end
 		end
