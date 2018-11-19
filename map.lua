@@ -117,6 +117,7 @@ minetest.register_node("hyperloop:station_map", {
 	wield_image = "hyperloop_stations_book.png",
 	groups = {cracky=1, book=1},
 	on_use = map_on_use,
+	on_place = map_on_secondary_use,
 	on_secondary_use = map_on_secondary_use,
 	stack_max = 1,
 })

@@ -33,9 +33,9 @@ local function generate_string(sortedList)
 	default.gui_bg..
 	default.gui_bg_img..
 	default.gui_slots..
-	"label[3,0; "..I("Select your destination").."]"}
-	tRes[2] = "label[1,0.6;"..I("Destination").."]label[5.4,0.6;"..
-			I("Distance").."]label[7,0.6;"..I("Local Info").."]"
+	"label[4,0; "..I("Select your destination").."]"}
+	tRes[2] = "label[1,0.6;"..I("Destination").."]label[5,0.6;"..
+			I("Distance").."]label[6.6,0.6;"..I("Local Info").."]"
 	for idx,tDest in ipairs(sortedList) do
 		if idx >= 12 then
 			break
@@ -44,12 +44,12 @@ local function generate_string(sortedList)
 		local ypos2 = ypos - 0.2
 		local name = tDest.name or "<unknown>"
 		local distance = tDest.distance or 0
-		local info = tDest.info or ""
+		local info = tDest.booking_info or ""
 		
 		tRes[#tRes+1] = "button_exit[0,"..ypos2..";1,1;button;"..idx.."]"
 		tRes[#tRes+1] = "label[1,"..ypos..";"..string.sub(name,1,28).."]"
-		tRes[#tRes+1] = "label[5.4,"..ypos..";"..distance.." m]"
-		tRes[#tRes+1] = "label[7,"..ypos..";"..info.."]"
+		tRes[#tRes+1] = "label[5,"..ypos..";"..distance.." m]"
+		tRes[#tRes+1] = "label[6.6,"..ypos..";"..info.."]"
 	end
 	return table.concat(tRes)
 end
@@ -103,13 +103,14 @@ end
 
 local function booking_machine_update(pos)
 	local meta = M(pos)
+	print("booking_machine_update")
 	local sStationPos = meta:get_string("sStationPos")
 	if sStationPos ~= "" then
 		local station_pos = P(sStationPos)
 		local counter = meta:get_int("change_counter") or 0
 		local changed, newcounter = Stations:changed(counter)
 		if changed then
-			print("booking_machine_update")
+			print("booking_machine_update changed")
 			meta:set_string("formspec", station_list_as_string(station_pos))
 			meta:set_int("change_counter", newcounter)
 		end

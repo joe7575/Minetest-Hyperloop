@@ -263,12 +263,12 @@ minetest.register_node("hyperloop:station", {
 		hyperloop.check_network_level(pos, placer)
 		M(pos):set_string("infotext", I("Station"))
 		store_station(pos, placer)
-		Tube:after_place_node(pos, {1,2,3,4})
+		Tube:after_place_node(pos)
 	end,
 
 	tubelib2_on_update = function(pos, out_dir, peer_pos, peer_in_dir)
 		print("tubelib2_on_update", S(pos), S(peer_pos))
-		if out_dir <= 4 then
+		if out_dir <= 5 then
 			Stations:update_connections(pos, out_dir, peer_pos)
 			local s = hyperloop.get_connection_string(pos)
 			M(pos):set_string("infotext", I("Station connected with ")..s)
@@ -295,7 +295,7 @@ minetest.register_node("hyperloop:station", {
 	end,
 	
 	after_dig_node = function(pos, oldnode, oldmetadata, digger)
-		Tube:after_dig_node(pos, {1,2,3,4})
+		Tube:after_dig_node(pos)
 		Stations:delete(pos)
 	end,
 		

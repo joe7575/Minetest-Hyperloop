@@ -53,6 +53,7 @@ local Shaft = tubelib2.Tube:new({
 })
 
 hyperloop.Shaft = Shaft
+local Elevators = hyperloop.Elevators
 
 minetest.register_node("hyperloop:shaft", {
 	description = I("Hyperloop Elevator Shaft"),
@@ -94,8 +95,8 @@ minetest.register_node("hyperloop:shaft", {
 	end,
 	
 	climbable = true,
-	paramtype2 = "facedir", -- important!
-	on_rotate = screwdriver.disallow, -- important!
+	paramtype2 = "facedir",
+	on_rotate = screwdriver.disallow,
 	paramtype = "light",
 	light_source = 2,
 	sunlight_propagates = true,
@@ -144,8 +145,8 @@ minetest.register_node("hyperloop:shaftA", {
 	end,
 	
 	climbable = true,
-	paramtype2 = "facedir", -- important!
-	on_rotate = screwdriver.disallow, -- important!
+	paramtype2 = "facedir",
+	on_rotate = screwdriver.disallow,
 	paramtype = "light",
 	light_source = 2,
 	sunlight_propagates = true,
@@ -186,8 +187,8 @@ minetest.register_node("hyperloop:shaft2", {
 	end,
 	
 	climbable = true,
-	paramtype2 = "facedir", -- important!
-	on_rotate = screwdriver.disallow, -- important!
+	paramtype2 = "facedir",
+	on_rotate = screwdriver.disallow,
 	paramtype = "light",
 	light_source = 2,
 	sunlight_propagates = true,
@@ -229,8 +230,8 @@ minetest.register_node("hyperloop:shaftA2", {
 	end,
 	
 	climbable = true,
-	paramtype2 = "facedir", -- important!
-	on_rotate = screwdriver.disallow, -- important!
+	paramtype2 = "facedir",
+	on_rotate = screwdriver.disallow,
 	paramtype = "light",
 	light_source = 2,
 	sunlight_propagates = true,
@@ -265,14 +266,16 @@ local function formspec(pos, lFloors)
 end
 
 local function update_formspec(pos)
+	local meta = M(pos)
+	local counter = meta:get_int("change_counter") or 0
+	local changed, newcounter = Elevators:changed(counter)
 	local sKey = S(pos)
-	if not Cache[sKey] or hyperloop.tDatabase.elevator_chng_cnt ~= Cache[sKey].change_counter then
-		local tFloors = hyperloop.get_elevator_table(pos)
-		local lFloors = hyperloop.sort_based_on_level(tFloors)
+	if changed or not Cache[sKey] then
+		local lFloors = Elevators:station_list(pos, pos, "level")
 		Cache[sKey] = {}
 		Cache[sKey].lFloors = lFloors
 		Cache[sKey].formspec = formspec(pos, lFloors)
-		Cache[sKey].change_counter = hyperloop.tDatabase.elevator_chng_cnt
+		meta:set_int("change_counter", newcounter)
 	end
 	M(pos):set_string("formspec", Cache[sKey].formspec)
 end
@@ -288,7 +291,7 @@ local function update_elevator(pos, out_dir, peer_pos, peer_in_dir)
 		end
 	end
 	print("update_elevatorB", S(pos), out_dir, S(peer_pos), peer_in_dir)
-	hyperloop.update_elevator_conn_table(pos, out_dir, peer_pos)
+	Elevators:update_connections(pos, out_dir, peer_pos)
 end
 
 
@@ -408,7 +411,7 @@ minetest.register_node("hyperloop:elevator_bottom", {
 
 	after_place_node = function(pos, placer, itemstack, pointed_thing)
 		local facedir = hyperloop.get_facedir(placer)
-		hyperloop.update_elevator(pos, "<unknown>", {facedir=facedir, busy=false})
+		Elevators:set(pos, "<unknown>", {facedir=facedir, busy=false})
 		
 		Shaft:after_place_node(pos, {5})
 		
@@ -417,7 +420,7 @@ minetest.register_node("hyperloop:elevator_bottom", {
 		local formspec = "size[6,4]"..
 		"label[0,0;"..I("Please insert floor name").."]" ..
 		"field[0.5,1.5;5,1;floor;"..I("Floor name")..";"..I("Base").."]" ..
-		"button_exit[2,3.6;2,1;exit;"..I("Save").."]"
+		"button_exit[2,3;2,1;exit;"..I("Save").."]"
 		meta:set_string("formspec", formspec)
 		
 		-- add upper part of the car
@@ -433,12 +436,14 @@ minetest.register_node("hyperloop:elevator_bottom", {
 			if floor == "" then
 				return
 			end
-			hyperloop.update_elevator(pos, floor, {})
+			Elevators:update(pos, {name=floor})
 			update_formspec(pos)
 		elseif fields.button ~= nil then -- destination selected?
 			update_formspec(pos)
-			local floor = hyperloop.get_elevator(pos)
+			local floor = Elevators:get(pos)
 			if floor then
+				floor = table.copy(floor)
+				floor.pos = pos
 				local sKey = S(pos)
 				local idx = tonumber(fields.button)
 				local lFloors = Cache[sKey].lFloors
@@ -465,7 +470,7 @@ minetest.register_node("hyperloop:elevator_bottom", {
 
 	on_punch = function(pos, node, puncher, pointed_thing)
 		update_formspec(pos)
-		local floor = hyperloop.get_elevator(pos)
+		local floor = Elevators:get(pos)
 		--dbg()
 		if floor and floor.busy ~= true then
 			door_command(pos, floor.facedir, "open", true)
@@ -476,7 +481,7 @@ minetest.register_node("hyperloop:elevator_bottom", {
 	
 	after_dig_node = function(pos, oldnode, oldmetadata, digger)
 		Shaft:after_dig_node(pos, {5})
-		hyperloop.delete_elevator(pos)
+		Elevators:delete(pos)
 		-- remove the bottom also
 		pos = Shaft:get_pos(pos, 6)
 		minetest.remove_node(pos)
@@ -560,9 +565,9 @@ minetest.register_node("hyperloop:elevator_door", {
 		local floor_pos = P(M(pos):get_string("floor_pos"))
 		if floor_pos ~= nil then
 			update_formspec(floor_pos)
-			local floor = hyperloop.get_elevator(floor_pos)
+			local floor = Elevators:get(floor_pos)
 			if floor and floor.busy ~= true then
-				door_command(floor.pos, floor.facedir, "open", true)
+				door_command(floor_pos, floor.facedir, "open", true)
 			end
 		end
 	end,
