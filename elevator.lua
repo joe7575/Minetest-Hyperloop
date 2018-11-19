@@ -290,7 +290,6 @@ local function update_elevator(pos, out_dir, peer_pos, peer_in_dir)
 			peer_pos = Shaft:get_pos(peer_pos, 5)
 		end
 	end
-	print("update_elevatorB", S(pos), out_dir, S(peer_pos), peer_in_dir)
 	Elevators:update_connections(pos, out_dir, peer_pos)
 end
 
@@ -402,6 +401,7 @@ minetest.register_node("hyperloop:elevator_bottom", {
 		fixed = { -8/16, -8/16, -8/16,   8/16, 23/16, 8/16 },
 	},
 	inventory_image = "hyperloop_elevator_inventory.png",
+	on_rotate = screwdriver.disallow,	
 	drawtype = "nodebox",
 	paramtype = 'light',
 	light_source = 6,
@@ -512,6 +512,7 @@ minetest.register_node("hyperloop:elevator_top", {
 	
 	tubelib2_on_update = update_elevator,
 	
+	on_rotate = screwdriver.disallow,	
 	drawtype = "nodebox",
 	paramtype = 'light',
 	light_source = 6,
@@ -535,6 +536,7 @@ minetest.register_node("hyperloop:elevator_door_top", {
 		},
 	},
 	
+	on_rotate = screwdriver.disallow,	
 	drop = "",
 	paramtype = 'light',
 	paramtype2 = "facedir",
@@ -572,6 +574,7 @@ minetest.register_node("hyperloop:elevator_door", {
 		end
 	end,
 	
+	on_rotate = screwdriver.disallow,	
 	drop = "",
 	paramtype = 'light',
 	paramtype2 = "facedir",
@@ -593,6 +596,7 @@ minetest.register_node("hyperloop:elevator_door_dark_top", {
 		},
 	},
 	
+	on_rotate = screwdriver.disallow,	
 	drop = "",
 	paramtype = 'light',
 	paramtype2 = "facedir",
@@ -619,6 +623,7 @@ minetest.register_node("hyperloop:elevator_door_dark", {
 		fixed = { -8/16, -8/16, 7/16,   8/16, 24/16, 8/16 },
 	},
 	
+	on_rotate = screwdriver.disallow,	
 	drop = "",
 	paramtype = 'light',
 	paramtype2 = "facedir",

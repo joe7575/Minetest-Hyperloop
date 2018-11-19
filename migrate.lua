@@ -64,10 +64,8 @@ end
 local function convert_legary_nodes(self, pos, dir)
 	local convert_next_tube = function(self, pos, dir)
 		local npos, node = self:get_node(pos, dir)
-		print("convert_legary_nodes", S(npos), node.name)
 		if tLegacyNodeNames[node.name]  then
 			local dir1, dir2, num = self:determine_dir1_dir2_and_num_conn(npos)
-			print("convert_legary_nodes", dir1, dir2, num)
 			if dir1 then
 				self.clbk_after_place_tube(self:tube_data_to_table(npos, dir1, 
 					dir2 or tubelib2.Turn180Deg[dir1], num))
@@ -93,7 +91,6 @@ end
 
 local function convert_line(self, pos, dir)
 	local fpos,fdir = convert_legary_nodes(self, pos, dir)
-	print("convert_line", S(pos), dir, S(fpos), fdir)
 	if not vector.equals(pos, fpos) then
 		local npos,ndir = self:get_pos(pos, dir)
 		self:add_meta(npos, fpos,fdir)
@@ -108,7 +105,6 @@ local tWifiNodes = {}  -- user for pairing
 local lWifiNodes = {}  -- used for post processing
 
 local function set_pairing(pos, peer_pos)
-	print("set_pairing", S(pos), S(peer_pos))
 	
 	M(pos):set_int("tube_dir", Tube:get_primary_dir(pos))
 	M(peer_pos):set_int("tube_dir", Tube:get_primary_dir(peer_pos))
@@ -164,8 +160,6 @@ local function next_node_on_the_way_to_a_wifi_node(pos)
 		return dirs[1], nil, 1
 	elseif #dirs == 2 then
 		return dirs[1], dirs[2], 2
-	else
-		print("on_convert_tube", dump(dirs))
 	end
 end
 
@@ -209,8 +203,6 @@ local function convert_tube_line(pos)
 		local npos, node = Tube:get_node(pos, dir)
 		if node and node.name == "hyperloop:tube1" then
 			convert_line(Tube, pos, dir)
-			--local peer = Tube:repair_tube_line(pos, dir)
-			--print("npos", FoundWifiNodes[S(npos)])
 		end
 	end
 end
@@ -320,11 +312,13 @@ end
 local function migrate()
 	local data = hyperloop.file2table("mod_hyperloop.data")
 	if data then
+		minetest.log("action", "[Hyperloop] Migrate data...")
 		hyperloop.convert = true
 		convert_station_data(data.tAllStations)
 		convert_elevator_data(data.tAllElevators)
 		os.remove(wpath..DIR_DELIM.."mod_hyperloop.data")
 		hyperloop.convert = nil
+	minetest.log("action", "[Hyperloop] Data migrated")
 	end
 end
 

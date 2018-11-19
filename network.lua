@@ -91,7 +91,6 @@ end
 local function sort_based_on_distance(tStations, pos)
 	local lStations = table_to_list(table.copy(tStations))
 	-- to be able to sort the list, the distance to pos has to be added
-	print("sort_based_on_distance", S(pos), dump(lStations))
 	lStations = add_distance_to_list(lStations, pos)
 	table.sort(lStations, function(a,b) return a.distance < b.distance end)
 	return lStations
@@ -174,7 +173,6 @@ function Network:delete(pos)
 end
 
 function Network:changed(counter)
-	print ("changed", self.change_counter, counter)
 	return self.change_counter > counter, self.change_counter
 end
 	

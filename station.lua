@@ -267,7 +267,6 @@ minetest.register_node("hyperloop:station", {
 	end,
 
 	tubelib2_on_update = function(pos, out_dir, peer_pos, peer_in_dir)
-		print("tubelib2_on_update", S(pos), S(peer_pos))
 		if out_dir <= 5 then
 			Stations:update_connections(pos, out_dir, peer_pos)
 			local s = hyperloop.get_connection_string(pos)
@@ -314,6 +313,7 @@ minetest.register_node("hyperloop:pod_wall", {
 		"hyperloop_skin2.png",
 		"hyperloop_skin.png",
 	},
+	on_rotate = screwdriver.disallow,	
 	paramtype2 = "facedir",
 	groups = {cracky=2},
 	is_ground_content = false,
@@ -328,6 +328,7 @@ minetest.register_node("hyperloop:pod_wall_ni", {
 		"hyperloop_skin2.png",
 		"hyperloop_skin.png",
 	},
+	on_rotate = screwdriver.disallow,	
 	paramtype2 = "facedir",
 	groups = {cracky=2, not_in_creative_inventory=1},
 	is_ground_content = false,

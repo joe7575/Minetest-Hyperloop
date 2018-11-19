@@ -103,14 +103,12 @@ end
 
 local function booking_machine_update(pos)
 	local meta = M(pos)
-	print("booking_machine_update")
 	local sStationPos = meta:get_string("sStationPos")
 	if sStationPos ~= "" then
 		local station_pos = P(sStationPos)
 		local counter = meta:get_int("change_counter") or 0
 		local changed, newcounter = Stations:changed(counter)
 		if changed then
-			print("booking_machine_update changed")
 			meta:set_string("formspec", station_list_as_string(station_pos))
 			meta:set_int("change_counter", newcounter)
 		end
@@ -137,7 +135,6 @@ local function on_receive_fields(pos, formname, fields, player)
 		end
 		local stationPos = Stations:get_next_station(pos)
 		if stationPos then
-			print("stationPos", S(stationPos), "Stations:get(stationPos).booking_pos", Stations:get(stationPos).booking_pos)
 			if Stations:get(stationPos).booking_pos then
 				hyperloop.chat(player, I("Station has already a booking machine!"))
 				return
@@ -161,7 +158,6 @@ local function on_receive_fields(pos, formname, fields, player)
 		if idx then
 			local tStation, src_pos = hyperloop.get_base_station(pos)
 			local dest_pos = tStationList[S(src_pos)] and tStationList[S(src_pos)][idx]
-			print("dest_pos", S(dest_pos), " tStationList[src_pos]", dump( tStationList[S(src_pos)]))
 			if dest_pos and tStation then
 				-- place booking if not already blocked
 				if hyperloop.reserve(src_pos, dest_pos, player) then

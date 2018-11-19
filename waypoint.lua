@@ -53,6 +53,7 @@ minetest.register_node("hyperloop:waypoint", {
 		end
 	end,
 
+	on_rotate = screwdriver.disallow,	
 	paramtype = "light",
 	light_source = minetest.LIGHT_MAX,	
 	sunlight_propagates = true,

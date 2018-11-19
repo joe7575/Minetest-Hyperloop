@@ -88,7 +88,7 @@ minetest.register_node("hyperloop:tube_crowbar", {
 	groups = {cracky=1, book=1},
 	on_use = remove_tube,
 	on_place = repair_tubes,
-	on_secondary_use = dump_data_base,
+	on_secondary_use = repair_tubes,
 	node_placement_prediction = "",
 	stack_max = 1,
 })

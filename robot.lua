@@ -154,6 +154,7 @@ minetest.register_node("hyperloop:robot", {
 	allow_metadata_inventory_put = allow_metadata_inventory,
 	allow_metadata_inventory_take = allow_metadata_inventory,
 
+	on_rotate = screwdriver.disallow,	
 	paramtype2 = "facedir",
 	groups = {cracky=1},
 	is_ground_content = false,

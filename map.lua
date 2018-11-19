@@ -48,7 +48,6 @@ local function generate_string(sortedList)
 		tRes[#tRes+1] = "label[5.4,"..ypos..";"..S(dataSet.pos).."]"
 		tRes[#tRes+1] = "label[7.9,"..ypos..";"..string.sub(owner,1,14).."]"
 		tRes[#tRes+1] = "label[10,"..ypos..";"
-		--print(idx, #dataSet.routes)
 		for dir,conn in pairs(dataSet.conn) do
 			if conn and lStationPositions[conn] then
 				tRes[#tRes + 1] = lStationPositions[conn]
@@ -73,7 +72,6 @@ end
 local function network_list_as_string(pos)
 	-- Determine next station position
 	local next_pos = Stations:get_next_station(pos)
-	print("Station", S(next_pos), dump(Stations:get(next_pos)))
 	-- Generate a distance sorted list of all connected stations
 	local sortedList = Stations:station_list(pos, next_pos, "dist")
 	-- Generate the formspec string

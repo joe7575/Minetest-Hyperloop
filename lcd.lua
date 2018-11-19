@@ -156,6 +156,7 @@ minetest.register_node("hyperloop:lcd", {
 	description = "Hyperloop Display",
 	tiles = {"hyperloop_lcd.png"},
 
+	on_rotate = screwdriver.disallow,	
 	paramtype = "light",
 	sunlight_propagates = true,
 	paramtype2 = "wallmounted",

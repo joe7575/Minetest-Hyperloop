@@ -77,6 +77,7 @@ minetest.register_node("hyperloop:shaft", {
 		end
 	end,
 	
+	on_rotate = screwdriver.disallow,	
 	light_source = 6,
 	paramtype2 = "facedir",
 	groups = {cracky=1},
@@ -96,6 +97,7 @@ minetest.register_node("hyperloop:shaft2", {
 		"hyperloop_tube_locked.png^[transformR90]",
 	},
 
+	on_rotate = screwdriver.disallow,	
 	diggable = false,
 	paramtype2 = "facedir",
 	groups = {cracky=1, not_in_creative_inventory=1},
