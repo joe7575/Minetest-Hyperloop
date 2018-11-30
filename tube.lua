@@ -237,7 +237,7 @@ minetest.register_node("hyperloop:tubeA", {
 	sunlight_propagates = true,
 	is_ground_content = false,
 	groups = {cracky = 1, not_in_creative_inventory=1},
-	drop = "hyperloop:shaft",
+	drop = "hyperloop:tubeS",
 	sounds = default.node_sound_metal_defaults(),
 })
 

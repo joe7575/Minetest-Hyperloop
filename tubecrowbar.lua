@@ -63,12 +63,23 @@ local function repair_tubes(itemstack, placer, pointed_thing)
 	end
 end
 
+local function add_to_inventory(placer, item_name)
+	local inv = placer:get_inventory()
+	local item = ItemStack(item_name)
+	if inv and item and inv:room_for_item("main", item) then
+		inv:add_item("main", item)
+	end
+end	
+
 local function remove_tube(itemstack, placer, pointed_thing)
 	if minetest.check_player_privs(placer:get_player_name(), "hyperloop") then
 		if pointed_thing.type == "node" then
 			local pos = pointed_thing.under
-			Shaft:tool_remove_tube(pos, "default_break_glass")
-			Tube:tool_remove_tube(pos, "default_break_glass")
+			if Shaft:tool_remove_tube(pos, "default_break_glass") then
+				add_to_inventory(placer, "hyperloop:shaft")
+			elseif Tube:tool_remove_tube(pos, "default_break_glass") then
+				add_to_inventory(placer, "hyperloop:tubeS")
+			end
 		end
 	else
 		minetest.chat_send_player(placer:get_player_name(), "You don't have the necessary privs!")
