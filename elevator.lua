@@ -28,9 +28,14 @@ local kPLAYER_OVER_GROUND = 0.5
 -- Elevator Shaft
 -------------------------------------------------------------------------------
 
+--                     Down, Up
+local dirs_to_check = {5,6}  -- vertical only
+if hyperloop.free_tube_placement_enabled then
+	dirs_to_check = {1,2,3,4,5,6}  -- all directions
+end
+
 local Shaft = tubelib2.Tube:new({
-	--dirs_to_check = {5,6},  -- vertical only
-	dirs_to_check = {1,2,3,4,5,6},
+	dirs_to_check = dirs_to_check,
 	max_tube_length = 1000, 
 	show_infotext = true,
 	primary_node_names = {"hyperloop:shaft", "hyperloop:shaft2", "hyperloop:shaftA", "hyperloop:shaftA2"}, 
@@ -284,7 +289,7 @@ local function update_elevator(pos, out_dir, peer_pos, peer_in_dir)
 	if out_dir == 6 then  -- to the top?
 		-- switch to elevator_bottom node
 		pos = Shaft:get_pos(pos, 5)
-	else
+	elseif peer_pos then
 		local _,node = Shaft:get_node(peer_pos)
 		if node.name == "hyperloop:elevator_top" then
 			peer_pos = Shaft:get_pos(peer_pos, 5)

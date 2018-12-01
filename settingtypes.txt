@@ -1,5 +1,5 @@
 # Enable WiFi block for players (including recipe) 
-hyperloop_wifi_enabled (WiFi block enabled) bool false
+hyperloop_wifi_enabled (WiFi block enabled) bool true
 
 # Enable free tube placement with no level limitation. 
 # If disabled, connected stations have to be on one level, 

@@ -34,8 +34,8 @@
 hyperloop = {}
 
 -- Configuration settings
-hyperloop.wifi_enabled = minetest.setting_get("hyperloop_wifi_enabled") or false
-hyperloop.free_tube_placement_enabled = minetest.setting_get("hyperloop_free_tube_placement_enabled") or false
+hyperloop.wifi_enabled = minetest.settings:get("hyperloop_wifi_enabled") or true
+hyperloop.free_tube_placement_enabled = minetest.settings:get("hyperloop_free_tube_placement_enabled") or true
 
 
 dofile(minetest.get_modpath("hyperloop") .. "/network.lua")

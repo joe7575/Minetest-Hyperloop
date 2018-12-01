@@ -282,6 +282,8 @@ local function convert_elevator_data(tAllElevators)
 		["hyperloop:shaft2"] = true,
 	}
 	local originNodeNames = add_to_table(Shaft.primary_node_names, tLegacyNodeNames)
+	local originDirsToCheck = table.copy(Shaft.dirs_to_check)
+	Shaft.dirs_to_check = {5,6}  -- legacy elevators use up/down only
 	
 	for pos,tElevator in pairs(tAllElevators) do
 		for _,floor in pairs(tElevator.floors) do
@@ -296,6 +298,7 @@ local function convert_elevator_data(tAllElevators)
 	end
 	
 	Shaft.primary_node_names = originNodeNames
+	Shaft.dirs_to_check = originDirsToCheck
 end
 
 
