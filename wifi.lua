@@ -53,7 +53,7 @@ minetest.register_node("hyperloop:tube_wifi1", {
 	paramtype2 = "facedir",
 	on_rotate = screwdriver.disallow,
 	paramtype = "light",
-	groups = {cracky = 2},
+	groups = {cracky = 2, not_in_creative_inventory=1},
 	sunlight_propagates = true,
 	is_ground_content = false,
 	sounds = default.node_sound_metal_defaults(),
