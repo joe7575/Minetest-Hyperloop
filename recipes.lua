@@ -192,6 +192,14 @@ minetest.register_craft({
 	},
 })
 
+minetest.register_craft({
+	output = "hyperloop:tube_crowbar",
+	recipe = {
+		{"", "", "dye:red"},
+		{"", "hyperloop:hypersteel_ingot", ""},
+		{"hyperloop:hypersteel_ingot", "", ""},
+	},
+})
 
 minetest.register_craft({
 	type = "cooking",
