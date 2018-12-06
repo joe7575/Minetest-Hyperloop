@@ -129,13 +129,17 @@ local station_formspec =
 	default.gui_bg..
 	default.gui_bg_img..
 	default.gui_slots..
-	"label[2.5,0;"..I("Hyperloop Station Pod Builder").."]" ..
-	"image[0.7,0.9;3,3;hyperloop_station_formspec.png]"..
-	"list[context;src;4,0.9;1,4;]"..
-	"label[5,1.2;30 x "..I("Hypersteel Pod Shell").."]" ..
-	"label[5,2.2;4 x "..I("Hypersteel Ingot").."]" ..
-	"label[5,3.2;2 x "..I("Blue Wool").."]" ..
-	"label[5,4.2;2 x "..I("Glass").."]" ..
+	"label[2,0;"..I("Hyperloop Station Pod Builder").."]" ..
+	"image[0.2,0.9;3,3;hyperloop_station_formspec.png]"..
+	"list[context;src;3,0.9;1,4;]"..
+	"label[4,1.2;30 x "..I("Hypersteel Pod Shell").."]" ..
+	"item_image[3,0.9;1,1;hyperloop:pod_wall]"..
+	"label[4,2.2;4 x "..I("Hypersteel Ingot").."]" ..
+	"item_image[3,1.9;1,1;hyperloop:hypersteel_ingot]"..
+	"label[4,3.2;2 x "..I("Blue Wool").."]" ..
+	"item_image[3,2.9;1,1;wool:blue]"..
+	"label[4,4.2;2 x "..I("Glass").."]" ..
+	"item_image[3,3.9;1,1;default:glass]"..
 	"list[current_player;main;0,5.3;8,4;]"..
     "listring[context;src]"..
     "listring[current_player;main]"
@@ -197,7 +201,7 @@ local function build_station(pos, placer)
 		if check_space(table.copy(pos), facedir, placer) then
 			construct(1, table.copy(pos), facedir, placer:get_player_name(), S(pos))
 			meta:set_string("formspec", station_formspec .. 
-				"button_exit[1,3.9;2,1;destroy;"..I("Destroy Station").."]")
+				"button_exit[0,3.9;3,1;destroy;"..I("Destroy Station").."]")
 			meta:set_int("built", 1)
 			meta:set_int("busy", 1)
 			-- remove items aften the station is build
@@ -233,7 +237,7 @@ local function destroy_station(pos, player_name)
 		-- maintain meta
 		local meta = M(pos)
 		meta:set_string("formspec", station_formspec .. 
-			"button_exit[1,3.9;2,1;build;"..I("Build Station").."]")
+			"button_exit[0,3.9;3,1;build;"..I("Build Station").."]")
 		local inv = meta:get_inventory()
 		add_inventory_items(inv)
 		meta:set_int("built", 0)
@@ -254,7 +258,7 @@ minetest.register_node("hyperloop:station", {
 	on_construct = function(pos)
 		local meta = M(pos)
 		meta:set_string("formspec", station_formspec .. 
-			"button_exit[1,3.9;2,1;build;"..I("Build Station").."]")
+			"button_exit[0,3.9;3,1;build;"..I("Build Station").."]")
 		local inv = meta:get_inventory()
 		inv:set_size('src', 4)
 	end,

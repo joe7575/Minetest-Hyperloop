@@ -51,6 +51,9 @@ local function generate_string(sortedList)
 		tRes[#tRes+1] = "label[5,"..ypos..";"..distance.." m]"
 		tRes[#tRes+1] = "label[6.6,"..ypos..";"..info.."]"
 	end
+	if #sortedList == 0 then
+		tRes[#tRes+1] = "button_exit[4,4;3,1;button;Update]"
+	end
 	return table.concat(tRes)
 end
 
