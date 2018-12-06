@@ -79,7 +79,7 @@ function hyperloop.is_player_around(pos)
 end
 
 function hyperloop.get_connection_string(pos)
-	local item Stations:get(pos)
+	local item = Stations:get(pos)
 	if item then
 		local tbl = {}
 		for k,v in pairs(item.conn) do
