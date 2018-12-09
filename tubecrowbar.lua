@@ -39,6 +39,7 @@ local function repair_tubes(itemstack, placer, pointed_thing)
 			minetest.chat_send_player(placer:get_player_name(), chat_message(dir2, cnt2, fpos2, fdir2))
 			minetest.sound_play({
 				name="hyperloop_crowbar"},{
+				pos = pos,
 				gain=2,
 				max_hear_distance=5,
 				loop=false})
@@ -50,6 +51,7 @@ local function repair_tubes(itemstack, placer, pointed_thing)
 				minetest.chat_send_player(placer:get_player_name(), chat_message(dir2, cnt2, fpos2, fdir2))
 				minetest.sound_play({
 					name="hyperloop_crowbar"},{
+					pos = pos,
 					gain=2,
 					max_hear_distance=5,
 					loop=false})
