@@ -60,6 +60,20 @@ local Shaft = tubelib2.Tube:new({
 hyperloop.Shaft = Shaft
 local Elevators = hyperloop.Elevators
 
+Shaft:register_on_tube_update(function(node, pos, out_dir, peer_pos, peer_in_dir)
+	if out_dir == 6 then  -- to the top?
+		-- switch to elevator_bottom node
+		pos = Shaft:get_pos(pos, 5)
+	elseif peer_pos then
+		local _,node = Shaft:get_node(peer_pos)
+		if node.name == "hyperloop:elevator_top" then
+			peer_pos = Shaft:get_pos(peer_pos, 5)
+		end
+	end
+	Elevators:update_connections(pos, out_dir, peer_pos)
+end)
+
+
 minetest.register_node("hyperloop:shaft", {
 	description = I("Hyperloop Elevator Shaft"),
 	inventory_image = 'hyperloop_shaft_inv.png',
@@ -267,6 +281,9 @@ local function formspec(pos, lFloors)
 			tRes[#tRes+1] = "label[2.5,"..ypos..";"..(floor.name or "<unknown>").."]"
 		end
 	end
+	if #tRes == 2 then
+		tRes[#tRes+1] = "button_exit[1,3;3,1;button;Update]"
+	end
 	return table.concat(tRes)
 end
 
@@ -283,19 +300,6 @@ local function update_formspec(pos)
 		meta:set_int("change_counter", newcounter)
 	end
 	M(pos):set_string("formspec", Cache[sKey].formspec)
-end
-
-local function update_elevator(pos, out_dir, peer_pos, peer_in_dir)
-	if out_dir == 6 then  -- to the top?
-		-- switch to elevator_bottom node
-		pos = Shaft:get_pos(pos, 5)
-	elseif peer_pos then
-		local _,node = Shaft:get_node(peer_pos)
-		if node.name == "hyperloop:elevator_top" then
-			peer_pos = Shaft:get_pos(peer_pos, 5)
-		end
-	end
-	Elevators:update_connections(pos, out_dir, peer_pos)
 end
 
 
@@ -451,22 +455,24 @@ minetest.register_node("hyperloop:elevator_bottom", {
 				floor.pos = pos
 				local sKey = S(pos)
 				local idx = tonumber(fields.button)
-				local lFloors = Cache[sKey].lFloors
-				local dest = lFloors[#lFloors-idx]
-				if dest and dest.pos and floor.pos then
-					local dist = hyperloop.distance(dest.pos, floor.pos)
-					if dist ~= 0 and floor.busy ~= true then
-						if player ~= nil then
-							pos.y = pos.y - kPLAYER_OVER_GROUND
-							player:set_pos(pos)
-							pos.y = pos.y + kPLAYER_OVER_GROUND
+				if idx then
+					local lFloors = Cache[sKey].lFloors
+					local dest = lFloors[#lFloors-idx]
+					if dest and dest.pos and floor.pos then
+						local dist = hyperloop.distance(dest.pos, floor.pos)
+						if dist ~= 0 and floor.busy ~= true then
+							if player ~= nil then
+								pos.y = pos.y - kPLAYER_OVER_GROUND
+								player:set_pos(pos)
+								pos.y = pos.y + kPLAYER_OVER_GROUND
+							end
+							-- due to the missing display, a trip needs 20 sec maximum
+							local seconds = math.min(1 + math.floor(dist/30), 20)
+							floor.busy = true
+							door_command(floor.pos, floor.facedir, "close", true)
+							door_command(dest.pos, dest.facedir, "close", true)
+							minetest.after(1.0, on_travel, floor, dest, player:get_player_name(), seconds)
 						end
-						-- due to the missing display, a trip needs 20 sec maximum
-						local seconds = math.min(1 + math.floor(dist/30), 20)
-						floor.busy = true
-						door_command(floor.pos, floor.facedir, "close", true)
-						door_command(dest.pos, dest.facedir, "close", true)
-						minetest.after(1.0, on_travel, floor, dest, player:get_player_name(), seconds)
 					end
 				end
 			end
@@ -482,8 +488,6 @@ minetest.register_node("hyperloop:elevator_bottom", {
 		end
 	end,
 
-	tubelib2_on_update = update_elevator,
-	
 	after_dig_node = function(pos, oldnode, oldmetadata, digger)
 		Shaft:after_dig_node(pos, {5})
 		Elevators:delete(pos)

@@ -28,6 +28,7 @@
 	2018-04-13  v0.13  Potential "Never Store ObjectRefs" bug fixed
 	2018-10-27  v1.00  Release
 	2018-10-27  v2.00  Switched to lubelib2 for shafts and tubes
+	2018-12-16  v2.01  Adapted to lubelib2 v0.5
 
 ]]--
 

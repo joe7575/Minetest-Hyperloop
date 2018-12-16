@@ -270,14 +270,6 @@ minetest.register_node("hyperloop:station", {
 		Tube:after_place_node(pos)
 	end,
 
-	tubelib2_on_update = function(pos, out_dir, peer_pos, peer_in_dir)
-		if out_dir <= 5 then
-			Stations:update_connections(pos, out_dir, peer_pos)
-			local s = hyperloop.get_connection_string(pos)
-			M(pos):set_string("infotext", I("Station connected with ")..s)
-		end
-	end,
-
 	allow_metadata_inventory_put = allow_metadata_inventory,
 	allow_metadata_inventory_take = allow_metadata_inventory,
 
