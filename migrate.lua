@@ -28,6 +28,33 @@ local Stations = hyperloop.Stations
 
 local tLegacyNodeNames = {}
 
+local function get_tube_data(pos, dir1, dir2, num_tubes)
+	local param2, tube_type = tubelib2.encode_param2(dir1, dir2, num_tubes)
+	return pos, param2, tube_type, num_tubes
+end	
+
+-- Check if node has a connection on the given dir
+local function connected(self, pos, dir)
+	local _,node = self:get_node(pos, dir)
+	return self.primary_node_names[node.name] 
+		or self.secondary_node_names[node.name]
+end
+
+-- Determine dirs via surrounding nodes
+local function determine_dir1_dir2_and_num_conn(self, pos)
+	local dirs = {}
+	for dir = 1, 6 do
+		if connected(self, pos, dir) then
+			dirs[#dirs+1] = dir
+		end
+	end
+	if #dirs == 1 then
+		return dirs[1], nil, 1
+	elseif #dirs == 2 then
+		return dirs[1], dirs[2], 2
+	end
+end
+
 -- convert legacy tubes to current tubes
 for idx = 0,2 do
 	minetest.register_node("hyperloop:tube"..idx, {
@@ -65,9 +92,9 @@ local function convert_legary_nodes(self, pos, dir)
 	local convert_next_tube = function(self, pos, dir)
 		local npos, node = self:get_node(pos, dir)
 		if tLegacyNodeNames[node.name]  then
-			local dir1, dir2, num = self:determine_dir1_dir2_and_num_conn(npos)
+			local dir1, dir2, num = determine_dir1_dir2_and_num_conn(self, npos)
 			if dir1 then
-				self.clbk_after_place_tube(self:tube_data_to_table(npos, dir1, 
+				self.clbk_after_place_tube(get_tube_data(npos, dir1, 
 					dir2 or tubelib2.Turn180Deg[dir1], num))
 				if tubelib2.Turn180Deg[dir] == dir1 then
 					return npos, dir2
@@ -91,13 +118,7 @@ end
 
 local function convert_line(self, pos, dir)
 	local fpos,fdir = convert_legary_nodes(self, pos, dir)
-	if not vector.equals(pos, fpos) then
-		local npos,ndir = self:get_pos(pos, dir)
-		self:add_meta(npos, fpos,fdir)
-		self:add_meta(fpos, npos,ndir)
-		self:update_secondary_node(npos,ndir, fpos,fdir)
-		--self:update_secondary_node(fpos,fdir, npos,ndir)
-	end
+	self:tool_repair_tube(pos)	
 end
 
 
@@ -267,7 +288,6 @@ local function convert_station_data(tAllStations)
 		if item.pos and Tube:secondary_node(item.pos) then
 			convert_tube_line(item.pos)
 			Tube:after_place_node(item.pos)
-			--hyperloop.update_routes(item.pos)
 		end
 	end
 	-- Repair the tube lines of wifi nodes
@@ -293,6 +313,7 @@ local function convert_elevator_data(tAllElevators)
 				})
 				convert_shaft_line(floor.pos)
 				M(floor.pos):set_int("change_counter", 0)
+				Shaft:after_place_node(floor.pos)
 			end
 		end
 	end
