@@ -24,13 +24,13 @@ local Stations = hyperloop.Stations
 
 
 Tube:register_on_tube_update(function(node, pos, out_dir, peer_pos, peer_in_dir)
-	if node.name == "hyperloop:junction" then
+	if node.name == "hyperloop:station" then
 		if out_dir <= 5 then
 			Stations:update_connections(pos, out_dir, peer_pos)
 			local s = hyperloop.get_connection_string(pos)
 			M(pos):set_string("infotext", I("Station connected with ")..s)
 		end
-	elseif node.name == "hyperloop:station" then
+	elseif node.name == "hyperloop:junction" then
 		Stations:update_connections(pos, out_dir, peer_pos)
 		local s = hyperloop.get_connection_string(pos)
 		M(pos):set_string("infotext", I("Junction connected with ")..s)
