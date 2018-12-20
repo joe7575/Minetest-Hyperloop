@@ -132,7 +132,7 @@ local station_formspec =
 	"label[2,0;"..I("Hyperloop Station Pod Builder").."]" ..
 	"image[0.2,0.9;3,3;hyperloop_station_formspec.png]"..
 	"list[context;src;3,0.9;1,4;]"..
-	"label[4,1.2;30 x "..I("Hypersteel Pod Shell").."]" ..
+	"label[4,1.2;30 x "..I("Hyperloop Pod Shell").."]" ..
 	"item_image[3,0.9;1,1;hyperloop:pod_wall]"..
 	"label[4,2.2;4 x "..I("Hypersteel Ingot").."]" ..
 	"item_image[3,1.9;1,1;hyperloop:hypersteel_ingot]"..
@@ -166,7 +166,7 @@ local function check_inventory(inv, player)
 			end
 		end
 	end
-	hyperloop.chat(player,"Not enough inventory items to build the station!")
+	hyperloop.chat(player, I("Not enough inventory items to build the station!"))
 	return false
 end
 	

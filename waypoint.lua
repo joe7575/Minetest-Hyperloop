@@ -15,8 +15,12 @@
 
 local Waypoints = {}
 
+-- Load support for intllib.
+local MP = minetest.get_modpath("hyperloop")
+local I, NS = dofile(MP.."/intllib.lua")
+
 minetest.register_node("hyperloop:waypoint", {
-	description = "Hyperloop Waypoint",
+	description = I("Hyperloop Waypoint"),
 	inventory_image = "hyperloop_waypoint_inv.png",
 	tiles = {
 		"hyperloop_waypoint.png",

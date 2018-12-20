@@ -16,6 +16,10 @@ local S = function(pos) if pos then return minetest.pos_to_string(pos) end end
 local P = minetest.string_to_pos
 local M = minetest.get_meta
 
+-- Load support for intllib.
+local MP = minetest.get_modpath("hyperloop")
+local I, NS = dofile(MP.."/intllib.lua")
+
 local tBlockingTime = {}
 local tBookings = {}  -- open bookings: tBookings[S(departure_pos)] = arrival_pos
 
@@ -24,18 +28,18 @@ local Stations = hyperloop.Stations
 -- Reserve departure and arrival stations for some time
 function hyperloop.reserve(departure_pos, arrival_pos, player)
 	if Stations:get(departure_pos) == nil then
-		hyperloop.chat(player, "Station data is corrupted. Please rebuild the station!")
+		hyperloop.chat(player, I("Station data is corrupted. Please rebuild the station!"))
 		return false
 	elseif Stations:get(arrival_pos) == nil then
-		hyperloop.chat(player, "Station data is corrupted. Please rebuild the station!")
+		hyperloop.chat(player, I("Station data is corrupted. Please rebuild the station!"))
 		return false
 	end
 	
 	if (tBlockingTime[S(departure_pos)] or 0) > minetest.get_gametime() then
-		hyperloop.chat(player, "Station is still blocked. Please try again in a few seconds!")
+		hyperloop.chat(player, I("Station is still blocked. Please try again in a few seconds!"))
 		return false
 	elseif (tBlockingTime[S(arrival_pos)] or 0) > minetest.get_gametime() then
-		hyperloop.chat(player, "Station is still blocked. Please try again in a few seconds!")
+		hyperloop.chat(player, I("Station is still blocked. Please try again in a few seconds!"))
 		return false
 	end
 	

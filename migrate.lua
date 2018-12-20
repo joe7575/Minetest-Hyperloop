@@ -107,7 +107,7 @@ local function convert_legary_nodes(self, pos, dir)
 	
 	local cnt = 0
 	if not dir then	return pos, dir, cnt end	
-	while cnt <= 100000 do
+	while cnt <= 20000 do
 		local new_pos, new_dir = convert_next_tube(self, pos, dir)
 		if not new_dir then	break end
 		pos, dir = new_pos, new_dir

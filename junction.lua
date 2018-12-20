@@ -69,7 +69,7 @@ minetest.register_node("hyperloop:junction", {
 
 -- for tube viaducts
 minetest.register_node("hyperloop:pillar", {
-	description = "Hyperloop Pillar",
+	description = I("Hyperloop Pillar"),
 	tiles = {"hyperloop_tube_locked.png^[transformR90]"},
 	drawtype = "nodebox",
 	node_box = {

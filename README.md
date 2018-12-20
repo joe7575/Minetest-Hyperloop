@@ -10,16 +10,18 @@
 The fast and modern way of travelling.
 * Hyperloop allows travelling from point point in seconds (900 km/h) :-)
 * Hyperloop tubes can be build in teamwork together with other players
-* It can be used even on small servers (Raspberry PI) without lagging
+* It can be used even on small servers without lagging
 * No configuration or programming of the tube network is necessary (only the station names have to be entered)
+
+![screenshot](https://github.com/joe7575/Minetest-Hyperloop/blob/master/screenshot.png)
+
 
 The mod includes many different kind of blocks:
 - Hyperloop Stations Block to automatically build the pod/car
 - Hyperloop Booking Machine for the station to select the destination
 - Hyperloop Tube to connect two stations
-- Hyperloop Junction Block to connect up to 4 tubes for complex network structures
-- Hyperloop Tube Robot to automatically build tubes
-- Hyperloop Stations Sign
+- Hyperloop Junction Block to connect up to 6 tubes for complex network structures
+- Hyperloop Stations Signs
 - Hyperloop Promo Poster for station advertisement
 - Hyperloop Elevator to reach other levels
 - Hyperloop Elevator Shaft to connect two elevator cars 
@@ -45,12 +47,13 @@ The tubes system with all stations and pods have to be build by the players.
 The tube route is automatically protected. You can dig only the ends of a tube line (head blocks). The junction block / station has to be protected manually.
 There is an admin tool available to crack tube lines.
 
-Junction and Station Blocks can connect up to four tube lines. That means you can build complex networks of tube lines. Each junction/station can be reaches from each point with one trip.
+Junction and Station Blocks can connect up to 6 tube lines. That means you can build complex networks of tube lines. Each junction/station can be reaches from each point with one trip.
 
 
 ## Dependencies
-tubelib2 (![GitHub](https://github.com/joe7575/tubelib2))
+tubelib2 (![GitHub](https://github.com/joe7575/tubelib2))  
 default  
+intllib  
 
 
 # License

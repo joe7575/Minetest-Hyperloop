@@ -15,6 +15,10 @@ local S = function(pos) if pos then return minetest.pos_to_string(pos) end end
 local P = minetest.string_to_pos
 local M = minetest.get_meta
 
+-- Load support for intllib.
+local MP = minetest.get_modpath("hyperloop")
+local I, NS = dofile(MP.."/intllib.lua")
+
 local Shaft = hyperloop.Shaft
 local Tube = hyperloop.Tube
 
@@ -59,9 +63,9 @@ local function repair_tubes(itemstack, placer, pointed_thing)
 		end
 	else
 		minetest.chat_send_player(placer:get_player_name(), 
-			"[Crowbar Help]\n"..
-			"    left: remove node\n"..
-			"    right: repair tube/shaft line\n")
+			I("[Crowbar Help]\n")..
+			I("    left: remove node\n")..
+			I("    right: repair tube/shaft line\n"))
 	end
 end
 
@@ -84,7 +88,7 @@ local function remove_tube(itemstack, placer, pointed_thing)
 			end
 		end
 	else
-		minetest.chat_send_player(placer:get_player_name(), "You don't have the necessary privs!")
+		minetest.chat_send_player(placer:get_player_name(), I("You don't have the necessary privs!"))
 	end
 end
 
@@ -94,7 +98,7 @@ end
 
 -- Tool for tube workers to crack a protected tube line
 minetest.register_node("hyperloop:tube_crowbar", {
-	description = "Hyperloop Tube Crowbar",
+	description = I("Hyperloop Tube Crowbar"),
 	inventory_image = "hyperloop_tubecrowbar.png",
 	wield_image = "hyperloop_tubecrowbar.png",
 	use_texture_alpha = true,

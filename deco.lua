@@ -13,6 +13,10 @@
 
 ]]--
 
+-- Load support for intllib.
+local MP = minetest.get_modpath("hyperloop")
+local I, NS = dofile(MP.."/intllib.lua")
+
 local tilesL = {"hyperloop_alpsL.png", "hyperloop_seaL.png", "hyperloop_agyptL.png"}
 local tilesR = {"hyperloop_alpsR.png", "hyperloop_seaR.png", "hyperloop_agyptR.png"}
 
@@ -26,7 +30,7 @@ end
 for idx = 1,3 do
 	
 	minetest.register_node("hyperloop:poster"..idx.."L", {
-		description = "Hyperloop Promo Poster "..idx,
+		description = I("Hyperloop Promo Poster ")..idx,
 		tiles = {
 			-- up, down, right, left, back, front
 			"hyperloop_skin2.png",
@@ -74,7 +78,7 @@ for idx = 1,3 do
 	})
 
 	minetest.register_node("hyperloop:poster"..idx.."R", {
-		description = "Hyperloop Promo Poster "..idx,
+		description = I("Hyperloop Promo Poster ")..idx,
 		tiles = {
 			-- up, down, right, left, back, front
 			"hyperloop_skin2.png",
@@ -100,7 +104,7 @@ end
 
 
 minetest.register_node("hyperloop:sign", {
-	description = "Hyperloop Station Sign",
+	description = I("Hyperloop Station Sign"),
 	tiles = {
 		-- up, down, right, left, back, front
 		"hyperloop_sign_top.png",
@@ -112,7 +116,7 @@ minetest.register_node("hyperloop:sign", {
 })
 
 minetest.register_node("hyperloop:signR", {
-	description = "Hyperloop Station Sign Right",
+	description = I("Hyperloop Station Sign Right"),
 	tiles = {
 		-- up, down, right, left, back, front
 		"hyperloop_sign3.png^[transformR90]",
@@ -149,7 +153,7 @@ minetest.register_node("hyperloop:signR", {
 })
 
 minetest.register_node("hyperloop:signL", {
-	description = "Hyperloop Station Sign Left",
+	description = I("Hyperloop Station Sign Left"),
 	tiles = {
 		-- up, down, right, left, back, front
 		"hyperloop_sign3.png^[transformR90]",
@@ -186,7 +190,7 @@ minetest.register_node("hyperloop:signL", {
 })
 
 minetest.register_node("hyperloop:signR_ground", {
-	description = "Hyperloop Station Sign Right",
+	description = I("Hyperloop Station Sign Right"),
 	tiles = {
 		-- up, down, right, left, back, front
 		"hyperloop_sign3.png^[transformR90]",
@@ -212,7 +216,7 @@ minetest.register_node("hyperloop:signR_ground", {
 })
 
 minetest.register_node("hyperloop:signL_ground", {
-	description = "Hyperloop Station Sign Left",
+	description = I("Hyperloop Station Sign Left"),
 	tiles = {
 		-- up, down, right, left, back, front
 		"hyperloop_sign3.png^[transformR90]",

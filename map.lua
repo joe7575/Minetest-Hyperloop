@@ -31,8 +31,13 @@ local function generate_string(sortedList)
 		lStationPositions[sKey] = idx
 	end
 	
-	local tRes = {"label[0,0;ID]label[0.7,0;Dist.]label[1.8,0;Station/Junction]label[5.4,0;Position]"..
-		          "label[7.9,0;Owner]label[10,0;Conn. with]"}
+	local tRes = {
+		"label[0,0;ID]"..
+		"label[0.7,0;"..I("Dist.").."]"..
+		"label[1.8,0;"..I("Station/Junction").."]"..
+		"label[5.4,0;"..I("Position").."]"..
+		"label[7.9,0;"..I("Owner").."]"..
+		"label[10,0;"..I("Conn. with").."]"}
 	for idx,dataSet in ipairs(sortedList) do
 		if idx == 23 then
 			break
@@ -87,7 +92,7 @@ local function map_on_use(itemstack, user)
 	default.gui_bg_img..
 	default.gui_slots..
 	sStationList ..
-	"button_exit[5,9.5;2,1;close;Close]"
+	"button_exit[5,9.5;2,1;close;"..I("Close").."]"
 
 	minetest.show_formspec(player_name, "hyperloop:station_map", formspec)
 	return itemstack
@@ -102,7 +107,7 @@ local function map_on_secondary_use(itemstack, user)
 	default.gui_bg_img..
 	default.gui_slots..
 	sStationList ..
-	"button_exit[5,9.5;2,1;close;Close]"
+	"button_exit[5,9.5;2,1;close;"..I("Close").."]"
 
 	minetest.show_formspec(player_name, "hyperloop:station_map", formspec)
 	return itemstack
@@ -110,7 +115,7 @@ end
 
 -- Tool for tube workers to find the next station
 minetest.register_node("hyperloop:station_map", {
-	description = "Hyperloop Station Book",
+	description = I("Hyperloop Station Book"),
 	inventory_image = "hyperloop_stations_book.png",
 	wield_image = "hyperloop_stations_book.png",
 	groups = {cracky=1, book=1},

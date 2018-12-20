@@ -35,7 +35,7 @@ local function generate_string(sortedList)
 	default.gui_slots..
 	"label[4,0; "..I("Select your destination").."]"}
 	tRes[2] = "label[1,0.6;"..I("Destination").."]label[5,0.6;"..
-			I("Distance").."]label[6.6,0.6;"..I("Local Info").."]"
+			I("Distance").."]label[7,0.6;"..I("Local Info").."]"
 	for idx,tDest in ipairs(sortedList) do
 		if idx >= 12 then
 			break

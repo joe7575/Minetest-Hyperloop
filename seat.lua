@@ -157,8 +157,8 @@ local function on_start_travel(pos, node, clicker)
 
 	-- activate display
 	local dist = hyperloop.distance(pos, tArrival.pos) 
-	local text = "Destination: | "..string.sub(tArrival.name, 1, 13).." | Distance: | "..
-				 meter_to_km(dist).." | Arrival in: | "
+	local text = I("Destination:").." | "..string.sub(tArrival.name, 1, 13).." | "..I("Distance:").." | "..
+				 meter_to_km(dist).." | "..I("Arrival in:").." | "
 	local atime
 	if dist < 1000 then
 		atime = 10 + math.floor(dist/200)		-- 10..15 sec
@@ -185,7 +185,7 @@ end
 
 -- Hyperloop Seat
 minetest.register_node("hyperloop:seat", {
-	description = "Hyperloop Pod Seat",
+	description = I("Hyperloop Pod Seat"),
 	tiles = {
 		"hyperloop_seat-top.png",
 		"hyperloop_seat-side.png",

@@ -13,9 +13,13 @@
 
 ]]--
 
+-- Load support for intllib.
+local MP = minetest.get_modpath("hyperloop")
+local I, NS = dofile(MP.."/intllib.lua")
+
 
 minetest.register_craftitem("hyperloop:hypersteel_ingot", {
-	description = "Hypersteel Ingot",
+	description = I("Hypersteel Ingot"),
 	inventory_image = "hyperloop_hypersteel_ingot.png",
 })
 
