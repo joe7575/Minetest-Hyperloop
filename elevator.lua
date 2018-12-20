@@ -482,7 +482,6 @@ minetest.register_node("hyperloop:elevator_bottom", {
 	on_punch = function(pos, node, puncher, pointed_thing)
 		update_formspec(pos)
 		local floor = Elevators:get(pos)
-		--dbg()
 		if floor and floor.busy ~= true then
 			door_command(pos, floor.facedir, "open", true)
 		end
