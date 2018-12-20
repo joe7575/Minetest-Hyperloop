@@ -13,6 +13,8 @@ The fast and modern way of travelling.
 * It can be used even on small servers without lagging
 * No configuration or programming of the tube network is necessary (only the station names have to be entered)
 
+**![See Wiki Page for more info](https://github.com/joe7575/Minetest-Hyperloop/wiki)**
+
 ![screenshot](https://github.com/joe7575/Minetest-Hyperloop/blob/master/screenshot.png)
 
 
@@ -44,10 +46,7 @@ The tubes system with all stations and pods have to be build by the players.
 
 **Some additional facts:**
 
-The tube route is automatically protected. You can dig only the ends of a tube line (head blocks). The junction block / station has to be protected manually.
-There is an admin tool available to crack tube lines.
-
-Junction and Station Blocks can connect up to 6 tube lines. That means you can build complex networks of tube lines. Each junction/station can be reaches from each point with one trip.
+**![See Wiki Page for more info](https://github.com/joe7575/Minetest-Hyperloop/wiki)**
 
 
 ## Dependencies
