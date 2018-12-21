@@ -4,11 +4,13 @@
 
 ## Minetest goes Hyperloop!
 
-The fast and modern way of travelling.
+Hyperloop is passenger transportation system for travelling through evacuated tubes my means of passenger pods.
+It is the fast and modern way of travelling.
 * Hyperloop allows travelling from point to point in seconds (900 km/h) :-)
-* Hyperloop tubes can be build in teamwork together with other players
+* The tubes system with all stations and pods have to be build by players
 * It can be used even on small servers without lagging
 * No configuration or programming of the tube network is necessary (only the station names have to be entered)
+
 
 **![See Wiki Page for more info](https://github.com/joe7575/Minetest-Hyperloop/wiki)**
 
@@ -54,12 +56,6 @@ has some risks. Therefore:
 
 
 ## Introduction
-
-Hyperloop is passenger transportation system for travelling through evacuated tubes my means of passenger pods.
-The tubes system with all stations and pods have to be build by the players.
-
-
-**Some additional facts:**
 
 **![See Wiki Page for more info](https://github.com/joe7575/Minetest-Hyperloop/wiki)**
 
