@@ -53,6 +53,7 @@ has some risks. Therefore:
 - a Waypoint plate is added to mark and easier find the tube destination
 - Elevator shafts can be build in all directions (optional)
 - WiFi Tubes can be crafted and placed by players (optional)
+- intllib support added (German translation available)
 
 
 ## Introduction
