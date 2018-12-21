@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-12-20 17:34+0100\n"
-"PO-Revision-Date: 2018-12-20 17:31+0100\n"
+"POT-Creation-Date: 2018-12-21 23:21+0100\n"
+"PO-Revision-Date: 2018-12-21 23:23+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: de\n"
@@ -37,7 +37,7 @@ msgstr "Hyperloop Bildschirm"
 
 #: lcd.lua seat.lua
 msgid " |  | << Hyperloop >> | be anywhere"
-msgstr " |  | << Hyperloop >> | sei überall"
+msgstr " |  | << Hyperloop >> | be anywhere"
 
 #: tube.lua
 msgid "Junction at "
@@ -250,6 +250,10 @@ msgstr "Kanalname eingeben"
 #: wifi.lua
 msgid "Hyperloop WiFi Tube"
 msgstr "Hyperloop Wifi Röhre"
+
+#: wifi.lua
+msgid "Tube connection missing!"
+msgstr "Anschluss an eine Röhre fehlt!"
 
 #: deco.lua
 msgid "Hyperloop Promo Poster "

@@ -35,6 +35,8 @@ minetest.register_node("hyperloop:tube_wifi1", {
 		if tube_dir then		
 			Tube:prepare_pairing(pos, tube_dir, sFormspec)
 			Tube:after_place_node(pos, {tube_dir})
+		else
+			minetest.get_meta(pos):set_string("infotext", I("Tube connection missing!"))
 		end
 	end,
 
