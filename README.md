@@ -1,14 +1,11 @@
-# Hyperloop
-
-## THIS IS WORK IN PROGRESS !!!
-**Use release ![v1.0](https://github.com/joe7575/Minetest-Hyperloop/archive/v1.0.zip) instead**
+# Hyperloop v2
 
 **A new evolution in the voxel word:**
 
 ## Minetest goes Hyperloop!
 
 The fast and modern way of travelling.
-* Hyperloop allows travelling from point point in seconds (900 km/h) :-)
+* Hyperloop allows travelling from point to point in seconds (900 km/h) :-)
 * Hyperloop tubes can be build in teamwork together with other players
 * It can be used even on small servers without lagging
 * No configuration or programming of the tube network is necessary (only the station names have to be entered)
@@ -29,13 +26,31 @@ The mod includes many different kind of blocks:
 - Hyperloop Elevator Shaft to connect two elevator cars 
 - Hyperloop Station Book with all available stations (for builders/engineers)
 - Hyperloop Tube Crowbar to crack/repair tube lines (for admins)
-- Hyperloop WiFi Tubes for very large distances (admin feature)
+- Hyperloop WiFi Tubes for very large distances (optional)
 ..and more.
 
 
 Browse on: ![GitHub](https://github.com/joe7575/Minetest-Hyperloop)
 
 Download: ![GitHub](https://github.com/joe7575/Minetest-Hyperloop/archive/master.zip)
+
+
+## Migration from v1 to v2
+The logic behind the tubes/shafts has changed. Hyperloop now uses tubelib2 as tube library.
+That means, available worlds have to be migrated for the new tubes. This is done automatically but
+has some risks. Therefore:
+
+**I recommend to backup your world or test the migration from v1 to v2 on a copy of your world!!!**
+
+
+## What is new in v2
+- some textures changed
+- the Elevator Shafts can now be used as ladder/climbing shafts
+- the Crowbar is public available, but cracking a tube line need 'hyperloop' privs
+- the Station Book is improved and simplified to find stations, junctions, and open tube ends
+- a Waypoint plate is added to mark and easier find the tube destination
+- Elevator shafts can be build in all directions (optional)
+- WiFi Tubes can be crafted and placed by players (optional)
 
 
 ## Introduction
