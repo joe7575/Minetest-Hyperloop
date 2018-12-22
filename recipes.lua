@@ -95,7 +95,7 @@ minetest.register_craft({
 	},
 })
 
-if hyperloop.wifi_enabled then
+if hyperloop.wifi_crafting_enabled then
 	minetest.register_craft({
 		output = "hyperloop:tube_wifi1 2",
 		recipe = {
