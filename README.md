@@ -71,7 +71,7 @@ The following can be changed in the minetest menu (Settings -> Advanced Settings
 Example for 'minetest.conf':
 ```LUA
 	hyperloop_wifi_enabled = true
-	hyperloop_wifi_crafting_enabled = true
+	hyperloop_wifi_crafting_enabled = false
 	hyperloop_free_tube_placement_enabled = true
 ```
 
