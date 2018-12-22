@@ -32,15 +32,11 @@ minetest.register_node("hyperloop:tube_wifi1", {
 	after_place_node = function(pos, placer)
 		-- determine the tube side
 		local tube_dir = Tube:get_primary_dir(pos)
-		if tube_dir then		
-			Tube:prepare_pairing(pos, tube_dir, sFormspec)
-			Tube:after_place_node(pos, {tube_dir})
-		else
-			minetest.get_meta(pos):set_string("infotext", I("Tube connection missing!"))
-		end
+		Tube:prepare_pairing(pos, tube_dir, sFormspec)
+		Tube:after_place_node(pos, {tube_dir})
 	end,
 
-	tubelib2_on_update = function(pos, out_dir, peer_pos, peer_in_dir)
+	tubelib2_on_update = function(node, pos, out_dir, peer_pos, peer_in_dir)
 		Tube:prepare_pairing(pos, out_dir, sFormspec)
 	end,
 	

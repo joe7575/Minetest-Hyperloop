@@ -518,8 +518,6 @@ minetest.register_node("hyperloop:elevator_top", {
 		},
 	},
 	
-	tubelib2_on_update = update_elevator,
-	
 	on_rotate = screwdriver.disallow,	
 	drawtype = "nodebox",
 	paramtype = 'light',
