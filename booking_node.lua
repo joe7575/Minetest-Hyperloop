@@ -29,32 +29,35 @@ local Stations = hyperloop.Stations
 
 -- Form spec for the station list
 local function generate_string(sortedList)
-	local tRes = {"size[12,10]"..
+	local tRes = {"size[12,8]"..
 	default.gui_bg..
 	default.gui_bg_img..
 	default.gui_slots..
+  	"item_image[0,0;1,1;hyperloop:booking]"..
 	"label[4,0; "..I("Select your destination").."]"}
 	tRes[2] = "label[1,0.6;"..I("Destination").."]label[5,0.6;"..
 			I("Distance").."]label[7,0.6;"..I("Local Info").."]"
+
+	tRes[3] = "tablecolumns[text,width=30;text,width=11,align=right;text]"
+
+	local stations = {}
 	for idx,tDest in ipairs(sortedList) do
-		if idx >= 12 then
-			break
-		end
-		local ypos = 0.5 + idx*0.8
-		local ypos2 = ypos - 0.2
-		local name = tDest.name or "<unknown>"
+		local name = tDest.name or I("<unknown>")
 		local distance = tDest.distance or 0
 		local info = tDest.booking_info or ""
-		
-		tRes[#tRes+1] = "button_exit[0,"..ypos2..";1,1;button;"..idx.."]"
-		tRes[#tRes+1] = "label[1,"..ypos..";"..string.sub(name,1,28).."]"
-		tRes[#tRes+1] = "label[5,"..ypos..";"..distance.." m]"
-		tRes[#tRes+1] = "label[6.6,"..ypos..";"..info.."]"
+
+		stations[#stations+1] = minetest.formspec_escape(string.sub(name, 1, 28))
+		stations[#stations+1] = distance.."m"
+		stations[#stations+1] = minetest.formspec_escape(info)
 	end
-	if #sortedList == 0 then
+
+	if #stations>0 then
+		tRes[#tRes+1] = "table[0,1;11.5,7;button;"..table.concat(stations, ",").."]"
+	else
 		tRes[#tRes+1] = "button_exit[4,4;3,1;button;Update]"
 	end
-	return table.concat(tRes)
+
+	return table.concat(tRes )
 end
 
 local function store_station_list(pos, sortedList)
@@ -157,8 +160,9 @@ local function on_receive_fields(pos, formname, fields, player)
 			hyperloop.chat(player, I("Invalid station name!"))
 		end
 	elseif fields.button ~= nil then -- destination selected?
-		local idx = tonumber(fields.button)
-		if idx then
+		local te = minetest.explode_table_event(fields.button)
+		local idx = tonumber(te.row)
+		if idx and te.type=="CHG" then
 			local tStation, src_pos = hyperloop.get_base_station(pos)
 			local dest_pos = tStationList[S(src_pos)] and tStationList[S(src_pos)][idx]
 			if dest_pos and tStation then
@@ -172,6 +176,8 @@ local function on_receive_fields(pos, formname, fields, player)
 				-- data is corrupt, try an update
 				M(pos):set_int("change_counter", 0)
 			end
+
+			minetest.close_formspec(player:get_player_name(), formname)
 		end
 	end
 end
