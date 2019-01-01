@@ -35,10 +35,7 @@ local function generate_string(sortedList)
 	default.gui_slots..
   	"item_image[0,0;1,1;hyperloop:booking]"..
 	"label[4,0; "..I("Select your destination").."]"}
-	tRes[2] = "label[1,0.6;"..I("Destination").."]label[5,0.6;"..
-			I("Distance").."]label[7,0.6;"..I("Local Info").."]"
-
-	tRes[3] = "tablecolumns[text,width=30;text,width=11,align=right;text]"
+	tRes[2] = "tablecolumns[text,width=20;text,width=6,align=right;text]"
 
 	local stations = {}
 	for idx,tDest in ipairs(sortedList) do
@@ -52,12 +49,12 @@ local function generate_string(sortedList)
 	end
 
 	if #stations>0 then
-		tRes[#tRes+1] = "table[0,1;11.5,7;button;"..table.concat(stations, ",").."]"
+		tRes[#tRes+1] = "table[0,1;11.8,7.2;button;"..table.concat(stations, ",").."]"
 	else
 		tRes[#tRes+1] = "button_exit[4,4;3,1;button;Update]"
 	end
 
-	return table.concat(tRes )
+	return table.concat(tRes)
 end
 
 local function store_station_list(pos, sortedList)

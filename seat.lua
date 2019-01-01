@@ -101,6 +101,7 @@ end
 
 local function display_timer(pos, elapsed)
 	-- update display with trip data
+	print("display_timer")
 	local tStation = hyperloop.get_base_station(pos)
 	if tStation then
 		local meta = M(pos)
@@ -130,6 +131,7 @@ end
 -- place the player, close the door, activate display
 local function on_start_travel(pos, node, clicker)
 	-- arrival data
+	local meta = M(pos)
 	local tDeparture, departure_pos = hyperloop.get_base_station(pos)
 	local arrival_pos = hyperloop.get_arrival(departure_pos)
 	if arrival_pos == nil then
@@ -173,7 +175,6 @@ local function on_start_travel(pos, node, clicker)
 	hyperloop.block(departure_pos, arrival_pos, atime+10)	
 
 	-- store some data for on_timer()
-	local meta = M(pos)
 	meta:set_int("arrival_time", atime)
 	meta:set_string("lcd_text", text)
 	minetest.get_node_timer(pos):start(1.0)
