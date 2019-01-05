@@ -29,6 +29,7 @@ The mod includes many different kind of blocks:
 - Hyperloop Station Book with all available stations (for builders/engineers)
 - Hyperloop Tube Crowbar to crack/repair tube lines (for admins)
 - Hyperloop WiFi Tubes for very large distances (optional)
+- chat command to repair WorldEdit placed tubes
 ..and more.
 
 
@@ -79,10 +80,11 @@ hyperloop_free_tube_placement_enabled = true
 tubelib2 (![GitHub](https://github.com/joe7575/tubelib2))  
 default  
 intllib  
+optional: worldedit
 
 
 # License
-Copyright (C) 2017,2018 Joachim Stolberg  
+Copyright (C) 2017,2019 Joachim Stolberg  
 Code: Licensed under the GNU LGPL version 2.1 or later. See LICENSE.txt and http://www.gnu.org/licenses/lgpl-2.1.txt  
 Textures: CC0  
 Display: Derived from the work of kaeza, sofar and others (digilines) LGPLv2.1+

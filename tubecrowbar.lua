@@ -114,3 +114,15 @@ minetest.register_privilege("hyperloop",
 	{description = "Rights to remove tube nodes by means of the crowbar", 
 	give_to_singleplayer = false})
 
+
+if(minetest.get_modpath("worldedit")) ~= nil then
+	minetest.register_chatcommand("hyperloop_repair_tubes", {
+		description = "Repair via WorldEdit placed Hyperloop tubes by reusing WorldEdit pos1/pos2",
+		privs = {worldedit=true},
+		func = function(name, param)
+			local pos1 = worldedit.pos1[name]
+			local pos2 = worldedit.pos2[name]
+			Tube:replace_tube_line(pos1, pos2)
+		end,
+	})
+end
