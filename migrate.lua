@@ -20,6 +20,10 @@ local S = minetest.pos_to_string
 local P = minetest.string_to_pos
 local M = minetest.get_meta
 
+-- Load support for intllib.
+local MP = minetest.get_modpath("hyperloop")
+local I, NS = dofile(MP.."/intllib.lua")
+
 local Tube = hyperloop.Tube
 local Shaft = hyperloop.Shaft
 
@@ -27,6 +31,8 @@ local Elevators = hyperloop.Elevators
 local Stations = hyperloop.Stations
 
 local tLegacyNodeNames = {}
+
+local JunctionsToBePlacedAfter = {}
 
 local function get_tube_data(pos, dir1, dir2, num_tubes)
 	local param2, tube_type = tubelib2.encode_param2(dir1, dir2, num_tubes)
@@ -107,8 +113,11 @@ local function convert_legary_nodes(self, pos, dir)
 	
 	local cnt = 0
 	if not dir then	return pos, dir, cnt end	
-	while cnt <= 20000 do
+	while cnt <= 64000 do
 		local new_pos, new_dir = convert_next_tube(self, pos, dir)
+		if cnt > 0 and (cnt % self.max_tube_length) == 0 then -- border reached?
+			JunctionsToBePlacedAfter[#JunctionsToBePlacedAfter + 1] = pos
+		end
 		if not new_dir then	break end
 		pos, dir = new_pos, new_dir
 		cnt = cnt + 1
@@ -322,6 +331,15 @@ local function convert_elevator_data(tAllElevators)
 	Shaft.dirs_to_check = originDirsToCheck
 end
 
+local function place_junctions()
+	for _,pos in ipairs(JunctionsToBePlacedAfter) do
+		minetest.set_node(pos, {name = "hyperloop:junction"})
+		M(pos):set_string("infotext", I("Junction"))
+		Stations:set(pos, "Junction", {owner = "unknown", junction = true})
+		Tube:after_place_node(pos)
+		minetest.log("action", "[Hyperloop] Junction placed at "..S(pos))
+	end
+end
 
 local wpath = minetest.get_worldpath()
 function hyperloop.file2table(filename)
@@ -341,6 +359,7 @@ local function migrate()
 		convert_station_data(data.tAllStations)
 		convert_elevator_data(data.tAllElevators)
 		os.remove(wpath..DIR_DELIM.."mod_hyperloop.data")
+		place_junctions()
 		hyperloop.convert = nil
 	minetest.log("action", "[Hyperloop] Data migrated")
 	end
