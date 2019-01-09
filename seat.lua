@@ -101,7 +101,6 @@ end
 
 local function display_timer(pos, elapsed)
 	-- update display with trip data
-	print("display_timer")
 	local tStation = hyperloop.get_base_station(pos)
 	if tStation then
 		local meta = M(pos)

@@ -34,14 +34,13 @@ end
 -- Open/close/animate the pod door
 -- door_pos1: position of the bottom door
 -- cmnd: "close", "open", or "animate"
-local function door_command(door_pos1, cmnd)
+local function door_command(door_pos1, facedir, cmnd)
 	-- one step up
 	local door_pos2 = vector.add(door_pos1, {x=0, y=1, z=0})
 
 	local node1 = minetest.get_node(door_pos1)
 	local node2 = minetest.get_node(door_pos2)
 	local meta = minetest.get_meta(door_pos1)
-	local facedir = meta:get_int("facedir")
 	if cmnd == "open" then
 		minetest.sound_play("door", {
 				pos = door_pos1,
@@ -75,7 +74,8 @@ end
 function hyperloop.open_pod_door(tStation)
 	if tStation ~= nil then
 		local door_pos = hyperloop.new_pos(tStation.pos, tStation.facedir, "1F1L", 1)
-		door_command(door_pos, "open")
+		local door_facedir = (tStation.facedir + 1) % 4
+		door_command(door_pos, door_facedir, "open")
 	end
 end
 
@@ -83,7 +83,8 @@ end
 function hyperloop.close_pod_door(tStation)
 	if tStation ~= nil then
 		local door_pos = hyperloop.new_pos(tStation.pos, tStation.facedir, "1F1L", 1)
-		door_command(door_pos, "close")
+		local door_facedir = (tStation.facedir + 1) % 4
+		door_command(door_pos, door_facedir, "close")
 	end
 end
 
@@ -91,7 +92,8 @@ end
 function hyperloop.animate_pod_door(tStation)
 	if tStation ~= nil then
 		local door_pos = hyperloop.new_pos(tStation.pos, tStation.facedir, "1F1L", 1)
-		door_command(door_pos, "animate")
+		local door_facedir = (tStation.facedir + 1) % 4
+		door_command(door_pos, door_facedir, "animate")
 	end
 end
 
