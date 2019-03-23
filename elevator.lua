@@ -524,8 +524,9 @@ minetest.register_node("hyperloop:elevator_top", {
 	light_source = 6,
 	paramtype2 = "facedir",
 	is_ground_content = false,
-	groups = {snappy = 3, not_in_creative_inventory=1},
-	drop = "hyperloop:elevator_bottom",
+	diggable = false,
+	groups = {not_in_creative_inventory=1},
+	drop = "",
 })
 
 minetest.register_node("hyperloop:elevator_door_top", {

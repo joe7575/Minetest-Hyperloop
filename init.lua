@@ -3,7 +3,7 @@
 	Hyperloop Mod
 	=============
 
-	v2.02 by JoSt
+	v2.03 by JoSt
 
 	Copyright (C) 2017-2019 Joachim Stolberg
 
@@ -30,6 +30,7 @@
 	2018-10-27  v2.00  Switched to lubelib2 for shafts and tubes
 	2018-12-16  v2.01  Adapted to lubelib2 v0.5
 	2018-12-20  v2.02  Intllib support added, bugs fixed
+	2019-03-23  v2.03  Elevator duplication bugfix
 
 ]]--
 
@@ -39,10 +40,10 @@ if tubelib2.version < 0.8 then
 	minetest.log("error", "Hyperloop requires tubelib2 version 0.8 or newer!!!")
 else
 	-- Configuration settings
-	hyperloop.wifi_enabled = minetest.settings:get("hyperloop_wifi_enabled") == "true"
-	hyperloop.wifi_crafting_enabled = minetest.settings:get("hyperloop_wifi_crafting_enabled") == "true"
-	hyperloop.free_tube_placement_enabled = minetest.settings:get("hyperloop_free_tube_placement_enabled") == "true"
-
+	hyperloop.wifi_enabled = minetest.settings:get_bool("hyperloop_wifi_enabled")
+	hyperloop.wifi_crafting_enabled = minetest.settings:get_bool("hyperloop_wifi_crafting_enabled")
+	hyperloop.free_tube_placement_enabled = minetest.settings:get_bool("hyperloop_free_tube_placement_enabled")
+	
 	dofile(minetest.get_modpath("hyperloop") .. "/network.lua")
 	dofile(minetest.get_modpath("hyperloop") .. "/data_base.lua")
 	dofile(minetest.get_modpath("hyperloop") .. "/booking.lua")
