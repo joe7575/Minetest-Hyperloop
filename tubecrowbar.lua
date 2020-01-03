@@ -25,7 +25,7 @@ local Tube = hyperloop.Tube
 
 local function chat_message(dir, cnt, peer_pos, peer_dir)
 	local sdir = tubelib2.dir_to_string(dir)
-	if Shaft:secondary_node(peer_pos, peer_dir) then
+	if Shaft:is_secondary_node(peer_pos, peer_dir) then
 		local npos, node = Shaft:get_node(peer_pos, peer_dir)
 		return "[Hyperloop] To the "..sdir..": "..cnt.." tube nodes to "..node.name.." at "..S(npos)
 	else

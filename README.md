@@ -80,11 +80,11 @@ hyperloop_free_tube_placement_enabled = true
 tubelib2 (![GitHub](https://github.com/joe7575/tubelib2))  
 default  
 intllib  
-optional: worldedit
+optional: worldedit, techage
 
 
 # License
-Copyright (C) 2017,2019 Joachim Stolberg  
+Copyright (C) 2017,2020 Joachim Stolberg  
 Code: Licensed under the GNU LGPL version 2.1 or later. See LICENSE.txt and http://www.gnu.org/licenses/lgpl-2.1.txt  
 Textures: CC0  
 Display: Derived from the work of kaeza, sofar and others (digilines) LGPLv2.1+

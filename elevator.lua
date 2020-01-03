@@ -567,7 +567,7 @@ minetest.register_node("hyperloop:elevator_door", {
 	
 	selection_box = {
 		type = "fixed",
-		fixed = { -8/16, -8/16, 7/16,   8/16, 24/16, 8/16 },
+		fixed = { -8/16, -8/16, 6.5/16,   8/16, 24/16, 8/16 },
 	},
 	
 	on_rightclick = function(pos, node, clicker, itemstack, pointed_thing)

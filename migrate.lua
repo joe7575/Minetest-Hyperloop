@@ -274,7 +274,7 @@ local function convert_station_data(tAllStations)
 	local originNodeNames = add_to_table(Tube.primary_node_names, tLegacyNodeNames)
 	
 	for key,item in pairs(tAllStations) do
-		if item.pos and Tube:secondary_node(item.pos) then
+		if item.pos and Tube:is_secondary_node(item.pos) then
 			Stations:set(item.pos, station_name(item), {
 				owner = item.owner or "<unknown>",
 				junction = item.junction,
@@ -288,13 +288,13 @@ local function convert_station_data(tAllStations)
 	-- before all tube node loose their meta data
 	-- while converted.
 	for key,item in pairs(tAllStations) do
-		if item.pos and Tube:secondary_node(item.pos) then
+		if item.pos and Tube:is_secondary_node(item.pos) then
 			search_wifi_node_in_all_dirs(item.pos)
 		end
 	end
 	-- Then convert all tube nodes
 	for key,item in pairs(tAllStations) do
-		if item.pos and Tube:secondary_node(item.pos) then
+		if item.pos and Tube:is_secondary_node(item.pos) then
 			convert_tube_line(item.pos)
 			Tube:after_place_node(item.pos)
 		end
@@ -316,7 +316,7 @@ local function convert_elevator_data(tAllElevators)
 	
 	for pos,tElevator in pairs(tAllElevators) do
 		for _,floor in pairs(tElevator.floors) do
-			if floor.pos and Shaft:secondary_node(floor.pos) then
+			if floor.pos and Shaft:is_secondary_node(floor.pos) then
 				Elevators:set(floor.pos, floor.name, {
 					facedir = floor.facedir,
 				})

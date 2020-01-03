@@ -3,7 +3,7 @@
 	Hyperloop Mod
 	=============
 
-	v2.03 by JoSt
+	v2.04 by JoSt
 
 	Copyright (C) 2017-2019 Joachim Stolberg
 
@@ -31,13 +31,14 @@
 	2018-12-16  v2.01  Adapted to lubelib2 v0.5
 	2018-12-20  v2.02  Intllib support added, bugs fixed
 	2019-03-23  v2.03  Elevator duplication bugfix
+	2020-01-03  v2.04  Elevator door bugfix (MT 5+)
 
 ]]--
 
 hyperloop = {}
 
-if tubelib2.version < 0.8 then
-	minetest.log("error", "Hyperloop requires tubelib2 version 0.8 or newer!!!")
+if tubelib2.version < 1.7 then
+	minetest.log("error", "Hyperloop requires tubelib2 version 1.7 or newer!!!")
 else
 	-- Configuration settings
 	hyperloop.wifi_enabled = minetest.settings:get_bool("hyperloop_wifi_enabled")

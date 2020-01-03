@@ -23,14 +23,23 @@ minetest.register_craftitem("hyperloop:hypersteel_ingot", {
 	inventory_image = "hyperloop_hypersteel_ingot.png",
 })
 
-
-minetest.register_craft({
-	output = "hyperloop:hypersteel_ingot 4",
-	recipe = {
-		{"default:steel_ingot", "default:tin_ingot"},
-		{"default:copper_ingot", "dye:cyan"},
-	},
-})
+if minetest.global_exists("techage") then
+	minetest.register_craft({
+		output = "hyperloop:hypersteel_ingot 4",
+		recipe = {
+			{"techage:aluminum", "default:tin_ingot"},
+			{"techage:aluminum", "dye:cyan"},
+		},
+	})
+else
+	minetest.register_craft({
+		output = "hyperloop:hypersteel_ingot 4",
+		recipe = {
+			{"default:steel_ingot", "default:tin_ingot"},
+			{"default:copper_ingot", "dye:cyan"},
+		},
+	})
+end
 
 minetest.register_craft({
 	output = "hyperloop:tubeS 8",
@@ -50,14 +59,25 @@ minetest.register_craft({
 	},
 })
 
-minetest.register_craft({
-	output = "hyperloop:pod_wall 8",
-	recipe = {
-		{"hyperloop:hypersteel_ingot", "hyperloop:hypersteel_ingot", "hyperloop:hypersteel_ingot"},
-		{"hyperloop:hypersteel_ingot", "dye:white", "hyperloop:hypersteel_ingot"},
-		{"hyperloop:hypersteel_ingot", "hyperloop:hypersteel_ingot", "hyperloop:hypersteel_ingot"},
-	},
-})
+if minetest.global_exists("techage") then
+	minetest.register_craft({
+		output = "hyperloop:pod_wall 6",
+		recipe = {
+			{"basic_materials:plastic_sheet", "basic_materials:plastic_sheet", "basic_materials:plastic_sheet"},
+			{"basic_materials:plastic_sheet", "dye:white", "basic_materials:plastic_sheet"},
+			{"hyperloop:hypersteel_ingot", "hyperloop:hypersteel_ingot", "hyperloop:hypersteel_ingot"},
+		},
+	})
+else
+	minetest.register_craft({
+		output = "hyperloop:pod_wall 8",
+		recipe = {
+			{"hyperloop:hypersteel_ingot", "hyperloop:hypersteel_ingot", "hyperloop:hypersteel_ingot"},
+			{"hyperloop:hypersteel_ingot", "dye:white", "hyperloop:hypersteel_ingot"},
+			{"hyperloop:hypersteel_ingot", "hyperloop:hypersteel_ingot", "hyperloop:hypersteel_ingot"},
+		},
+	})
+end
 
 minetest.register_craft({
 	output = "hyperloop:booking 1",
@@ -77,14 +97,25 @@ minetest.register_craft({
 	},
 })
 
-minetest.register_craft({
-	output = "hyperloop:station",
-	recipe = {
-		{"hyperloop:hypersteel_ingot", "default:mese_crystal", "hyperloop:hypersteel_ingot"},
-		{"",                           "default:mese_crystal", ""},
-		{"hyperloop:hypersteel_ingot", "default:mese_crystal", "hyperloop:hypersteel_ingot"},
-	},
-})
+if minetest.global_exists("techage") then
+	minetest.register_craft({
+		output = "hyperloop:station",
+		recipe = {
+			{"hyperloop:hypersteel_ingot", "default:mese_crystal", "hyperloop:hypersteel_ingot"},
+			{"",                           "techage:ta4_wlanchip", ""},
+			{"hyperloop:hypersteel_ingot", "default:mese_crystal", "hyperloop:hypersteel_ingot"},
+		},
+	})
+else
+	minetest.register_craft({
+		output = "hyperloop:station",
+		recipe = {
+			{"hyperloop:hypersteel_ingot", "default:mese_crystal", "hyperloop:hypersteel_ingot"},
+			{"",                           "default:mese_crystal", ""},
+			{"hyperloop:hypersteel_ingot", "default:mese_crystal", "hyperloop:hypersteel_ingot"},
+		},
+	})
+end
 
 minetest.register_craft({
 	output = "hyperloop:robot",
