@@ -11,17 +11,17 @@
 ]]--
 
 -- Load support for intllib.
-local MP = minetest.get_modpath("hyperloop")
-local I, NS = dofile(MP.."/intllib.lua")
+local S = hyperloop.S
+local NS = hyperloop.NS
 
 local Tube = hyperloop.Tube
 
 local sFormspec = "size[7.5,3]"..
-	"field[0.5,1;7,1;channel;"..I("Enter channel string")..";]" ..
-	"button_exit[2,2;3,1;exit;"..I("Save").."]"
+	"field[0.5,1;7,1;channel;"..S("Enter channel string")..";]" ..
+	"button_exit[2,2;3,1;exit;"..S("Save").."]"
 
 minetest.register_node("hyperloop:tube_wifi1", {
-	description = I("Hyperloop WiFi Tube"),
+	description = S("Hyperloop WiFi Tube"),
 	tiles = {
 		-- up, down, right, left, back, front
 		"hyperloop_tube_locked.png^[transformR90]",

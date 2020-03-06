@@ -11,13 +11,13 @@
 ]]--
 
 -- for lazy programmers
-local S = function(pos) if pos then return minetest.pos_to_string(pos) end end
+local SP = function(pos) if pos then return minetest.pos_to_string(pos) end end
 local P = minetest.string_to_pos
 local M = minetest.get_meta
 
 -- Load support for intllib.
-local MP = minetest.get_modpath("hyperloop")
-local I, NS = dofile(MP.."/intllib.lua")
+local S = hyperloop.S
+local NS = hyperloop.NS
 
 local Stations = hyperloop.Stations
 
@@ -27,17 +27,17 @@ local function generate_string(sortedList)
 	-- used to generate the "connected with" list.
 	local lStationPositions = {}
 	for idx,item in ipairs(sortedList) do
-		local sKey = S(item.pos)
+		local sKey = SP(item.pos)
 		lStationPositions[sKey] = idx
 	end
 	
 	local tRes = {
 		"label[0,0;ID]"..
-		"label[0.7,0;"..I("Dist.").."]"..
-		"label[1.8,0;"..I("Station/Junction").."]"..
-		"label[5.4,0;"..I("Position").."]"..
-		"label[7.9,0;"..I("Owner").."]"..
-		"label[10,0;"..I("Conn. with").."]"}
+		"label[0.7,0;"..S("Dist.").."]"..
+		"label[1.8,0;"..S("Station/Junction").."]"..
+		"label[5.4,0;"..S("Position").."]"..
+		"label[7.9,0;"..S("Owner").."]"..
+		"label[10,0;"..S("Conn. with").."]"}
 	for idx,dataSet in ipairs(sortedList) do
 		if idx == 23 then
 			break
@@ -50,7 +50,7 @@ local function generate_string(sortedList)
 		tRes[#tRes+1] = "label[0,"..ypos..";"..idx.."]"
 		tRes[#tRes+1] = "label[0.7,"..ypos..";"..distance.." m]"
 		tRes[#tRes+1] = "label[1.8,"..ypos..";"..string.sub(name,1,24).."]"
-		tRes[#tRes+1] = "label[5.4,"..ypos..";"..S(dataSet.pos).."]"
+		tRes[#tRes+1] = "label[5.4,"..ypos..";"..SP(dataSet.pos).."]"
 		tRes[#tRes+1] = "label[7.9,"..ypos..";"..string.sub(owner,1,14).."]"
 		tRes[#tRes+1] = "label[10,"..ypos..";"
 		for dir,conn in pairs(dataSet.conn) do
@@ -92,7 +92,7 @@ local function map_on_use(itemstack, user)
 	default.gui_bg_img..
 	default.gui_slots..
 	sStationList ..
-	"button_exit[5,9.5;2,1;close;"..I("Close").."]"
+	"button_exit[5,9.5;2,1;close;"..S("Close").."]"
 
 	minetest.show_formspec(player_name, "hyperloop:station_map", formspec)
 	return itemstack
@@ -107,7 +107,7 @@ local function map_on_secondary_use(itemstack, user)
 	default.gui_bg_img..
 	default.gui_slots..
 	sStationList ..
-	"button_exit[5,9.5;2,1;close;"..I("Close").."]"
+	"button_exit[5,9.5;2,1;close;"..S("Close").."]"
 
 	minetest.show_formspec(player_name, "hyperloop:station_map", formspec)
 	return itemstack
@@ -115,7 +115,7 @@ end
 
 -- Tool for tube workers to find the next station
 minetest.register_node("hyperloop:station_map", {
-	description = I("Hyperloop Station Book"),
+	description = S("Hyperloop Station Book"),
 	inventory_image = "hyperloop_stations_book.png",
 	wield_image = "hyperloop_stations_book.png",
 	groups = {cracky=1, book=1},

@@ -11,13 +11,13 @@
 ]]--
 
 -- for lazy programmers
-local S = function(pos) if pos then return minetest.pos_to_string(pos) end end
+local SP = function(pos) if pos then return minetest.pos_to_string(pos) end end
 local P = minetest.string_to_pos
 local M = minetest.get_meta
 
 -- Load support for intllib.
-local MP = minetest.get_modpath("hyperloop")
-local I, NS = dofile(MP.."/intllib.lua")
+local S = hyperloop.S
+local NS = hyperloop.NS
 
 -- To store elevator floors and formspecs
 local Cache = {}
@@ -75,7 +75,7 @@ end)
 
 
 minetest.register_node("hyperloop:shaft", {
-	description = I("Hyperloop Elevator Shaft"),
+	description = S("Hyperloop Elevator Shaft"),
 	inventory_image = 'hyperloop_shaft_inv.png',
 	tiles = {
 		-- up, down, right, left, back, front
@@ -125,7 +125,7 @@ minetest.register_node("hyperloop:shaft", {
 })
 
 minetest.register_node("hyperloop:shaftA", {
-	description = I("Hyperloop Elevator Shaft"),
+	description = S("Hyperloop Elevator Shaft"),
 	tiles = {
 		-- up, down, right, left, back, front
 		"hyperloop_tube_closed.png^[transformR90]",
@@ -176,7 +176,7 @@ minetest.register_node("hyperloop:shaftA", {
 })
 
 minetest.register_node("hyperloop:shaft2", {
-	description = I("Hyperloop Elevator Shaft"),
+	description = S("Hyperloop Elevator Shaft"),
 	tiles = {
 		-- up, down, right, left, back, front
 		"hyperloop_tube_locked.png^hyperloop_elogo.png^[transformR270]",
@@ -218,7 +218,7 @@ minetest.register_node("hyperloop:shaft2", {
 })
 
 minetest.register_node("hyperloop:shaftA2", {
-	description = I("Hyperloop Elevator Shaft"),
+	description = S("Hyperloop Elevator Shaft"),
 	tiles = {
 		-- up, down, right, left, back, front
 		"hyperloop_tube_locked.png^hyperloop_elogo.png^[transformR270]",
@@ -266,8 +266,8 @@ minetest.register_node("hyperloop:shaftA2", {
 
 -- Form spec for the floor list
 local function formspec(pos, lFloors)
-	local tRes = {"size[5,10]label[0.5,0; "..I("Select your destination").."]"}
-	tRes[2] = "label[1,0.6;"..I("Destination").."]label[2.5,0.6;"..I("Floor").."]"
+	local tRes = {"size[5,10]label[0.5,0; "..S("Select your destination").."]"}
+	tRes[2] = "label[1,0.6;"..S("Destination").."]label[2.5,0.6;"..S("Floor").."]"
 	for idx,floor in ipairs(lFloors) do
 		if idx >= 12 then
 			break
@@ -276,7 +276,7 @@ local function formspec(pos, lFloors)
 		local ypos2 = ypos - 0.2
 		tRes[#tRes+1] = "button_exit[1,"..ypos2..";1,1;button;"..(#lFloors-idx).."]"
 		if vector.equals(floor.pos, pos) then
-			tRes[#tRes+1] = "label[2.5,"..ypos..";"..I("(current position)").."]"
+			tRes[#tRes+1] = "label[2.5,"..ypos..";"..S("(current position)").."]"
 		else
 			tRes[#tRes+1] = "label[2.5,"..ypos..";"..(floor.name or "<unknown>").."]"
 		end
@@ -291,7 +291,7 @@ local function update_formspec(pos)
 	local meta = M(pos)
 	local counter = meta:get_int("change_counter") or 0
 	local changed, newcounter = Elevators:changed(counter)
-	local sKey = S(pos)
+	local sKey = SP(pos)
 	if changed or not Cache[sKey] then
 		local lFloors = Elevators:station_list(pos, pos, "level")
 		Cache[sKey] = {}
@@ -326,8 +326,8 @@ local function door_command(floor_pos, facedir, cmnd, sound)
 		node2.name = "air"
 		minetest.swap_node(door_pos2, node2)
 	elseif cmnd == "close" then
-		M(door_pos1):set_string("floor_pos", S(floor_pos))
-		M(door_pos2):set_string("floor_pos", S(floor_pos))
+		M(door_pos1):set_string("floor_pos", SP(floor_pos))
+		M(door_pos2):set_string("floor_pos", SP(floor_pos))
 		node1.name = "hyperloop:elevator_door"
 		node1.param2 = facedir
 		minetest.swap_node(door_pos1, node1)
@@ -387,7 +387,7 @@ local function on_travel(tDeparture, tArrival, player_name, seconds)
 end
 
 minetest.register_node("hyperloop:elevator_bottom", {
-	description = I("Hyperloop Elevator"),
+	description = S("Hyperloop Elevator"),
 	tiles = {
 		"hyperloop_elevator_bottom.png",
 		"hyperloop_elevator_bottom.png",
@@ -427,9 +427,9 @@ minetest.register_node("hyperloop:elevator_bottom", {
 		-- formspec
 		local meta = minetest.get_meta(pos)
 		local formspec = "size[6,4]"..
-		"label[0,0;"..I("Please insert floor name").."]" ..
-		"field[0.5,1.5;5,1;floor;"..I("Floor name")..";"..I("Base").."]" ..
-		"button_exit[2,3;2,1;exit;"..I("Save").."]"
+		"label[0,0;"..S("Please insert floor name").."]" ..
+		"field[0.5,1.5;5,1;floor;"..S("Floor name")..";"..S("Base").."]" ..
+		"button_exit[2,3;2,1;exit;"..S("Save").."]"
 		meta:set_string("formspec", formspec)
 		
 		-- add upper part of the car
@@ -453,7 +453,7 @@ minetest.register_node("hyperloop:elevator_bottom", {
 			if floor then
 				floor = table.copy(floor)
 				floor.pos = pos
-				local sKey = S(pos)
+				local sKey = SP(pos)
 				local idx = tonumber(fields.button)
 				if idx then
 					local lFloors = Cache[sKey].lFloors
@@ -498,7 +498,7 @@ minetest.register_node("hyperloop:elevator_bottom", {
 })
 
 minetest.register_node("hyperloop:elevator_top", {
-	description = I("Hyperloop Elevator"),
+	description = S("Hyperloop Elevator"),
 	tiles = {
 		-- up, down, right, left, back, front
 		"hyperloop_elevator_bottom.png",

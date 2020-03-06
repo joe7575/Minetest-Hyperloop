@@ -11,13 +11,13 @@
 ]]--
 
 -- for lazy programmers
-local S = function(pos) if pos then return minetest.pos_to_string(pos) end end
+local SP = function(pos) if pos then return minetest.pos_to_string(pos) end end
 local P = minetest.string_to_pos
 local M = minetest.get_meta
 
 -- Load support for intllib.
-local MP = minetest.get_modpath("hyperloop")
-local I, NS = dofile(MP.."/intllib.lua")
+local S = hyperloop.S
+local NS = hyperloop.NS
 
 local Shaft = hyperloop.Shaft
 local Tube = hyperloop.Tube
@@ -27,9 +27,9 @@ local function chat_message(dir, cnt, peer_pos, peer_dir)
 	local sdir = tubelib2.dir_to_string(dir)
 	if Shaft:is_secondary_node(peer_pos, peer_dir) then
 		local npos, node = Shaft:get_node(peer_pos, peer_dir)
-		return "[Hyperloop] To the "..sdir..": "..cnt.." tube nodes to "..node.name.." at "..S(npos)
+		return "[Hyperloop] To the "..sdir..": "..cnt.." tube nodes to "..node.name.." at "..SP(npos)
 	else
-		return "[Hyperloop] To the "..sdir..": "..cnt.." tube nodes to "..S(peer_pos)
+		return "[Hyperloop] To the "..sdir..": "..cnt.." tube nodes to "..SP(peer_pos)
 	end
 end
 
@@ -63,9 +63,9 @@ local function repair_tubes(itemstack, placer, pointed_thing)
 		end
 	else
 		minetest.chat_send_player(placer:get_player_name(), 
-			I("[Crowbar Help]\n")..
-			I("    left: remove node\n")..
-			I("    right: repair tube/shaft line\n"))
+			S("[Crowbar Help]\n")..
+			S("    left: remove node\n")..
+			S("    right: repair tube/shaft line\n"))
 	end
 end
 
@@ -88,7 +88,7 @@ local function remove_tube(itemstack, placer, pointed_thing)
 			end
 		end
 	else
-		minetest.chat_send_player(placer:get_player_name(), I("You don't have the necessary privs!"))
+		minetest.chat_send_player(placer:get_player_name(), S("You don't have the necessary privs!"))
 	end
 end
 
@@ -98,7 +98,7 @@ end
 
 -- Tool for tube workers to crack a protected tube line
 minetest.register_node("hyperloop:tube_crowbar", {
-	description = I("Hyperloop Tube Crowbar"),
+	description = S("Hyperloop Tube Crowbar"),
 	inventory_image = "hyperloop_tubecrowbar.png",
 	wield_image = "hyperloop_tubecrowbar.png",
 	use_texture_alpha = true,
@@ -111,13 +111,13 @@ minetest.register_node("hyperloop:tube_crowbar", {
 })
 
 minetest.register_privilege("hyperloop", 
-	{description = "Rights to remove tube nodes by means of the crowbar", 
+	{description = S("Rights to remove tube nodes by means of the crowbar"), 
 	give_to_singleplayer = false})
 
 
 if(minetest.get_modpath("worldedit")) ~= nil then
 	minetest.register_chatcommand("hyperloop_repair_tubes", {
-		description = "Repair via WorldEdit placed Hyperloop tubes by reusing WorldEdit pos1/pos2",
+		description = S("Repair via WorldEdit placed Hyperloop tubes by reusing WorldEdit pos1/pos2"),
 		privs = {worldedit=true},
 		func = function(name, param)
 			local pos1 = worldedit.pos1[name]
