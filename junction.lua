@@ -11,13 +11,13 @@
 ]]--
 
 -- for lazy programmers
-local S = function(pos) if pos then return minetest.pos_to_string(pos) end end
+local SP = function(pos) if pos then return minetest.pos_to_string(pos) end end
 local P = minetest.string_to_pos
 local M = minetest.get_meta
 
 -- Load support for intllib.
-local MP = minetest.get_modpath("hyperloop")
-local I, NS = dofile(MP.."/intllib.lua")
+local S = hyperloop.S
+local NS = hyperloop.NS
 
 local Tube = hyperloop.Tube
 local Stations = hyperloop.Stations
@@ -28,17 +28,17 @@ Tube:register_on_tube_update(function(node, pos, out_dir, peer_pos, peer_in_dir)
 		if out_dir <= 5 then
 			Stations:update_connections(pos, out_dir, peer_pos)
 			local s = hyperloop.get_connection_string(pos)
-			M(pos):set_string("infotext", I("Station connected with ")..s)
+			M(pos):set_string("infotext", S("Station connected with ")..s)
 		end
 	elseif node.name == "hyperloop:junction" then
 		Stations:update_connections(pos, out_dir, peer_pos)
 		local s = hyperloop.get_connection_string(pos)
-		M(pos):set_string("infotext", I("Junction connected with ")..s)
+		M(pos):set_string("infotext", S("Junction connected with ")..s)
 	end
 end)
 
 minetest.register_node("hyperloop:junction", {
-	description = I("Hyperloop Junction Block"),
+	description = S("Hyperloop Junction Block"),
 	tiles = {
 		"hyperloop_junction_top.png",
 		"hyperloop_junction_top.png",
@@ -47,7 +47,7 @@ minetest.register_node("hyperloop:junction", {
 
 	after_place_node = function(pos, placer, itemstack, pointed_thing)
 		hyperloop.check_network_level(pos, placer)
-		M(pos):set_string("infotext", I("Junction"))
+		M(pos):set_string("infotext", S("Junction"))
 		Stations:set(pos, "Junction", {
 				owner = placer:get_player_name(), junction = true})
 		Tube:after_place_node(pos)
@@ -69,7 +69,7 @@ minetest.register_node("hyperloop:junction", {
 
 -- for tube viaducts
 minetest.register_node("hyperloop:pillar", {
-	description = I("Hyperloop Pillar"),
+	description = S("Hyperloop Pillar"),
 	tiles = {"hyperloop_tube_locked.png^[transformR90]"},
 	drawtype = "nodebox",
 	node_box = {

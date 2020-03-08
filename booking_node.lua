@@ -12,16 +12,16 @@
 ]]--
 
 -- for lazy programmers
-local S = function(pos) if pos then return minetest.pos_to_string(pos) end end
+local SP = function(pos) if pos then return minetest.pos_to_string(pos) end end
 local P = minetest.string_to_pos
 local M = minetest.get_meta
 
 -- Load support for intllib.
-local MP = minetest.get_modpath("hyperloop")
-local I, NS = dofile(MP.."/intllib.lua")
+local S = hyperloop.S
+local NS = hyperloop.NS
 
 -- Used to store the Station list for each booking machine: 
---    tStationList[S(pos)] = {pos1, pos2, ...}
+--    tStationList[SP(pos)] = {pos1, pos2, ...}
 local tStationList = {}
 
 local Stations = hyperloop.Stations
@@ -34,12 +34,12 @@ local function generate_string(sortedList)
 	default.gui_bg_img..
 	default.gui_slots..
   	"item_image[0,0;1,1;hyperloop:booking]"..
-	"label[4,0; "..I("Select your destination").."]"}
+	"label[4,0; "..S("Select your destination").."]"}
 	tRes[2] = "tablecolumns[text,width=20;text,width=6,align=right;text]"
 
 	local stations = {}
 	for idx,tDest in ipairs(sortedList) do
-		local name = tDest.name or I("<unknown>")
+		local name = tDest.name or S("<unknown>")
 		local distance = tDest.distance or 0
 		local info = tDest.booking_info or ""
 
@@ -62,7 +62,7 @@ local function store_station_list(pos, sortedList)
 	for idx,item in ipairs(sortedList) do
 		tbl[#tbl+1] = item.pos
 	end
-	tStationList[S(pos)] = tbl
+	tStationList[SP(pos)] = tbl
 end
 
 local function remove_junctions(sortedList)
@@ -95,9 +95,9 @@ local function naming_formspec(pos)
 	default.gui_bg..
 	default.gui_bg_img..
 	default.gui_slots..
-	"label[0,0;"..I("Please enter the station name to\nwhich this booking machine belongs.").."]" ..
-	"field[0.5,1.5;5,1;name;"..I("Station name")..";MyTown]" ..
-	"field[0.5,2.7;5,1;info;"..I("Additional station information")..";]" ..
+	"label[0,0;"..S("Please enter the station name to\nwhich this booking machine belongs.").."]" ..
+	"field[0.5,1.5;5,1;name;"..S("Station name")..";MyTown]" ..
+	"field[0.5,2.7;5,1;info;"..S("Additional station information")..";]" ..
 	"button_exit[2,3.6;2,1;exit;Save]"
 	meta:set_string("formspec", formspec)
 	meta:set_int("change_counter", 0)
@@ -139,7 +139,7 @@ local function on_receive_fields(pos, formname, fields, player)
 		local stationPos = Stations:get_next_station(pos)
 		if stationPos then
 			if Stations:get(stationPos).booking_pos then
-				hyperloop.chat(player, I("Station has already a booking machine!"))
+				hyperloop.chat(player, S("Station has already a booking machine!"))
 				return
 			end
 			-- store meta and generate station formspec
@@ -150,18 +150,18 @@ local function on_receive_fields(pos, formname, fields, player)
 			})
 			
 			local meta = M(pos)
-			meta:set_string("sStationPos", S(stationPos))
+			meta:set_string("sStationPos", SP(stationPos))
 			meta:set_string("infotext", "Station: "..station_name)
 			meta:set_string("formspec", station_list_as_string(stationPos))
 		else
-			hyperloop.chat(player, I("Invalid station name!"))
+			hyperloop.chat(player, S("Invalid station name!"))
 		end
 	elseif fields.button ~= nil then -- destination selected?
 		local te = minetest.explode_table_event(fields.button)
 		local idx = tonumber(te.row)
 		if idx and te.type=="CHG" then
 			local tStation, src_pos = hyperloop.get_base_station(pos)
-			local dest_pos = tStationList[S(src_pos)] and tStationList[S(src_pos)][idx]
+			local dest_pos = tStationList[SP(src_pos)] and tStationList[SP(src_pos)][idx]
 			if dest_pos and tStation then
 				-- place booking if not already blocked
 				if hyperloop.reserve(src_pos, dest_pos, player) then
@@ -206,7 +206,7 @@ end
 
 -- wall mounted booking machine
 minetest.register_node("hyperloop:booking", {
-	description = I("Hyperloop Booking Machine"),
+	description = S("Hyperloop Booking Machine"),
 	tiles = {
 		-- up, down, right, left, back, front
 		"hyperloop_booking.png",
@@ -243,7 +243,7 @@ minetest.register_node("hyperloop:booking", {
 
 -- ground mounted booking machine
 minetest.register_node("hyperloop:booking_ground", {
-	description = I("Hyperloop Booking Machine"),
+	description = S("Hyperloop Booking Machine"),
 	tiles = {
 		-- up, down, right, left, back, front
 		"hyperloop_booking.png",

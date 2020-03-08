@@ -16,13 +16,13 @@
 ]]--
 
 -- for lazy programmers
-local S = minetest.pos_to_string
+local SP = minetest.pos_to_string
 local P = minetest.string_to_pos
 local M = minetest.get_meta
 
 -- Load support for intllib.
-local MP = minetest.get_modpath("hyperloop")
-local I, NS = dofile(MP.."/intllib.lua")
+local S = hyperloop.S
+local NS = hyperloop.NS
 
 local Tube = hyperloop.Tube
 local Shaft = hyperloop.Shaft
@@ -64,7 +64,7 @@ end
 -- convert legacy tubes to current tubes
 for idx = 0,2 do
 	minetest.register_node("hyperloop:tube"..idx, {
-		description = "Hyperloop Legacy Tube",
+		description = S("Hyperloop Legacy Tube"),
 		tiles = {
 			-- up, down, right, left, back, front
 			"hyperloop_tube_locked.png^[transformR90]",
@@ -172,7 +172,7 @@ local function determine_wifi_pairs(pos)
 		end
 	end
 	-- add single Wifi node to pairing table
-	tWifiNodes[S(pos)] = {pos1, pos2}
+	tWifiNodes[SP(pos)] = {pos1, pos2}
 end
 
 local function next_node_on_the_way_to_a_wifi_node(pos)
@@ -276,7 +276,7 @@ local function convert_station_data(tAllStations)
 	for key,item in pairs(tAllStations) do
 		if item.pos and Tube:is_secondary_node(item.pos) then
 			Stations:set(item.pos, station_name(item), {
-				owner = item.owner or "<unknown>",
+				owner = item.owner or S("<unknown>"),
 				junction = item.junction,
 				facedir = item.facedir,
 				booking_info = item.booking_info,
@@ -334,10 +334,10 @@ end
 local function place_junctions()
 	for _,pos in ipairs(JunctionsToBePlacedAfter) do
 		minetest.set_node(pos, {name = "hyperloop:junction"})
-		M(pos):set_string("infotext", I("Junction"))
-		Stations:set(pos, "Junction", {owner = "unknown", junction = true})
+		M(pos):set_string("infotext", S("Junction"))
+		Stations:set(pos, "Junction", {owner = S("unknown"), junction = true})
 		Tube:after_place_node(pos)
-		minetest.log("action", "[Hyperloop] Junction placed at "..S(pos))
+		minetest.log("action", "[Hyperloop] Junction placed at "..SP(pos))
 	end
 end
 

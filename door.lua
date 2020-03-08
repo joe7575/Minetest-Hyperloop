@@ -11,20 +11,20 @@
 ]]--
 
 -- for lazy programmers
-local S = function(pos) if pos then return minetest.pos_to_string(pos) end end
+local SP = function(pos) if pos then return minetest.pos_to_string(pos) end end
 local P = minetest.string_to_pos
 local M = minetest.get_meta
 
 --- Load support for intllib.
-local MP = minetest.get_modpath("hyperloop")
-local I, NS = dofile(MP.."/intllib.lua")
+local S = hyperloop.S
+local NS = hyperloop.NS
 
 -- Open the door for an emergency
 local function door_on_punch(pos, node, puncher, pointed_thing)
 	local station = hyperloop.get_base_station(pos)
 	if station then
 		if station.name == "Station" then
-			hyperloop.chat(puncher, I("The Booking Machine for this station is missing!"))
+			hyperloop.chat(puncher, S("The Booking Machine for this station is missing!"))
 		elseif not hyperloop.is_blocked(station.pos) then
 			hyperloop.open_pod_door(station)
 		end
@@ -98,7 +98,7 @@ function hyperloop.animate_pod_door(tStation)
 end
 
 minetest.register_node("hyperloop:doorTopPassive", {
-	description = "Hyperloop Door Top",
+	description = S("Hyperloop Door Top"),
 	tiles = {
 		-- up, down, right, left, back, front
 		"hyperloop_skin_door.png",
@@ -132,7 +132,7 @@ minetest.register_node("hyperloop:doorTopPassive", {
 })
 
 minetest.register_node("hyperloop:doorTopActive", {
-	description = "Hyperloop Door Top",
+	description = S("Hyperloop Door Top"),
 	tiles = {
 		-- up, down, right, left, back, front
 		"hyperloop_skin_door.png",
@@ -166,7 +166,7 @@ minetest.register_node("hyperloop:doorTopActive", {
 })
 
 minetest.register_node("hyperloop:doorBottom", {
-	description = "Hyperloop Door Bottom",
+	description = S("Hyperloop Door Bottom"),
 	tiles = {
 		-- up, down, right, left, back, front
 		"hyperloop_skin_door.png",

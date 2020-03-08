@@ -11,8 +11,9 @@
 ]]--
 
 -- Load support for intllib.
-local MP = minetest.get_modpath("hyperloop")
-local I, NS = dofile(MP.."/intllib.lua")
+local S = hyperloop.S
+local NS = hyperloop.NS
+
 
 -- load characters map
 local chars_file = io.open(minetest.get_modpath("hyperloop").."/characters.data", "r")
@@ -157,7 +158,7 @@ local lcd_box = {
 
 minetest.register_node("hyperloop:lcd", {
 	drawtype = "nodebox",
-	description = I("Hyperloop Display"),
+	description = S("Hyperloop Display"),
 	tiles = {"hyperloop_lcd.png"},
 
 	on_rotate = screwdriver.disallow,	
@@ -174,7 +175,7 @@ minetest.register_node("hyperloop:lcd", {
 		if param2 == 0 or param2 == 1 then
 			minetest.add_node(pos, {name = "hyperloop:lcd", param2 = 3})
 		end
-		lcd_update(pos, I(" |  | << Hyperloop >> | be anywhere"))
+		lcd_update(pos, S(" |  | << Hyperloop >> | be anywhere"))
 	end,
 
 	on_destruct = function(pos)

@@ -16,18 +16,18 @@ local P = minetest.string_to_pos
 local M = minetest.get_meta
 
 -- Load support for intllib.
-local MP = minetest.get_modpath("hyperloop")
-local I, NS = dofile(MP.."/intllib.lua")
+local S = hyperloop.S
+local NS = hyperloop.NS
 
 local function station_name(pos)
 	local dataSet = hyperloop.get_station(pos)
 	if dataSet then
 		if dataSet.junction == true then
-			return I("Junction at ")..S(pos)
+			return S("Junction at ")..SP(pos)
 		elseif dataSet.name ~= nil then
-			return S("Station '")..dataSet.name.."' at "..S(pos)
+			return S("Station '")..dataSet.name.."' at "..SP(pos)
 		else
-			return S("Station at ")..S(pos)
+			return S("Station at ")..SP(pos)
 		end
 	end
 	return S("Open end at ")..minetest.pos_to_string(pos)
@@ -42,8 +42,8 @@ function hyperloop.check_network_level(pos, player)
 			return
 		end
 	end
-	hyperloop.chat(player, I("There is no station/junction on this level. ")..
-		I("Do you really want to start a new network?!"))
+	hyperloop.chat(player, S("There is no station/junction on this level. ")..
+		S("Do you really want to start a new network?!"))
 end
 
 --                       North, East, South, West, Down, Up
@@ -70,7 +70,7 @@ local Tube = tubelib2.Tube:new({
 hyperloop.Tube = Tube
 
 minetest.register_node("hyperloop:tubeS", {
-	description = I("Hyperloop Tube"),
+	description = S("Hyperloop Tube"),
 	inventory_image = minetest.inventorycube("hyperloop_tube_locked.png", 
 		'hyperloop_tube_open.png', "hyperloop_tube_locked.png"),
 	tiles = {
@@ -179,7 +179,7 @@ minetest.register_node("hyperloop:tubeS2", {
 })
 
 minetest.register_node("hyperloop:tubeA", {
-	description = I("Hyperloop Tube"),
+	description = S("Hyperloop Tube"),
 	inventory_image = minetest.inventorycube("hyperloop_tube_locked.png", 
 		'hyperloop_tube_open.png', "hyperloop_tube_locked.png"),
 	tiles = {

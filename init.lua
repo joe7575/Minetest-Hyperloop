@@ -37,6 +37,16 @@
 
 hyperloop = {}
 
+if minetest.get_translator ~= nil then
+    hyperloop.S = minetest.get_translator(minetest.get_current_modname())
+    
+else
+    -- Load support for intllib.
+    local MP = minetest.get_modpath("hyperloop")
+    hyperloop.S, hyperloop.NS = dofile(MP.."/intllib.lua")    
+        
+end
+
 if tubelib2.version < 1.7 then
 	minetest.log("error", "Hyperloop requires tubelib2 version 1.7 or newer!!!")
 else

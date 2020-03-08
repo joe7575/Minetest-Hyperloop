@@ -11,13 +11,13 @@
 ]]--
 
 -- for lazy programmers
-local S = function(pos) if pos then return minetest.pos_to_string(pos) end end
+local SP = function(pos) if pos then return minetest.pos_to_string(pos) end end
 local P = minetest.string_to_pos
 local M = minetest.get_meta
 
 -- Load support for intllib.
-local MP = minetest.get_modpath("hyperloop")
-local I, NS = dofile(MP.."/intllib.lua")
+local S = hyperloop.S
+local NS = hyperloop.NS
 
 local Tube = hyperloop.Tube
 local Stations = hyperloop.Stations
@@ -105,7 +105,7 @@ local function construct(idx, pos, facedir, player_name, sKey)
 		place_node(pos, (facedir + fd_offs) % 4, node_name, sKey)
 		minetest.after(0.5, construct, idx+1, pos, facedir, player_name, sKey)
 	else
-		hyperloop.chat(player_name, I("Station completed. Now place the Booking Machine!"))
+		hyperloop.chat(player_name, S("Station completed. Now place the Booking Machine!"))
 	end
 end	
 	
@@ -114,10 +114,10 @@ local function check_space(pos, facedir, placer)
 		local y, path, node_name = item[1], item[2], item[4]
 		pos = hyperloop.new_pos(pos, facedir, path, y)
 		if minetest.is_protected(pos, placer:get_player_name()) then
-			hyperloop.chat(placer, I("Area is protected!"))
+			hyperloop.chat(placer, S("Area is protected!"))
 			return false
 		elseif minetest.get_node_or_nil(pos).name ~= "air" then
-			hyperloop.chat(placer, I("Not enough space to build the station!"))
+			hyperloop.chat(placer, S("Not enough space to build the station!"))
 			return false
 		end
 	end
@@ -129,16 +129,16 @@ local station_formspec =
 	default.gui_bg..
 	default.gui_bg_img..
 	default.gui_slots..
-	"label[2,0;"..I("Hyperloop Station Pod Builder").."]" ..
+	"label[2,0;"..S("Hyperloop Station Pod Builder").."]" ..
 	"image[0.2,0.9;3,3;hyperloop_station_formspec.png]"..
 	"list[context;src;3,0.9;1,4;]"..
-	"label[4,1.2;30 x "..I("Hyperloop Pod Shell").."]" ..
+	"label[4,1.2;30 x "..S("Hyperloop Pod Shell").."]" ..
 	"item_image[3,0.9;1,1;hyperloop:pod_wall]"..
-	"label[4,2.2;4 x "..I("Hypersteel Ingot").."]" ..
+	"label[4,2.2;4 x "..S("Hypersteel Ingot").."]" ..
 	"item_image[3,1.9;1,1;hyperloop:hypersteel_ingot]"..
-	"label[4,3.2;2 x "..I("Blue Wool").."]" ..
+	"label[4,3.2;2 x "..S("Blue Wool").."]" ..
 	"item_image[3,2.9;1,1;wool:blue]"..
-	"label[4,4.2;2 x "..I("Glass").."]" ..
+	"label[4,4.2;2 x "..S("Glass").."]" ..
 	"item_image[3,3.9;1,1;default:glass]"..
 	"list[current_player;main;0,5.3;8,4;]"..
     "listring[context;src]"..
@@ -166,7 +166,7 @@ local function check_inventory(inv, player)
 			end
 		end
 	end
-	hyperloop.chat(player, I("Not enough inventory items to build the station!"))
+	hyperloop.chat(player, S("Not enough inventory items to build the station!"))
 	return false
 end
 	
@@ -199,9 +199,9 @@ local function build_station(pos, placer)
 		Stations:update(pos, {facedir = facedir})
 
 		if check_space(table.copy(pos), facedir, placer) then
-			construct(1, table.copy(pos), facedir, placer:get_player_name(), S(pos))
+			construct(1, table.copy(pos), facedir, placer:get_player_name(), SP(pos))
 			meta:set_string("formspec", station_formspec .. 
-				"button_exit[0,3.9;3,1;destroy;"..I("Destroy Station").."]")
+				"button_exit[0,3.9;3,1;destroy;"..S("Destroy Station").."]")
 			meta:set_int("built", 1)
 			meta:set_int("busy", 1)
 			-- remove items aften the station is build
@@ -237,7 +237,7 @@ local function destroy_station(pos, player_name)
 		-- maintain meta
 		local meta = M(pos)
 		meta:set_string("formspec", station_formspec .. 
-			"button_exit[0,3.9;3,1;build;"..I("Build Station").."]")
+			"button_exit[0,3.9;3,1;build;"..S("Build Station").."]")
 		local inv = meta:get_inventory()
 		add_inventory_items(inv)
 		meta:set_int("built", 0)
@@ -247,7 +247,7 @@ local function destroy_station(pos, player_name)
 end
 
 minetest.register_node("hyperloop:station", {
-	description = I("Hyperloop Station Block"),
+	description = S("Hyperloop Station Block"),
 	drawtype = "nodebox",
 	tiles = {
 		"hyperloop_station.png",
@@ -258,14 +258,14 @@ minetest.register_node("hyperloop:station", {
 	on_construct = function(pos)
 		local meta = M(pos)
 		meta:set_string("formspec", station_formspec .. 
-			"button_exit[0,3.9;3,1;build;"..I("Build Station").."]")
+			"button_exit[0,3.9;3,1;build;"..S("Build Station").."]")
 		local inv = meta:get_inventory()
 		inv:set_size('src', 4)
 	end,
 	
 	after_place_node = function(pos, placer, itemstack, pointed_thing)
 		hyperloop.check_network_level(pos, placer)
-		M(pos):set_string("infotext", I("Station"))
+		M(pos):set_string("infotext", S("Station"))
 		store_station(pos, placer)
 		Tube:after_place_node(pos)
 	end,
@@ -302,7 +302,7 @@ minetest.register_node("hyperloop:station", {
 })
 
 minetest.register_node("hyperloop:pod_wall", {
-	description = I("Hyperloop Pod Shell"),
+	description = S("Hyperloop Pod Shell"),
 	tiles = {
 		-- up, down, right, left, back, front
 		"hyperloop_skin2.png",
@@ -317,7 +317,7 @@ minetest.register_node("hyperloop:pod_wall", {
 })
 
 minetest.register_node("hyperloop:pod_wall_ni", {
-	description = I("Hyperloop Pod Shell"),
+	description = S("Hyperloop Pod Shell"),
 	tiles = {
 		-- up, down, right, left, back, front
 		"hyperloop_skin2.png",
@@ -333,7 +333,7 @@ minetest.register_node("hyperloop:pod_wall_ni", {
 })
 
 minetest.register_node("hyperloop:pod_floor", {
-	description = I("Hyperloop Pod Shell"),
+	description = S("Hyperloop Pod Shell"),
 	tiles = {
 		-- up, down, right, left, back, front
 		"hyperloop_skin2.png",
