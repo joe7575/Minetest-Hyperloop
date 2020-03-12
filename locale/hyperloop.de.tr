@@ -57,9 +57,6 @@ unknown=unbekant
 ### lcd.lua ###
 Hyperloop Display=Hyperloop Bildschirm
 
-### seat.lua ###
- |  | << Hyperloop >> | be anywhere= |  | << Hyperloop >> | ist irgendwo
-
 ### map.lua ###
 Close=Schließen
 Conn. with=Verb. mit
@@ -70,12 +67,7 @@ Position=Position
 Station/Junction=Station/Anschlussstelle
 
 ### seat.lua ###
- | Welcome at | | = | Willkommen | in | | 
-Arrival in:=Ankunft in:
-Destination:=Ziel:
-Distance:=Entfernung:
 Hyperloop Pod Seat=Hyperloop Sitz
-Thank you | for | travelling | with | Hyperloop.=Thank you | for | travelling | with | Hyperloop.
 [Hyperloop] No booking entered!=[Hyperloop] Keine Buchung eingegeben!
 
 ### station.lua ###

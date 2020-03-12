@@ -175,7 +175,7 @@ minetest.register_node("hyperloop:lcd", {
 		if param2 == 0 or param2 == 1 then
 			minetest.add_node(pos, {name = "hyperloop:lcd", param2 = 3})
 		end
-		lcd_update(pos, S(" |  | << Hyperloop >> | be anywhere"))
+		lcd_update(pos, " |  | << Hyperloop >> | be anywhere")
 	end,
 
 	on_destruct = function(pos)

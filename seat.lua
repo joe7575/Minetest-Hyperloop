@@ -18,6 +18,7 @@ local M = minetest.get_meta
 -- Load support for intllib.
 local S = hyperloop.S
 local NS = hyperloop.NS
+local I, _ = dofile( minetest.get_modpath("hyperloop").."/intllib.lua")
 
 local Stations = hyperloop.Stations
 
@@ -37,7 +38,7 @@ local function on_final_close_door(tStation)
 		minetest.after(3.0, on_final_close_door, tStation)
 	else
 		hyperloop.close_pod_door(tStation)
-		enter_display(tStation, S(" |  | << Hyperloop >> | be anywhere"))
+		enter_display(tStation, I(" |  | << Hyperloop >> | be anywhere"))
 	end
 end
 
@@ -48,14 +49,14 @@ local function on_open_door(tArrival)
 	-- open door
 	hyperloop.open_pod_door(tArrival)
 	-- prepare display for the next trip
-	enter_display(tArrival, S("Thank you | for | travelling | with | Hyperloop."))
+	enter_display(tArrival, I("Thank you | for | travelling | with | Hyperloop."))
 	minetest.after(5.0, on_final_close_door, tArrival, tArrival.facedir)
 end
 
 local function on_arrival(tDeparture, tArrival, player_name, sound)
 	local player = minetest.get_player_by_name(player_name)
 	-- activate display
-	local text = S(" | Welcome at | | ")..string.sub(tArrival.name, 1, 13)
+	local text = I(" | Welcome at | | ")..string.sub(tArrival.name, 1, 13)
 	enter_display(tArrival, text)
 	-- stop timer
 	minetest.get_node_timer(tDeparture.pos):stop()
@@ -158,8 +159,8 @@ local function on_start_travel(pos, node, clicker)
 
 	-- activate display
 	local dist = hyperloop.distance(pos, tArrival.pos) 
-	local text = S("Destination:").." | "..string.sub(tArrival.name, 1, 13).." | "..S("Distance:").." | "..
-				 meter_to_km(dist).." | "..S("Arrival in:").." | "
+	local text = I("Destination:").." | "..string.sub(tArrival.name, 1, 13).." | "..I("Distance:").." | "..
+				 meter_to_km(dist).." | "..I("Arrival in:").." | "
 	local atime
 	if dist < 1000 then
 		atime = 10 + math.floor(dist/200)		-- 10..15 sec
