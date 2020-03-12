@@ -32,6 +32,7 @@
 	2018-12-20  v2.02  Intllib support added, bugs fixed
 	2019-03-23  v2.03  Elevator duplication bugfix
 	2020-01-03  v2.04  Elevator door bugfix (MT 5+)
+	2020-03-12  v2.05  minetest translator added (thanks to acmgit/Clyde)
 
 ]]--
 
