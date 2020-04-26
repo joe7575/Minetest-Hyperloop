@@ -38,6 +38,15 @@
 
 hyperloop = {}
 
+-- Version for compatibility checks, see history
+hyperloop.version = 2.05
+
+if minetest.global_exists("techage") and techage.version < 0.06 then
+	minetest.log("error", "[hyperloop] Hyperloop requires techage version 0.06 or newer!")
+	return
+end
+
+
 if minetest.get_translator ~= nil then
     hyperloop.S = minetest.get_translator(minetest.get_current_modname())
     
