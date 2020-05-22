@@ -419,23 +419,29 @@ minetest.register_node("hyperloop:elevator_bottom", {
 	groups = {snappy = 3},
 
 	after_place_node = function(pos, placer, itemstack, pointed_thing)
-		local facedir = hyperloop.get_facedir(placer)
-		Elevators:set(pos, "<unknown>", {facedir=facedir, busy=false})
-		
-		Shaft:after_place_node(pos, {5})
-		
-		-- formspec
-		local meta = minetest.get_meta(pos)
-		local formspec = "size[6,4]"..
-		"label[0,0;"..S("Please insert floor name").."]" ..
-		"field[0.5,1.5;5,1;floor;"..S("Floor name")..";"..S("Base").."]" ..
-		"button_exit[2,3;2,1;exit;"..S("Save").."]"
-		meta:set_string("formspec", formspec)
-		
-		-- add upper part of the car
-		pos = Shaft:get_pos(pos, 6)
-		minetest.add_node(pos, {name="hyperloop:elevator_top", param2=facedir})
-		Shaft:after_place_node(pos, {6})
+		local _,node = Shaft:get_node(pos, 6)
+		if node.name == "air" then
+			local facedir = hyperloop.get_facedir(placer)
+			Elevators:set(pos, "<unknown>", {facedir=facedir, busy=false})
+			
+			Shaft:after_place_node(pos, {5})
+			
+			-- formspec
+			local meta = minetest.get_meta(pos)
+			local formspec = "size[6,4]"..
+			"label[0,0;"..S("Please insert floor name").."]" ..
+			"field[0.5,1.5;5,1;floor;"..S("Floor name")..";"..S("Base").."]" ..
+			"button_exit[2,3;2,1;exit;"..S("Save").."]"
+			meta:set_string("formspec", formspec)
+			
+			-- add upper part of the car
+			pos = Shaft:get_pos(pos, 6)
+			minetest.add_node(pos, {name="hyperloop:elevator_top", param2=facedir})
+			Shaft:after_place_node(pos, {6})
+		else
+			minetest.remove_node(pos)
+			return true	
+		end
 	end,
 
 	on_receive_fields = function(pos, formname, fields, player)
