@@ -66,7 +66,8 @@ else
 	hyperloop.wifi_enabled = minetest.settings:get_bool("hyperloop_wifi_enabled")
 	hyperloop.wifi_crafting_enabled = minetest.settings:get_bool("hyperloop_wifi_crafting_enabled")
 	hyperloop.free_tube_placement_enabled = minetest.settings:get_bool("hyperloop_free_tube_placement_enabled", true)
-	
+        hyperloop.subnet_enabled = minetest.settings:get_bool("hyperloop_subnet_enabled")
+
 	dofile(minetest.get_modpath("hyperloop") .. "/network.lua")
 	dofile(minetest.get_modpath("hyperloop") .. "/data_base.lua")
 	dofile(minetest.get_modpath("hyperloop") .. "/booking.lua")
