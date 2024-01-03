@@ -74,7 +74,7 @@ local function on_arrival(tDeparture, tArrival, player_name, sound)
 		if val1 ~= nil and val2 ~= nil then
 			local offs = val1 - val2
 			local yaw = hyperloop.facedir_to_rad(tArrival.facedir) - offs
-			player:set_look_yaw(yaw)
+			player:set_look_horizontal()(yaw)
 		end
 		-- set player name again
 		if PlayerNameTags[player_name] then

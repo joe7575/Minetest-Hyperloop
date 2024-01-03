@@ -138,7 +138,7 @@ local prepare_writing = function(pos)
 		{x = pos.x + lcd_info.delta.x,
 		 y = pos.y + lcd_info.delta.y,
 		 z = pos.z + lcd_info.delta.z}, "hyperloop_lcd:text")
-	text:setyaw(lcd_info.yaw or 0)
+	text:set_yaw(lcd_info.yaw or 0)
 	--* text:setpitch(lcd_info.yaw or 0)
 	return text
 end
