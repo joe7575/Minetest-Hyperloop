@@ -48,9 +48,9 @@ local function generate_string(sortedList)
 
 		tRes[#tRes+1] = "label[0,"..ypos..";"..idx.."]"
 		tRes[#tRes+1] = "label[0.7,"..ypos..";"..distance.." m]"
-		tRes[#tRes+1] = "label[1.8,"..ypos..";"..string.sub(name,1,24).."]"
+		tRes[#tRes+1] = "label[1.8,"..ypos..";"..minetest.formspec_escape(string.sub(name,1,24)).."]"
 		tRes[#tRes+1] = "label[5.4,"..ypos..";"..SP(dataSet.pos).."]"
-		tRes[#tRes+1] = "label[7.9,"..ypos..";"..string.sub(owner,1,14).."]"
+		tRes[#tRes+1] = "label[7.9,"..ypos..";"..minetest.formspec_escape(string.sub(owner,1,14)).."]"
 		tRes[#tRes+1] = "label[10,"..ypos..";"
 		for dir,conn in pairs(dataSet.conn) do
 			if conn and lStationPositions[conn] then

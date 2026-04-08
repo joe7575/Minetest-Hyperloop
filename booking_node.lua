@@ -174,7 +174,7 @@ local function on_receive_fields(pos, formname, fields, player)
 			-- add subnet name if available
 			local subnet = string.trim(fields.subnet or "")
 			if subnet == "" then
-				subnet = nil
+				subnet = "nil"  -- use string "nil" so Network:update actually clears the field
 			end
 			-- store meta and generate station formspec
 			Stations:update(stationPos, {
@@ -223,6 +223,7 @@ local function on_destruct(pos)
 			booking_pos = "nil",
 			booking_info = "nil",
 			name = "Station",
+			subnet = "nil",
 		})
 	end
 end
